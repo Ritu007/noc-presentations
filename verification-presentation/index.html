@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NoC Simulator — Verification &amp; Validation</title>
+<meta name="description" content="Interactive walkthrough of the NoC Simulator's Verification & Validation process: the IEEE Std 1012 V&V lifecycle, documentation flow, testing methodology, bug taxonomy, RTL-free validation methods, formal verification tools, the practical toolchain, and the complete 11-stage pipeline.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════
+     LANDING VIEW (Title Slide Modal)
+══════════════════════════════════════════════════════════════ -->
+<div id="landing-view">
+  <a class="landing-toc-link" href="../index.html?end=1">← Table of Contents</a>
+  <div class="landing-inner">
+    <div class="landing-title-block">
+      <div class="landing-title">Verification and Validation of Software Modules</div>
+      <div class="landing-subtitle">C-DAC NoC Simulator</div>
+    </div>
+    <div class="landing-continue-row">
+      <button class="landing-start-btn" onclick="Landing.enter(0)">Start Presentation →</button>
+    </div>
+    <div class="landing-list">
+      <div class="landing-card" onclick="Landing.enter(0)">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-cyan), var(--col-blue))">⬡</div>
+        <div class="landing-card-text">
+          <div class="landing-card-name">01. IEEE Standard V&amp;V Lifecycle</div>
+          <div class="landing-card-desc">SDLC phases paired with their IEEE Std 1012 V&amp;V counterparts, closed by feedback loops and anomaly reporting.</div>
+        </div>
+        <div class="landing-card-arrow">→</div>
+      </div>
+      <div class="landing-card" onclick="Landing.enter(1)">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-purple), var(--col-pink))">◆</div>
+        <div class="landing-card-text">
+          <div class="landing-card-name">02. Standard Testing Methodology</div>
+          <div class="landing-card-desc">The 5-stage bottom-up testing ladder: Unit → Integration → System testing.</div>
+        </div>
+        <div class="landing-card-arrow">→</div>
+      </div>
+      <div class="landing-card" onclick="Landing.enter(2)">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-orange), var(--col-yellow))">⚠</div>
+        <div class="landing-card-text">
+          <div class="landing-card-name">03. Taxonomy of Failure</div>
+          <div class="landing-card-desc">Possible bugs split into Core Logic &amp; Concurrency Bugs, Memory Bugs, and Timing Bugs.</div>
+        </div>
+        <div class="landing-card-arrow">→</div>
+      </div>
+      <div class="landing-card" onclick="Landing.enter(3)">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-green), var(--col-teal))">⚖</div>
+        <div class="landing-card-text">
+          <div class="landing-card-name">04. Validation Methods without RTL</div>
+          <div class="landing-card-desc">Analytical Method, Published Results, and Other Simulator cross-checks.</div>
+        </div>
+        <div class="landing-card-arrow">→</div>
+      </div>
+      <div class="landing-card" onclick="Landing.enter(4)">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-pink), var(--col-purple))">∴</div>
+        <div class="landing-card-text">
+          <div class="landing-card-name">05. Formal Verification Tools</div>
+          <div class="landing-card-desc">SPIN/Promela, Channel Dependency Graph, TLA+, and CBMC — matched to what each proves.</div>
+        </div>
+        <div class="landing-card-arrow">→</div>
+      </div>
+      <div class="landing-card" onclick="Landing.enter(5)">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-yellow), var(--col-orange))">⚙</div>
+        <div class="landing-card-text">
+          <div class="landing-card-name">06. The Verification Toolchain</div>
+          <div class="landing-card-desc">GTest, RapidCheck, ASan/UBSan, and lcov — wired into CI as an automatic gate.</div>
+        </div>
+        <div class="landing-card-arrow">→</div>
+      </div>
+      <div class="landing-card" onclick="Landing.enter(6)">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-teal), var(--col-cyan))">✓</div>
+        <div class="landing-card-text">
+          <div class="landing-card-name">07. The Complete Picture</div>
+          <div class="landing-card-desc">All 11 stages, end to end — from Requirements to a Trusted simulator.</div>
+        </div>
+        <div class="landing-card-arrow">→</div>
+      </div>
+
+      <div class="landing-divider">Other Presentations</div>
+
+      <a class="landing-card" href="../hardware-presentation/index.html">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-purple), var(--col-blue))">⬡</div>
+        <div class="landing-card-text">
+          <div class="landing-card-name">Hardware Architecture &amp; Router Design</div>
+          <div class="landing-card-desc">CHI protocol nodes, the 6-port router, buffer sizing, and the 5-stage data path.</div>
+        </div>
+        <div class="landing-card-arrow">↗</div>
+      </a>
+      <a class="landing-card" href="../presentation/index.html">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-cyan), var(--col-blue))">⬡</div>
+        <div class="landing-card-text">
+          <div class="landing-card-name">System Architecture &amp; Execution Flow</div>
+          <div class="landing-card-desc">System architecture, event scheduler, flit lifecycle, router pipeline, and CHI channels.</div>
+        </div>
+        <div class="landing-card-arrow">↗</div>
+      </a>
+      <a class="landing-card" href="../sdlc-presentation/index.html">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-orange), var(--col-yellow))">☑</div>
+        <div class="landing-card-text">
+          <div class="landing-card-name">Software Development Lifecycle</div>
+          <div class="landing-card-desc">Requirement gathering &amp; analysis, system design, and development &amp; coding status.</div>
+        </div>
+        <div class="landing-card-arrow">↗</div>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     HEADER BAR
+══════════════════════════════════════════════════════════════ -->
+<header id="app-header">
+  <div class="brand">
+    <div class="brand-icon">✓</div>
+    <h1>NoC Simulator — Verification &amp; Validation</h1>
+    <span class="chi-badge">CHI-Based NoC Simulator</span>
+  </div>
+  <div class="hdr-center" id="hdr-stage-info" style="display:none;"></div>
+  <div class="phase-pill" id="phase-pill">
+    <span class="phase-dot"></span>
+    <span>Software Quality &amp; V&amp;V</span>
+  </div>
+</header>
+
+<!-- ══════════════════════════════════════════════════════════════
+     LEFT NAVIGATOR
+══════════════════════════════════════════════════════════════ -->
+<nav id="stage-nav" aria-label="Verification & Validation Presentation Pages">
+  <a href="javascript:void(0)" class="back-menu-link" onclick="Landing.show()">← Back to Main Menu</a>
+
+  <div class="nav-group-label">V&amp;V Pages</div>
+
+  <button class="nav-item active" id="nav-0" onclick="App.goToPage(0)">
+    <div class="nav-status-icon" id="nav-st-0"></div>
+    <div class="nav-text"><div class="nav-num">01</div><div class="nav-name">IEEE V&amp;V Lifecycle</div></div>
+    <div class="nav-color-dot" style="background:var(--col-cyan)"></div>
+  </button>
+
+  <button class="nav-item" id="nav-1" onclick="App.goToPage(1)">
+    <div class="nav-status-icon" id="nav-st-1"></div>
+    <div class="nav-text"><div class="nav-num">02</div><div class="nav-name">Testing Methodology</div></div>
+    <div class="nav-color-dot" style="background:var(--col-purple)"></div>
+  </button>
+
+  <button class="nav-item" id="nav-2" onclick="App.goToPage(2)">
+    <div class="nav-status-icon" id="nav-st-2"></div>
+    <div class="nav-text"><div class="nav-num">03</div><div class="nav-name">Taxonomy of Failure</div></div>
+    <div class="nav-color-dot" style="background:var(--col-orange)"></div>
+  </button>
+
+  <button class="nav-item" id="nav-3" onclick="App.goToPage(3)">
+    <div class="nav-status-icon" id="nav-st-3"></div>
+    <div class="nav-text"><div class="nav-num">04</div><div class="nav-name">Validation w/o RTL</div></div>
+    <div class="nav-color-dot" style="background:var(--col-green)"></div>
+  </button>
+
+  <button class="nav-item" id="nav-4" onclick="App.goToPage(4)">
+    <div class="nav-status-icon" id="nav-st-4"></div>
+    <div class="nav-text"><div class="nav-num">05</div><div class="nav-name">Formal Verification Tools</div></div>
+    <div class="nav-color-dot" style="background:var(--col-pink)"></div>
+  </button>
+
+  <button class="nav-item" id="nav-5" onclick="App.goToPage(5)">
+    <div class="nav-status-icon" id="nav-st-5"></div>
+    <div class="nav-text"><div class="nav-num">06</div><div class="nav-name">Verification Toolchain</div></div>
+    <div class="nav-color-dot" style="background:var(--col-yellow)"></div>
+  </button>
+
+  <button class="nav-item" id="nav-6" onclick="App.goToPage(6)">
+    <div class="nav-status-icon" id="nav-st-6"></div>
+    <div class="nav-text"><div class="nav-num">07</div><div class="nav-name">The Complete Picture</div></div>
+    <div class="nav-color-dot" style="background:var(--col-teal)"></div>
+  </button>
+
+  <div class="nav-kbd-hint">
+    <span class="kbd">←</span><span class="kbd">→</span> navigate &nbsp;·&nbsp;
+    <span class="kbd">Space</span> play
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════════
+     MAIN CANVAS (Interactive Views)
+══════════════════════════════════════════════════════════════ -->
+<main id="main-canvas">
+  <div id="canvas-header" class="canvas-header"></div>
+
+  <!-- ── VIEW 0: IEEE STANDARD V&V LIFECYCLE ── -->
+  <div id="view-0" class="canvas-view active">
+    <div class="vv-flow">
+      <div class="vv-row-labels">
+        <div class="vv-label-top">SDLC Phases</div>
+        <div class="vv-label-spacer"></div>
+        <div class="vv-label-bottom">V&amp;V Stages</div>
+      </div>
+      <div class="vv-col vv-focusable" data-topic="concept">
+        <div class="vv-sdlc-box" style="--c:var(--col-cyan)">Concept / Needs</div>
+        <div class="vv-arrow-down">↓</div>
+        <div class="vv-card" style="--c:var(--col-cyan)">
+          <div class="vv-card-hdr">Concept V&amp;V</div>
+          <ul class="vv-bullets">
+            <li>Concept Plan</li>
+            <li>Feasibility</li>
+            <li>Risk / Hazard Analysis</li>
+            <li>Develop SVVP</li>
+          </ul>
+        </div>
+      </div>
+      <div class="vv-arrow-right">→</div>
+      <div class="vv-col vv-focusable" data-topic="requirements">
+        <div class="vv-sdlc-box" style="--c:var(--col-blue)">Requirements</div>
+        <div class="vv-arrow-down">↓</div>
+        <div class="vv-card" style="--c:var(--col-blue)">
+          <div class="vv-card-hdr">Requirements V&amp;V</div>
+          <ul class="vv-bullets">
+            <li>Traceability Analysis (System → Needs)</li>
+            <li>Requirement Evaluation (Completeness, Consistency)</li>
+            <li>Interface Analysis</li>
+          </ul>
+        </div>
+      </div>
+      <div class="vv-arrow-right">→</div>
+      <div class="vv-col vv-focusable" data-topic="design">
+        <div class="vv-sdlc-box" style="--c:var(--col-purple)">Architecture / Design</div>
+        <div class="vv-arrow-down">↓</div>
+        <div class="vv-card" style="--c:var(--col-purple)">
+          <div class="vv-card-hdr">Design V&amp;V</div>
+          <ul class="vv-bullets">
+            <li>Architecture V&amp;V</li>
+            <li>Detailed Design V&amp;V</li>
+            <li>Interface Analysis</li>
+            <li>Test Plan V&amp;V</li>
+          </ul>
+        </div>
+      </div>
+      <div class="vv-arrow-right">→</div>
+      <div class="vv-col vv-focusable" data-topic="implementation">
+        <div class="vv-sdlc-box" style="--c:var(--col-orange)">Implementation</div>
+        <div class="vv-arrow-down">↓</div>
+        <div class="vv-card" style="--c:var(--col-orange)">
+          <div class="vv-card-hdr">Implementation V&amp;V</div>
+          <ul class="vv-bullets">
+            <li>Code/RTL Review</li>
+            <li>Unit Tests</li>
+            <li>Traceability (Code → Design)</li>
+            <li>Static Analysis</li>
+          </ul>
+        </div>
+      </div>
+      <div class="vv-arrow-right">→</div>
+      <div class="vv-col vv-focusable" data-topic="integration">
+        <div class="vv-sdlc-box" style="--c:var(--col-green)">Integration &amp; Test</div>
+        <div class="vv-arrow-down">↓</div>
+        <div class="vv-card" style="--c:var(--col-green)">
+          <div class="vv-card-hdr">Integration &amp; Acceptance V&amp;V</div>
+          <ul class="vv-bullets">
+            <li>Qualification Testing</li>
+            <li>User Acceptance Testing</li>
+            <li>System Validation</li>
+            <li>Installation V&amp;V</li>
+          </ul>
+        </div>
+      </div>
+      <div class="vv-arrow-right">→</div>
+      <div class="vv-col vv-focusable" data-topic="maintenance">
+        <div class="vv-sdlc-box" style="--c:var(--col-pink)">Operation &amp; Maint.</div>
+        <div class="vv-arrow-down">↓</div>
+        <div class="vv-card" style="--c:var(--col-pink)">
+          <div class="vv-card-hdr">Maintenance V&amp;V</div>
+          <ul class="vv-bullets">
+            <li>Impact &amp; Regression Analysis</li>
+            <li>Re-verification &amp; Re-validation</li>
+            <li>Upgrade V&amp;V</li>
+            <li>Problem Report V&amp;V</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="vv-feedback-bar">
+      <div class="fb-arrow left">←</div>
+      <div class="fb-text">Feedback Loops &amp; Anomaly Reporting</div>
+    </div>
+  </div>
+
+  <!-- ── VIEW 2: STANDARD TESTING METHODOLOGY ── -->
+  <div id="view-2" class="canvas-view">
+    <div class="doc-flow">
+      <div class="doc-step vv-focusable" data-topic="srs" onclick="App.setTopic('srs')">
+        <div class="doc-num">1</div>
+        <div class="doc-text">
+          <div class="doc-title">Analyse Software Requirement Specification</div>
+          <div class="doc-desc">Review the requirements to derive system-level test cases and acceptance criteria.</div>
+        </div>
+      </div>
+      <div class="doc-connector">↓</div>
+      <div class="doc-step vv-focusable" data-topic="sdd" onclick="App.setTopic('sdd')">
+        <div class="doc-num">2</div>
+        <div class="doc-text">
+          <div class="doc-title">Analyse Software Design Documentation</div>
+          <div class="doc-desc">Review the architecture, modules, and interfaces to derive integration-level test cases.</div>
+        </div>
+      </div>
+      <div class="doc-connector">↓</div>
+      <div class="doc-step vv-focusable" data-topic="unit" onclick="App.setTopic('unit')">
+        <div class="doc-num">3</div>
+        <div class="doc-text">
+          <div class="doc-title">Unit Testing of Implemented Code</div>
+          <div class="doc-desc">Translates design into code and verifies each component in isolation.</div>
+        </div>
+      </div>
+      <div class="doc-connector">↓</div>
+      <div class="doc-step vv-focusable" data-topic="integ" onclick="App.setTopic('integ')">
+        <div class="doc-num">4</div>
+        <div class="doc-text">
+          <div class="doc-title">Integration Testing</div>
+          <div class="doc-desc">Combines individual modules to ensure they communicate correctly together.</div>
+        </div>
+      </div>
+      <div class="doc-connector">↓</div>
+      <div class="doc-step vv-focusable" data-topic="system" onclick="App.setTopic('system')">
+        <div class="doc-num">5</div>
+        <div class="doc-text">
+          <div class="doc-title">System Testing</div>
+          <div class="doc-desc">Validates the fully assembled software against the original end-to-end requirements.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── VIEW 3: TAXONOMY OF FAILURE ── -->
+  <div id="view-3" class="canvas-view">
+    <div class="tree-diagram">
+      <div class="tree-root">Possible Bugs</div>
+      <div class="tree-branches">
+        <div class="tree-branch vv-focusable" data-topic="core" onclick="App.setTopic('core')">
+          <div class="tree-branch-hdr">Core Logic &amp; Concurrency Bugs</div>
+          <div class="tree-leaves">
+            <div class="tree-leaf">Core logic bug</div>
+            <div class="tree-leaf">Deadlock</div>
+            <div class="tree-leaf">Livelock</div>
+            <div class="tree-leaf">Starvation</div>
+          </div>
+        </div>
+        <div class="tree-branch vv-focusable" data-topic="other" onclick="App.setTopic('other')">
+          <div class="tree-leaves" style="margin-top:2.05rem">
+            <div class="tree-leaf lone">Memory Bugs</div>
+            <div class="tree-leaf lone">Timing Bugs</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── VIEW 4: VALIDATION METHODS WITHOUT RTL ── -->
+  <div id="view-4" class="canvas-view">
+    <div class="method-card-row">
+      <div class="method-card vv-focusable" data-topic="analytical" onclick="App.setTopic('analytical')">
+        <div class="method-icon">Σ</div>
+        <div class="method-title">Analytical Method</div>
+        <div class="method-desc">Compares against queueing math to verify zero-load latency and maximum throughput, while enforcing Little's Law and Flit/Credit Conservation (zero flit drops or credit leaks).</div>
+      </div>
+      <div class="method-card vv-focusable" data-topic="published" onclick="App.setTopic('published')">
+        <div class="method-icon">▤</div>
+        <div class="method-title">Published Results</div>
+        <div class="method-desc">Replicates published paper setups to check if latency/throughput curves match.</div>
+      </div>
+      <div class="method-card vv-focusable" data-topic="simulator" onclick="App.setTopic('simulator')">
+        <div class="method-icon">⇄</div>
+        <div class="method-title">Other Simulator</div>
+        <div class="method-desc">Runs identical traffic on established tools (BookSim, Garnet) to spot timing discrepancies.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── VIEW 5: FORMAL VERIFICATION TOOLS ── -->
+  <div id="view-5" class="canvas-view">
+    <div class="vv-table">
+      <div class="vv-table-hdr"><div>Tool</div><div>What It Proves</div></div>
+      <div class="vv-table-row vv-focusable" data-topic="spin" onclick="App.setTopic('spin')">
+        <div class="vv-tool-name">SPIN / Promela</div>
+        <div class="vv-tool-proof">Model-checks concurrent protocols for deadlock and liveness.</div>
+      </div>
+      <div class="vv-table-row vv-focusable" data-topic="cdg" onclick="App.setTopic('cdg')">
+        <div class="vv-tool-name">Channel Dependency Graph</div>
+        <div class="vv-tool-proof">Proves a routing algorithm is deadlock-free by design.</div>
+      </div>
+      <div class="vv-table-row vv-focusable" data-topic="tla" onclick="App.setTopic('tla')">
+        <div class="vv-tool-name">TLA+</div>
+        <div class="vv-tool-proof">Specifies and verifies system-level state machines.</div>
+      </div>
+      <div class="vv-table-row vv-focusable" data-topic="cbmc" onclick="App.setTopic('cbmc')">
+        <div class="vv-tool-name">CBMC</div>
+        <div class="vv-tool-proof">Bounded model-checks the actual C/C++ source directly.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── VIEW 6: THE VERIFICATION TOOLCHAIN ── -->
+  <div id="view-6" class="canvas-view">
+    <div class="toolchain-grid">
+      <div class="tool-chip vv-focusable" data-topic="gtest" onclick="App.setTopic('gtest')">
+        <div class="tool-chip-name">GTest</div>
+        <div class="tool-chip-desc">The unit-test framework that structures and runs every test case.</div>
+      </div>
+      <div class="tool-chip vv-focusable" data-topic="asan" onclick="App.setTopic('asan')">
+        <div class="tool-chip-name">ASan / UBSan</div>
+        <div class="tool-chip-desc">Sanitizers that catch memory and undefined-behavior bugs at runtime.</div>
+      </div>
+      <div class="tool-chip vv-focusable" data-topic="rapidcheck" onclick="App.setTopic('rapidcheck')">
+        <div class="tool-chip-name">RapidCheck</div>
+        <div class="tool-chip-desc">Drives property-based testing with generated random inputs.</div>
+      </div>
+      <div class="tool-chip vv-focusable" data-topic="lcov" onclick="App.setTopic('lcov')">
+        <div class="tool-chip-name">lcov</div>
+        <div class="tool-chip-desc">Measures code coverage so untested paths become visible.</div>
+      </div>
+    </div>
+    <div class="callout-box">Wired into continuous integration, these tools turn verification from a manual chore into an automatic gate on every code change.</div>
+  </div>
+
+  <!-- ── VIEW 7: THE COMPLETE PICTURE ── -->
+  <div id="view-7" class="canvas-view">
+    <div class="stage-grid">
+      <div class="stage-chip vv-focusable" data-topic="s1" onclick="App.setTopic('s1')"><span class="stage-num">01</span>Requirements</div>
+      <div class="stage-chip vv-focusable" data-topic="s2" onclick="App.setTopic('s2')"><span class="stage-num">02</span>Specification</div>
+      <div class="stage-chip vv-focusable" data-topic="s3" onclick="App.setTopic('s3')"><span class="stage-num">03</span>Unit testing</div>
+      <div class="stage-chip vv-focusable" data-topic="s4" onclick="App.setTopic('s4')"><span class="stage-num">04</span>Integration</div>
+      <div class="stage-chip vv-focusable" data-topic="s5" onclick="App.setTopic('s5')"><span class="stage-num">05</span>System testing</div>
+      <div class="stage-chip vv-focusable" data-topic="s6" onclick="App.setTopic('s6')"><span class="stage-num">06</span>Property testing</div>
+      <div class="stage-chip vv-focusable" data-topic="s7" onclick="App.setTopic('s7')"><span class="stage-num">07</span>Cycle accuracy</div>
+      <div class="stage-chip vv-focusable" data-topic="s8" onclick="App.setTopic('s8')"><span class="stage-num">08</span>Validation</div>
+      <div class="stage-chip vv-focusable" data-topic="s9" onclick="App.setTopic('s9')"><span class="stage-num">09</span>Formal methods</div>
+      <div class="stage-chip vv-focusable" data-topic="s10" onclick="App.setTopic('s10')"><span class="stage-num">10</span>Coverage review</div>
+      <div class="stage-chip vv-focusable" data-topic="s11" onclick="App.setTopic('s11')"><span class="stage-num">11</span>Sign-off</div>
+      <div class="stage-chip stage-final">Trusted simulator</div>
+    </div>
+  </div>
+</main>
+
+<!-- ══════════════════════════════════════════════════════════════
+     NOW BAND (readable description)
+══════════════════════════════════════════════════════════════ -->
+<div id="now-band">
+  <div id="band-body"><!-- populated by JS --></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     DETAILS PANEL (RIGHT)
+══════════════════════════════════════════════════════════════ -->
+<aside id="details-panel">
+  <div id="details-body"><!-- populated by JS --></div>
+</aside>
+
+<!-- ══════════════════════════════════════════════════════════════
+     CONTROL BAR
+══════════════════════════════════════════════════════════════ -->
+<footer id="control-bar">
+  <div class="prog-row">
+    <div class="prog-pips" id="prog-pips"></div>
+    <div class="prog-lbl" id="prog-lbl">
+      Step <span id="prog-num">1</span> of <span id="prog-total">7</span> &nbsp;·&nbsp;
+      <span id="prog-name">IEEE Standard V&amp;V Lifecycle</span>
+    </div>
+  </div>
+  <div class="ctrl-btns">
+    <button class="ctrl-btn reset-btn" id="btn-reset" onclick="App.reset()">↺ Reset</button>
+    <button class="ctrl-btn prev-btn"  id="btn-prev"  onclick="App.prev()" disabled>⬅ Prev</button>
+    <button class="ctrl-btn play-btn"  id="btn-play"  onclick="App.togglePlay()">▶ Play</button>
+    <button class="ctrl-btn next-btn"  id="btn-next"  onclick="App.next()">Next ➔</button>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

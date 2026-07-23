@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CHI NoC — Flit Lifecycle Interactive Presentation</title>
+  <meta name="description" content="Interactive step-by-step visualization of the complete flit lifecycle in a CHI-based Network-on-Chip simulator: Creation, Injection, Router Pipeline (IQ→RC→VA→SA→ST), Inter-Router Transfer via CHILink, LocalLink Ejection, and TrafficManager Retirement.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════
+     HEADER
+══════════════════════════════════════════════════════════════ -->
+<header id="app-header">
+  <div class="brand">
+    <div class="brand-icon">⬡</div>
+    <h1>CHI NoC — Flit Lifecycle</h1>
+    <span class="chi-badge">CHI-Based NoC Simulator</span>
+  </div>
+  <div class="hdr-center" id="hdr-stage-info">
+    Stage <span id="hdr-num">1</span>.<span id="hdr-subnum">1</span> of 6
+    &nbsp;·&nbsp;
+    <span id="hdr-name">Flit Creation</span>
+    <span id="hdr-subname-badge" class="substep-badge">Inject Trigger</span>
+  </div>
+  <div class="phase-pill" id="phase-pill">
+    <span class="phase-dot"></span>
+    <span id="phase-text">SimPhase::Running</span>
+  </div>
+</header>
+
+<!-- ══════════════════════════════════════════════════════════════
+     LEFT NAVIGATOR
+══════════════════════════════════════════════════════════════ -->
+<nav id="stage-nav" aria-label="Lifecycle stages">
+  <a href="index.html" class="back-menu-link">← Back to Main Menu</a>
+
+  <div class="flow-switch">
+    <div class="flow-switch-lbl">Switch Flow</div>
+    <a class="flow-switch-item fs-blue" href="index.html?flow=architecture">System Architecture</a>
+    <a class="flow-switch-item fs-cyan current" href="flit-lifecycle.html">Flit Lifecycle</a>
+    <a class="flow-switch-item fs-purple" href="router-pipeline.html">Router Pipeline</a>
+    <a class="flow-switch-item fs-orange" href="chi-channel-architecture.html">CHI Channels</a>
+  </div>
+
+  <div class="nav-group-label">Lifecycle Stages</div>
+
+  <button class="nav-item active" id="nav-0" onclick="App.goTo(0)">
+    <div class="nav-status-icon" id="nav-st-0"></div>
+    <div class="nav-text">
+      <div class="nav-num">01</div>
+      <div class="nav-name">Flit Creation</div>
+    </div>
+    <div class="nav-color-dot" style="background:var(--col-cyan)"></div>
+  </button>
+
+  <button class="nav-item" id="nav-1" onclick="App.goTo(1)">
+    <div class="nav-status-icon" id="nav-st-1"></div>
+    <div class="nav-text">
+      <div class="nav-num">02</div>
+      <div class="nav-name">Flit Injection</div>
+    </div>
+    <div class="nav-color-dot" style="background:var(--col-blue)"></div>
+  </button>
+
+  <button class="nav-item" id="nav-2" onclick="App.goTo(2)">
+    <div class="nav-status-icon" id="nav-st-2"></div>
+    <div class="nav-text">
+      <div class="nav-num">03</div>
+      <div class="nav-name">Router Pipeline</div>
+    </div>
+    <div class="nav-color-dot" style="background:var(--col-purple)"></div>
+  </button>
+
+  <!-- Pipeline sub-nav (collapsed unless stage 3 active) -->
+  <div class="nav-sub-list" id="pipe-subnav">
+    <button class="nav-sub-item" id="psn-0" onclick="App.selectPipe(0)">IQ — Input Queuing</button>
+    <button class="nav-sub-item" id="psn-1" onclick="App.selectPipe(1)">RC — Route Compute</button>
+    <button class="nav-sub-item" id="psn-2" onclick="App.selectPipe(2)">VA — VC Allocation</button>
+    <button class="nav-sub-item" id="psn-3" onclick="App.selectPipe(3)">SA — Switch Allocation</button>
+    <button class="nav-sub-item" id="psn-4" onclick="App.selectPipe(4)">ST — Switch Traversal</button>
+  </div>
+
+  <!-- Expand Flow button — links to standalone router-pipeline.html -->
+  <button class="nav-expand-flow" id="btn-expand-flow"
+          onclick="window.location.href='router-pipeline.html'"
+          title="Open the Evaluate &amp; Update phase animation in a new tab">
+    <span class="expand-flow-icon">⚙</span>
+    <span class="expand-flow-label">Expand Flow</span>
+    <span class="expand-flow-arrow">↗</span>
+  </button>
+
+  <button class="nav-item" id="nav-3" onclick="App.goTo(3)">
+    <div class="nav-status-icon" id="nav-st-3"></div>
+    <div class="nav-text">
+      <div class="nav-num">04</div>
+      <div class="nav-name">Inter-Router Transfer</div>
+    </div>
+    <div class="nav-color-dot" style="background:var(--col-orange)"></div>
+  </button>
+
+  <button class="nav-item" id="nav-4" onclick="App.goTo(4)">
+    <div class="nav-status-icon" id="nav-st-4"></div>
+    <div class="nav-text">
+      <div class="nav-num">05</div>
+      <div class="nav-name">Flit Ejection</div>
+    </div>
+    <div class="nav-color-dot" style="background:var(--col-green)"></div>
+  </button>
+
+  <button class="nav-item" id="nav-5" onclick="App.goTo(5)">
+    <div class="nav-status-icon" id="nav-st-5"></div>
+    <div class="nav-text">
+      <div class="nav-num">06</div>
+      <div class="nav-name">Flit Retirement</div>
+    </div>
+    <div class="nav-color-dot" style="background:var(--col-pink)"></div>
+  </button>
+
+  <!-- Keyboard shortcut hint -->
+  <div class="nav-kbd-hint">
+    <span class="kbd">←</span><span class="kbd">→</span> navigate &nbsp;·&nbsp;
+    <span class="kbd">Space</span> play
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════════
+     MAIN CANVAS
+══════════════════════════════════════════════════════════════ -->
+<main id="main-canvas">
+
+  <!-- ── NETWORK VIEW (stages 1,2,4,5,6) & PIPELINE VIEW (stage 3) ── -->
+  <div id="network-view" class="view-mode-net">
+    <svg id="net-svg" viewBox="0 0 1150 580" xmlns="http://www.w3.org/2000/svg"
+         aria-label="CHI NoC Flit Lifecycle Visualization Canvas">
+
+      <defs>
+        <filter id="glow-c" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="4" result="b"/>
+          <feComposite in="SourceGraphic" in2="b" operator="over"/>
+        </filter>
+      </defs>
+
+      <!-- ══════════════════════════════════════════════════════════════
+           GROUP A: NETWORK MESH VIEW MODE (Stages 1, 2, 4, 5, 6)
+      ══════════════════════════════════════════════════════════════ -->
+      <g id="net-mesh-view-group">
+
+        <!-- Global Tracking Queues -->
+        <g id="global-tracking-queues" transform="translate(20, 20)">
+          <g id="queue-total-in-flight">
+            <rect x="0" y="0" width="160" height="50" rx="6" class="queue-bg"/>
+            <text x="80" y="14" class="queue-lbl">total_in_flight_flits</text>
+            <rect id="q-slot-total-flight" x="60" y="22" width="40" height="20" rx="3" class="q-slot"/>
+          </g>
+          <g id="queue-measured-in-flight" transform="translate(170, 0)">
+            <rect x="0" y="0" width="160" height="50" rx="6" class="queue-bg"/>
+            <text x="80" y="14" class="queue-lbl">measured_in_flight_flits</text>
+            <rect id="q-slot-measured-flight" x="60" y="22" width="40" height="20" rx="3" class="q-slot"/>
+          </g>
+        </g>
+
+        <!-- Stats Calculation Box -->
+        <g id="stats-calc-box" transform="translate(960, 15)" opacity="0">
+          <rect x="0" y="0" width="160" height="80" rx="8" class="mod-box act"/>
+          <text x="80" y="18" class="mod-title act">Stats Calculator</text>
+          <rect x="10" y="28" width="140" height="42" rx="4" fill="#0f172a"/>
+          <text id="stats-lbl-latency" x="20" y="42" fill="#38bdf8" font-family="monospace" font-size="9" text-anchor="start">latency: calculating...</text>
+          <text id="stats-lbl-hops" x="20" y="58" fill="#38bdf8" font-family="monospace" font-size="9" text-anchor="start">hops: calculating...</text>
+        </g>
+
+        <!-- Stage 1 External Modules (InjectionProcess, TrafficPattern, RecyclingPool) -->
+        <g id="stg1-modules-group" transform="translate(0, 15)">
+
+          <!-- Module 1: InjectionProcess -->
+          <g id="mod-inject-proc" transform="translate(390,0)">
+            <rect x="0" y="0" width="170" height="58" rx="8" class="mod-box"/>
+            <text x="85" y="18" class="mod-title">InjectionProcess</text>
+            <text x="85" y="32" class="mod-sub">Bernoulli / OnOff Test()</text>
+            <rect id="mod-ip-badge" x="40" y="38" width="90" height="15" rx="3" class="mod-badge-idle"/>
+            <text id="mod-ip-badge-txt" x="85" y="49" class="mod-badge-txt">Test() idle</text>
+          </g>
+
+          <!-- Module 2: TrafficPattern -->
+          <g id="mod-traffic-pattern" transform="translate(570,0)">
+            <rect x="0" y="0" width="170" height="58" rx="8" class="mod-box"/>
+            <text x="85" y="18" class="mod-title">TrafficPattern</text>
+            <text x="85" y="32" class="mod-sub">UniformRandom Dest()</text>
+            <rect id="mod-tp-badge" x="40" y="38" width="90" height="15" rx="3" class="mod-badge-idle"/>
+            <text id="mod-tp-badge-txt" x="85" y="49" class="mod-badge-txt">Dest() idle</text>
+          </g>
+
+          <!-- Module 3: Flit Recycling Pool -->
+          <g id="mod-recycling-pool" transform="translate(750,0)">
+            <rect x="0" y="0" width="170" height="58" rx="8" class="mod-box pool"/>
+            <text x="85" y="18" class="mod-title pool">RecyclingPool</text>
+            <text x="85" y="32" class="mod-sub">Protocol::AcquireFlit()</text>
+            <text id="mod-pool-count" x="85" y="48" class="mod-pool-lbl">Available: 64 Flits</text>
+          </g>
+
+          <!-- Dynamic Signal Arrows (connecting TM ➔ Modules) -->
+          <path id="sig-arrow-ip" d="M 135 110 L 465 73" class="sig-path" opacity="0"/>
+          <path id="sig-arrow-tp" d="M 135 110 L 640 73" class="sig-path" opacity="0"/>
+          <path id="sig-arrow-pool" d="M 135 110 L 812 73" class="sig-path" opacity="0"/>
+        </g>
+
+        <!-- Channel label on horizontal link -->
+        <text id="h0-ch-label" x="570" y="188" class="ch-link-lbl" opacity="0">REQ · RSP · DAT · SNP</text>
+
+        <!-- Inter-router links -->
+        <line id="lk-h0" x1="527" y1="202.5" x2="613" y2="202.5" class="net-link"/>
+        <line id="lk-h1" x1="505" y1="420"   x2="645" y2="420"   class="net-link"/>
+        <line id="lk-v0" x1="440" y1="260"   x2="440" y2="390"   class="net-link"/>
+        <line id="lk-v1" x1="710" y1="260"   x2="710" y2="390"   class="net-link"/>
+
+        <!-- Local (node) links -->
+        <line id="lk-n0" x1="330" y1="202.5" x2="345" y2="202.5" class="net-link"/>
+        <line id="lk-n1" x1="877" y1="202.5" x2="960" y2="202.5" class="net-link"/>
+        <line id="lk-n2" x1="235" y1="450"   x2="420" y2="420"   class="net-link local-link"/>
+        <line id="lk-n3" x1="906" y1="450"   x2="880" y2="420"   class="net-link local-link"/>
+
+        <!-- LocalLink Module (N0 ➔ R00) -->
+        <g id="mod-locallink" transform="translate(250, 155)">
+          <rect x="0" y="0" width="80" height="95" rx="8" class="locallink-box"/>
+          <text x="40" y="16" class="locallink-title">LocalLink</text>
+          <text x="40" y="28" class="locallink-sub">N₀ ➔ R₀₀</text>
+          <g id="queue-inject-pkg" transform="translate(5, 34)">
+            <rect x="0" y="0" width="44" height="54" rx="5" class="queue-bg"/>
+            <text x="22" y="12" class="queue-lbl" font-size="7">Inj</text>
+            <g id="q-slots-inject" transform="translate(4, 18)">
+              <rect x="0"  y="0"  width="16" height="14" rx="2" class="q-slot"/>
+              <rect x="20" y="0"  width="16" height="14" rx="2" class="q-slot"/>
+              <rect x="0"  y="18" width="16" height="14" rx="2" class="q-slot"/>
+              <rect x="20" y="18" width="16" height="14" rx="2" class="q-slot"/>
+            </g>
+          </g>
+          <g id="queue-local-channel" transform="translate(53, 34)">
+            <rect x="0" y="0" width="22" height="54" rx="5" class="queue-bg"/>
+            <text x="11" y="12" class="queue-lbl" font-size="7">Ch</text>
+            <rect id="q-slot-local-channel" x="3" y="18" width="16" height="30" rx="2" class="q-slot"/>
+          </g>
+        </g>
+
+        <!-- Router R00 Attached Vertical Input Queue (Port 4 LOCAL_0) -->
+        <g id="queue-router-vc" transform="translate(345, 155)">
+          <rect x="0" y="0" width="30" height="95" rx="6" class="queue-bg"/>
+          <text x="15" y="10" class="queue-lbl-v">LOCAL_0 Queue</text>
+          <g id="q-slots-vc" transform="translate(5, 18)">
+            <rect x="0" y="0"  width="20" height="15" rx="2" class="q-slot-v"/>
+            <rect x="0" y="18" width="20" height="15" rx="2" class="q-slot-v"/>
+            <rect x="0" y="36" width="20" height="15" rx="2" class="q-slot-v"/>
+            <rect x="0" y="54" width="20" height="15" rx="2" class="q-slot-v"/>
+          </g>
+        </g>
+
+        <!-- Clean Router Boxes in Network View Mode -->
+        <g id="nd-r00-group">
+          <rect id="rt-r00" x="375" y="145" width="130" height="115" rx="10" class="router-box focus"/>
+          <text id="rl-r00" x="440" y="180" class="svg-lbl router-lbl">R₀₀ Router Core</text>
+          <text       x="440" y="200" class="svg-lbl port-lbl">CHIRouter (4 Ch)</text>
+          
+          <!-- R00 Internal Output Buffer (Right Edge) -->
+          <g id="queue-r00-out-internal" transform="translate(505, 155)">
+            <rect x="0" y="0" width="22" height="95" rx="4" class="queue-bg" fill-opacity="0.3"/>
+            <g id="q-slots-r00-out-internal" transform="translate(3, 18)">
+              <rect x="0" y="0"  width="16" height="15" rx="2" class="q-slot-v"/>
+              <rect x="0" y="18" width="16" height="15" rx="2" class="q-slot-v"/>
+              <rect x="0" y="36" width="16" height="15" rx="2" class="q-slot-v"/>
+              <rect x="0" y="54" width="16" height="15" rx="2" class="q-slot-v"/>
+            </g>
+          </g>
+
+          <!-- External Flit Channel Queue (On Link H0) -->
+          <g id="queue-flit-channel" transform="translate(550, 191)">
+            <rect x="0" y="0" width="40" height="23" rx="4" class="queue-bg"/>
+            <text x="20" y="-5" class="queue-lbl" font-size="6">Ch</text>
+            <rect id="q-slot-flit-channel" x="3" y="2" width="34" height="19" rx="2" class="q-slot"/>
+          </g>
+        </g>
+
+        <g id="nd-r01-group">
+          <!-- WEST input queue before R01: h0 link ends at 613 -->
+          <g id="queue-r01-vc" transform="translate(613, 155)">
+            <rect x="0" y="0" width="28" height="95" rx="6" class="queue-bg"/>
+            <text x="14" y="10" class="queue-lbl-v">WEST</text>
+            <g id="q-slots-r01-vc" transform="translate(4, 18)">
+              <rect x="0" y="0"  width="20" height="15" rx="2" class="q-slot-v"/>
+              <rect x="0" y="18" width="20" height="15" rx="2" class="q-slot-v"/>
+              <rect x="0" y="36" width="20" height="15" rx="2" class="q-slot-v"/>
+              <rect x="0" y="54" width="20" height="15" rx="2" class="q-slot-v"/>
+            </g>
+          </g>
+          <!-- R01 box: 613+28+4=645 -->
+          <rect id="rt-r01" x="645" y="145" width="130" height="115" rx="10" class="router-box focus"/>
+          <text id="rl-r01" x="710" y="180" class="svg-lbl router-lbl">R₀₁ Router Core</text>
+          <text       x="710" y="200" class="svg-lbl port-lbl">CHIRouter (4 Ch)</text>
+
+          <!-- R01 Internal Output Buffer (Right Edge): 645+130=775 -->
+          <g id="queue-r01-out-internal" transform="translate(775, 155)">
+            <rect x="0" y="0" width="22" height="95" rx="4" class="queue-bg" fill-opacity="0.3"/>
+            <g id="q-slots-r01-out-internal" transform="translate(3, 18)">
+              <rect x="0" y="0"  width="16" height="15" rx="2" class="q-slot-v"/>
+              <rect x="0" y="18" width="16" height="15" rx="2" class="q-slot-v"/>
+              <rect x="0" y="36" width="16" height="15" rx="2" class="q-slot-v"/>
+              <rect x="0" y="54" width="16" height="15" rx="2" class="q-slot-v"/>
+            </g>
+          </g>
+
+        </g>
+
+        <!-- LocalLink Module (R01 ➔ N1): 80×95, abuts R01's output buffer at 797 -->
+        <g id="mod-locallink-n1" transform="translate(797, 155)">
+          <rect x="0" y="0" width="80" height="95" rx="8" class="locallink-box"/>
+          <text x="40" y="16" class="locallink-title">LocalLink</text>
+          <text x="40" y="28" class="locallink-sub">R₀₁ ➔ N₁</text>
+          <g id="queue-eject-channel" transform="translate(5, 34)">
+            <rect x="0" y="0" width="40" height="54" rx="5" class="queue-bg"/>
+            <text x="20" y="12" class="queue-lbl" font-size="6.5">EjCh</text>
+            <rect id="q-slot-eject-channel" x="3" y="18" width="34" height="30" rx="2" class="q-slot"/>
+          </g>
+          <g id="queue-n1-eject" transform="translate(49, 34)">
+            <rect x="0" y="0" width="26" height="54" rx="4" class="queue-bg"/>
+            <text x="13" y="12" class="queue-lbl-v" font-size="7">Ej</text>
+            <g id="q-slots-eject" transform="translate(5, 16)">
+              <rect x="0" y="0"  width="16" height="10" rx="2" class="q-slot-v"/>
+              <rect x="0" y="12" width="16" height="10" rx="2" class="q-slot-v"/>
+              <rect x="0" y="24" width="16" height="10" rx="2" class="q-slot-v"/>
+            </g>
+          </g>
+        </g>
+
+        <!-- Background Routers (R10, R11) -->
+        <rect id="rt-r10" x="375" y="390" width="130" height="60" rx="8" class="router-box"/>
+        <rect id="rt-r11" x="645" y="390" width="130" height="60" rx="8" class="router-box"/>
+        <text id="rl-r10" x="440" y="424" class="svg-lbl router-lbl">R₁₀</text>
+        <text id="rl-r11" x="710" y="424" class="svg-lbl router-lbl">R₁₁</text>
+
+        <!-- Node N0: Enlarged TrafficManager Module Box (230 × 180) -->
+        <g id="nd-n0-group">
+          <rect id="nd-n0" x="20" y="110" width="230" height="180" rx="12" class="tm-container-box src-nd"/>
+          <text id="nl-n0" x="135" y="129" class="svg-lbl tm-container-title">TrafficManager Module (Node N₀)</text>
+          <text id="ns-n0" x="135" y="142" class="svg-lbl tm-container-sub">Source Endpoint</text>
+          <rect x="30" y="148" width="210" height="62" rx="6" class="tm-inner-area"/>
+          <text x="135" y="160" class="tm-inner-lbl">Flit Creation Core</text>
+          <g id="queue-partial-pkg" transform="translate(30, 217)">
+            <rect x="0" y="0" width="210" height="58" rx="6" class="queue-bg"/>
+            <text x="105" y="14" class="queue-lbl">_partial_packets[0][REQ] Queue</text>
+            <g id="q-slots-partial" transform="translate(10, 22)">
+              <rect x="0"   y="0" width="42" height="26" rx="4" class="q-slot"/>
+              <rect x="47"  y="0" width="42" height="26" rx="4" class="q-slot"/>
+              <rect x="94"  y="0" width="42" height="26" rx="4" class="q-slot"/>
+              <rect x="141" y="0" width="42" height="26" rx="4" class="q-slot"/>
+            </g>
+          </g>
+        </g>
+
+        <!-- Node N1: Enlarged TrafficManager Module Box -->
+        <g id="nd-n1-group">
+          <rect id="nd-n1" x="960" y="110" width="170" height="180" rx="12" class="tm-container-box dst-nd"/>
+          <text id="nl-n1" x="1045" y="125" class="svg-lbl tm-container-title">TM (N₁)</text>
+          <text id="ns-n1" x="1045" y="136" class="svg-lbl tm-container-sub" font-size="6">Destination Endpoint</text>
+
+          <!-- Replies Pending (Horizontal, bottom right) -->
+          <g id="queue-n1-replies" transform="translate(1045, 180)">
+            <rect x="0" y="0" width="80" height="45" rx="4" class="queue-bg"/>
+            <text x="40" y="12" class="queue-lbl" font-size="5">replies_pending</text>
+            <g id="q-slots-replies" transform="translate(6, 18)">
+              <rect x="0" y="0" width="30" height="20" rx="3" class="q-slot"/>
+              <rect x="38" y="0" width="30" height="20" rx="3" class="q-slot"/>
+            </g>
+          </g>
+        </g>
+
+        <!-- Flit Inspector Card -->
+        <g id="flit-inspector" transform="translate(20, 310)" opacity="0" class="flit-inspector-g">
+          <rect x="0" y="0" width="370" height="90" rx="8" class="insp-bg"/>
+          <rect x="0" y="0" width="370" height="20" rx="8" class="insp-hdr-bg"/>
+          <text x="185" y="13" class="insp-hdr-txt">🔍 FLIT ATTRIBUTES INSPECTOR</text>
+          <text id="insp-title" x="12" y="36" class="insp-txt bold">REQ Flit #0 [HEAD|TAIL]</text>
+          <text id="insp-route" x="12" y="52" class="insp-txt">Src: Node N₀ (0) ➔ Dst: Node N₁ (1)</text>
+          <text id="insp-meta"  x="12" y="68" class="insp-txt font-mono">creation_time: T</text>
+          <text id="insp-meta-2" x="12" y="82" class="insp-txt font-mono"></text>
+        </g>
+
+        <g id="nd-n2-group">
+          <circle id="nd-n2" cx="195" cy="450" r="36" class="node-circle"/>
+          <text id="nl-n2" x="195" y="450" class="svg-lbl node-lbl">N₂</text>
+        </g>
+
+        <g id="nd-n3-group">
+          <circle id="nd-n3" cx="904" cy="420" r="42" class="node-circle"/>
+          <text id="nl-n3" x="904" y="420" class="svg-lbl node-lbl">N₃</text>
+        </g>
+
+        <!-- Minimal Flit Badge in Network View -->
+        <g id="flit-card-group" transform="translate(60, 153)" opacity="0" class="flit-badge-g">
+          <rect x="0" y="0" width="30" height="18" rx="4" class="flit-badge-bg"/>
+          <text id="fc-hdr-title" x="15" y="12" class="flit-badge-txt">REQ</text>
+        </g>
+
+
+
+        <circle id="flit-dot" cx="140" cy="175" r="9" class="flit-dot"/>
+        <circle id="credit-dot" cx="0" cy="0" r="6" class="credit-dot"/>
+      </g>
+
+      <!-- ══════════════════════════════════════════════════════════════
+           GROUP B: DEDICATED ROUTER ARCHITECTURE VIEW MODE (Stage 3)
+      ══════════════════════════════════════════════════════════════ -->
+      <g id="r00-pipeline-view-group" opacity="0">
+
+        <!-- Router R00 Attached Vertical Input Queue (LOCAL_0) (Outside Left) -->
+        <g transform="translate(10, 100)">
+          <rect x="0" y="0" width="36" height="140" rx="6" class="queue-bg"/>
+          <text x="18" y="14" class="queue-lbl-v" font-size="7">LOCAL_0</text>
+          <g id="q-slots-vc-pipe" transform="translate(4, 25)">
+            <rect x="0" y="0"  width="28" height="22" rx="2" class="q-slot-v"/>
+            <rect x="0" y="27" width="28" height="22" rx="2" class="q-slot-v"/>
+            <rect x="0" y="54" width="28" height="22" rx="2" class="q-slot-v"/>
+            <rect x="0" y="81" width="28" height="22" rx="2" class="q-slot-v"/>
+          </g>
+        </g>
+
+        <!-- Router R00 Main Architecture Container (660 × 520) -->
+        <g>
+          <rect x="60" y="20" width="640" height="490" rx="14" class="router-box focus"/>
+          <text x="380" y="45" class="svg-lbl router-lbl" font-size="14">R₀₀ Router Architecture — 5-Stage Execution</text>
+          <text x="380" y="60" class="svg-lbl port-lbl">CHIRouter Channel Pipeline Core</text>
+
+          <!-- VC0 State Box (Dynamic) -->
+          <g id="vc-state-box" transform="translate(80, 75)">
+            <rect x="0" y="0" width="90" height="20" rx="4" class="vc-state-bg"/>
+            <text x="45" y="11" id="vc-state-txt" class="vc-state-text">State: idle</text>
+          </g>
+
+          <!-- Input VC Buffers (Inside Left Edge) -->
+          <g id="queue-vc-buffers" transform="translate(80, 100)">
+            <rect x="0" y="0" width="46" height="140" rx="6" class="queue-bg"/>
+            <text x="23" y="14" class="queue-lbl-v" font-size="7">VC Buffers</text>
+            <g id="q-slots-vc-buf" transform="translate(4, 25)">
+              <rect x="0" y="0"  width="38" height="24" rx="2" class="q-slot"/>
+              <rect x="0" y="27" width="38" height="24" rx="2" class="q-slot"/>
+              <rect x="0" y="54" width="38" height="24" rx="2" class="q-slot"/>
+              <rect x="0" y="81" width="38" height="24" rx="2" class="q-slot"/>
+            </g>
+          </g>
+
+          <!-- Left Column Inside: Intermediate Queues -->
+          <g id="queue-route-vcs" transform="translate(160, 180)">
+            <rect x="0" y="0" width="160" height="40" rx="6" class="queue-bg"/>
+            <text x="80" y="10" class="queue-lbl" font-size="8">_route_vcs</text>
+            <g id="q-slots-route" transform="translate(25, 14)">
+              <rect x="0"  y="0" width="38" height="24" rx="3" class="q-slot"/>
+              <rect x="42" y="0" width="38" height="24" rx="3" class="q-slot"/>
+              <rect x="84" y="0" width="38" height="24" rx="3" class="q-slot"/>
+            </g>
+          </g>
+
+          <g id="queue-vcalloc-vcs" transform="translate(160, 260)">
+            <rect x="0" y="0" width="160" height="40" rx="6" class="queue-bg"/>
+            <text x="80" y="10" class="queue-lbl" font-size="8">_vc_alloc_vcs</text>
+            <g id="q-slots-vcalloc" transform="translate(25, 14)">
+              <rect x="0"  y="0" width="38" height="24" rx="3" class="q-slot"/>
+              <rect x="42" y="0" width="38" height="24" rx="3" class="q-slot"/>
+              <rect x="84" y="0" width="38" height="24" rx="3" class="q-slot"/>
+            </g>
+          </g>
+
+          <g id="queue-sa-vcs" transform="translate(160, 340)">
+            <rect x="0" y="0" width="160" height="40" rx="6" class="queue-bg"/>
+            <text x="80" y="10" class="queue-lbl" font-size="8">_sa_vcs</text>
+            <g id="q-slots-switched" transform="translate(25, 14)">
+              <rect x="0"  y="0" width="38" height="24" rx="3" class="q-slot"/>
+              <rect x="42" y="0" width="38" height="24" rx="3" class="q-slot"/>
+              <rect x="84" y="0" width="38" height="24" rx="3" class="q-slot"/>
+            </g>
+          </g>
+
+          <g id="queue-st-vcs" transform="translate(160, 420)">
+            <rect x="0" y="0" width="160" height="40" rx="6" class="queue-bg"/>
+            <text x="80" y="10" class="queue-lbl" font-size="8">_st_vcs</text>
+            <g id="q-slots-st" transform="translate(25, 14)">
+              <rect x="0"  y="0" width="38" height="24" rx="3" class="q-slot"/>
+              <rect x="42" y="0" width="38" height="24" rx="3" class="q-slot"/>
+              <rect x="84" y="0" width="38" height="24" rx="3" class="q-slot"/>
+            </g>
+          </g>
+
+          <!-- Right Column Inside: Pipeline Stages -->
+          <g id="stg-iq-box" transform="translate(340, 100)">
+            <rect x="0" y="0" width="180" height="40" rx="6" class="stg-pipe-box"/>
+            <text x="90" y="16" class="stg-pipe-title" font-size="10">IQ (Input Queuing)</text>
+            <text x="90" y="30" class="stg-pipe-sub" font-size="8.5">vc_state: routing</text>
+          </g>
+
+          <g id="stg-rc-box" transform="translate(340, 180)">
+            <rect x="0" y="0" width="180" height="40" rx="6" class="stg-pipe-box"/>
+            <text x="90" y="16" class="stg-pipe-title" font-size="10">RC (Route Compute)</text>
+            <text x="90" y="30" class="stg-pipe-sub" font-size="8.5">out_port = East (1)</text>
+          </g>
+
+          <g id="stg-va-box" transform="translate(340, 260)">
+            <rect x="0" y="0" width="180" height="40" rx="6" class="stg-pipe-box"/>
+            <text x="90" y="16" class="stg-pipe-title" font-size="10">VA (VC Allocation)</text>
+            <text x="90" y="30" class="stg-pipe-sub" font-size="8.5">out_vc = 0 granted</text>
+          </g>
+
+          <g id="stg-sa-box" transform="translate(340, 340)">
+            <rect x="0" y="0" width="180" height="40" rx="6" class="stg-pipe-box"/>
+            <text x="90" y="16" class="stg-pipe-title" font-size="10">SA (Switch Allocation)</text>
+            <text x="90" y="30" class="stg-pipe-sub" font-size="8.5">Arbiter Crossbar Grant</text>
+          </g>
+
+          <g id="stg-st-box" transform="translate(340, 420)">
+            <rect x="0" y="0" width="180" height="40" rx="6" class="stg-pipe-box"/>
+            <text x="90" y="16" class="stg-pipe-title" font-size="10">ST (Switch Traversal)</text>
+            <text x="90" y="30" class="stg-pipe-sub" font-size="8.5">Crossbar Traverse</text>
+          </g>
+
+          <!-- Output Buffer (Inside Right Edge) -->
+          <g id="queue-output-buf" transform="translate(630, 100)">
+            <rect x="0" y="0" width="46" height="380" rx="6" class="queue-bg"/>
+            <text x="23" y="14" class="queue-lbl-v" font-size="7">_output_buffer[East]</text>
+            <g id="q-slots-output" transform="translate(4, 25)">
+              <rect x="0" y="0"   width="38" height="24" rx="2" class="q-slot"/>
+              <rect x="0" y="100" width="38" height="24" rx="2" class="q-slot"/>
+              <rect x="0" y="200" width="38" height="24" rx="2" class="q-slot"/>
+              <rect x="0" y="300" width="38" height="24" rx="2" class="q-slot"/>
+            </g>
+          </g>
+        </g>
+
+        <!-- Stage 3 External Helper Modules (Right Side) -->
+        <g id="stg3-modules-group">
+          <!-- External Module 1: RoutingAlgorithm -->
+          <g id="mod-routing-algo" transform="translate(730, 160)">
+            <rect x="0" y="0" width="180" height="70" rx="10" class="mod-box algo"/>
+            <text x="90" y="22" class="mod-title algo" font-size="11">RoutingAlgorithm</text>
+            <text x="90" y="38" class="mod-sub" font-size="9">MeshXY :: Dest() ➔ out_port</text>
+            <rect id="mod-ra-badge" x="25" y="46" width="130" height="18" rx="4" class="mod-badge-idle"/>
+            <text id="mod-ra-status" x="90" y="59" class="mod-badge-txt">out_port = East (1)</text>
+          </g>
+
+          <!-- External Module 2: VCAllocator -->
+          <g id="mod-vc-allocator" transform="translate(730, 240)">
+            <rect x="0" y="0" width="180" height="70" rx="10" class="mod-box alloc"/>
+            <text x="90" y="22" class="mod-title alloc" font-size="11">VCAllocator</text>
+            <text x="90" y="38" class="mod-sub" font-size="9">RoundRobin Allocator</text>
+            <rect id="mod-va-badge" x="25" y="46" width="130" height="18" rx="4" class="mod-badge-idle"/>
+            <text id="mod-va-status" x="90" y="59" class="mod-badge-txt">granted out_vc = 0</text>
+          </g>
+
+          <!-- External Module 3: SwitchAllocator -->
+          <g id="mod-sw-allocator" transform="translate(730, 320)">
+            <rect x="0" y="0" width="180" height="70" rx="10" class="mod-box alloc"/>
+            <text x="90" y="22" class="mod-title alloc" font-size="11">SwitchAllocator</text>
+            <text x="90" y="38" class="mod-sub" font-size="9">Crossbar Arbiter</text>
+            <rect id="mod-sa-badge" x="25" y="46" width="130" height="18" rx="4" class="mod-badge-idle"/>
+            <text id="mod-sa-status" x="90" y="59" class="mod-badge-txt">grant ST traversal</text>
+          </g>
+
+          <!-- Dynamic Query Signal Arrows -->
+          <!-- From RC (x:340..520, y:200) to RoutingAlgo (x:730, y:195) -->
+          <path id="sig-arrow-rc" d="M 520 200 L 730 195" class="sig-path" opacity="0"/>
+          <!-- From VA (x:340..520, y:280) to VCAllocator (x:730, y:275) -->
+          <path id="sig-arrow-va" d="M 520 280 L 730 275" class="sig-path" opacity="0"/>
+          <!-- From SA (x:340..520, y:360) to SwitchAllocator (x:730, y:355) -->
+          <path id="sig-arrow-sa" d="M 520 360 L 730 355" class="sig-path" opacity="0"/>
+        </g>
+
+        <!-- Dynamic Flit Badge in Pipeline Mode (Now accurately sized to slot inner 34x20) -->
+        <g id="flit-pipe-card-group" transform="translate(100, 100)" opacity="0" class="flit-badge-g">
+          <rect x="0" y="0" width="34" height="20" rx="2" class="flit-badge-bg"/>
+          <text x="17" y="14" class="flit-badge-txt" font-size="10">REQ</text>
+        </g>
+      </g>
+
+      <!-- ── LEGEND ── -->
+      <g transform="translate(40,545)" class="legend-group">
+        <rect x="0" y="0" width="14" height="14" rx="3" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
+        <text x="20" y="11" class="leg-txt">External Module</text>
+
+        <rect x="140" y="0" width="14" height="14" rx="3" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.5"/>
+        <text x="160" y="11" class="leg-txt">Queue Buffer</text>
+
+        <rect x="260" y="0" width="18" height="14" rx="4" fill="#0284c7"/>
+        <text x="284" y="11" class="leg-txt">Flit Badge</text>
+
+        <circle cx="395" cy="7" r="6" fill="#d97706"/>
+        <text x="407" y="11" class="leg-txt">Credit Signal</text>
+      </g>
+    </svg>
+  </div>
+
+      <!-- ── Legacy dot markers ── -->
+      <circle id="flit-dot" cx="140" cy="175" r="9" class="flit-dot"/>
+      <circle id="credit-dot" cx="0" cy="0" r="6" class="credit-dot"/>
+
+      <!-- ── LEGEND ── -->
+      <g transform="translate(40,595)" class="legend-group">
+        <rect x="0" y="0" width="14" height="14" rx="3" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
+        <text x="20" y="11" class="leg-txt">External Module</text>
+
+        <rect x="140" y="0" width="14" height="14" rx="3" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.5"/>
+        <text x="160" y="11" class="leg-txt">Queue Buffer</text>
+
+        <rect x="260" y="0" width="18" height="14" rx="4" fill="#0284c7"/>
+        <text x="284" y="11" class="leg-txt">Flit Badge</text>
+
+        <circle cx="395" cy="7" r="6" fill="#d97706"/>
+        <text x="407" y="11" class="leg-txt">Credit Signal</text>
+      </g>
+    </svg>
+  </div>
+
+  <!-- ── PIPELINE VIEW (stage 3 only) ── -->
+  <div id="pipeline-view">
+
+    <div class="pv-header">
+      <button class="back-btn" id="back-btn" onclick="App.exitPipe()">← Network</button>
+      <div class="pv-title">
+        Router <strong>R₀₀</strong> — ChannelPipeline · 5-Stage IQ→RC→VA→SA→ST
+      </div>
+      <div class="chi-ch-row">
+        <span class="chi-ch req">REQ</span>
+        <span class="chi-ch rsp">RSP</span>
+        <span class="chi-ch dat">DAT</span>
+        <span class="chi-ch snp">SNP</span>
+      </div>
+    </div>
+
+    <!-- Timing diagram -->
+    <div class="timing-box" id="timing-box">
+      <div class="timing-title">
+        Single-Hop Cycle Timing (no contention, all stages = 1 cycle)
+      </div>
+      <div class="timing-scroll">
+        <table class="timing-tbl" id="timing-tbl">
+          <!-- populated by JS -->
+        </table>
+      </div>
+      <div class="timing-note" id="timing-note">
+        flat = T+6 − T = 6 cycles &nbsp;·&nbsp; nlat = T+6 − (T+1) = 5 cycles &nbsp;·&nbsp;
+        (nlat excludes TM queuing time)
+      </div>
+    </div>
+
+    <!-- Pipeline stage cards -->
+    <div class="pipe-cards" id="pipe-cards">
+      <!-- populated by JS -->
+    </div>
+
+    <!-- VC state section -->
+    <div class="vc-section" id="vc-section">
+      <div class="vc-sm-title">VC State Machine</div>
+      <div class="vc-sm-box" id="vc-sm-box">
+        <!-- populated by JS -->
+      </div>
+      <div class="vc-tbl-title">VC Buffer Snapshot — R₀₀ REQ Channel (4 VCs)</div>
+      <div class="vc-grid" id="vc-grid">
+        <!-- populated by JS -->
+      </div>
+    </div>
+
+  </div><!-- /pipeline-view -->
+
+</main>
+
+<!-- ══════════════════════════════════════════════════════════════
+     NOW BAND (full-width, readable explanation)
+══════════════════════════════════════════════════════════════ -->
+<div id="now-band">
+  <div id="band-body">
+    <!-- populated by JS -->
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     DETAILS PANEL (right — reference / supporting material)
+══════════════════════════════════════════════════════════════ -->
+<aside id="details-panel">
+  <div id="details-body">
+    <!-- populated by JS -->
+  </div>
+</aside>
+
+<!-- ══════════════════════════════════════════════════════════════
+     CONTROL BAR
+══════════════════════════════════════════════════════════════ -->
+<footer id="control-bar">
+  <div class="prog-row">
+    <div class="prog-pips" id="prog-pips">
+      <!-- populated by JS -->
+    </div>
+    <div class="prog-lbl" id="prog-lbl">
+      Stage <span id="prog-num">1</span>.<span id="prog-subnum">1</span> of 6 &nbsp;·&nbsp;
+      <span id="prog-name">Flit Creation</span> &nbsp;·&nbsp;
+      <span id="prog-subname" class="substep-badge">Inject Trigger</span>
+    </div>
+  </div>
+  <div class="ctrl-btns">
+    <button class="ctrl-btn reset-btn"  id="btn-reset" onclick="App.reset()">↺ Reset</button>
+    <button class="ctrl-btn prev-btn"   id="btn-prev"  onclick="App.prev()" disabled>⬅ Prev</button>
+    <button class="ctrl-btn play-btn"   id="btn-play"  onclick="App.togglePlay()">▶ Play</button>
+    <button class="ctrl-btn next-btn"   id="btn-next"  onclick="App.next()">Next ➔</button>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

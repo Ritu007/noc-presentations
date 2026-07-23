@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Router Pipeline — Evaluate &amp; Update Phases | NoC Simulator</title>
+  <meta name="description" content="Interactive step-by-step visualization of the Router Pipeline Evaluate and Update phases in a CHI-based NoC simulator.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+/* ═══════════════════ DESIGN TOKENS — LIGHT THEME ═══════════════════ */
+:root {
+  --bg:    #f8fafc;
+  --s1:    #ffffff;
+  --s2:    #f1f5f9;
+  --s3:    #e2e8f0;
+  --b1:    #cbd5e1;
+  --b2:    #94a3b8;
+  --text:  #0f172a;
+  --muted: #334155;
+  --dim:   #64748b;
+
+  --eval:  #7c3aed;  /* violet-600  — Evaluate phase */
+  --upd:   #ea580c;  /* orange-600  — Update phase   */
+  --iq:    #0284c7;  /* sky-600     — IQ/BW stage    */
+  --done:  #16a34a;  /* green-600   — complete       */
+  --tran:  #d97706;  /* amber-600   — transition     */
+
+  --idle-bg:   #e2e8f0;
+  --idle-text: #94a3b8;
+
+  --eval-glow: 0 4px 20px rgba(124,58,237,0.30);
+  --upd-glow:  0 4px 20px rgba(234,88,12,0.30);
+  --iq-glow:   0 4px 20px rgba(2,132,199,0.30);
+
+  --r:  10px;
+  --rs: 6px;
+  --rxs: 4px;
+  --tr: 0.32s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* ═══════════════════ RESET ═══════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ═══════════════════ HEADER ═══════════════════ */
+header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 1.4rem; height: 52px;
+  background: var(--s1); border-bottom: 1px solid var(--b1);
+  position: relative; z-index: 50;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  flex-shrink: 0;
+}
+header::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg,
+    transparent 0%, var(--iq) 15%, var(--eval) 50%, var(--upd) 85%, transparent 100%);
+  opacity: 0.7;
+}
+.hdr-left { display: flex; align-items: center; gap: 12px; }
+.hdr-icon {
+  width: 34px; height: 34px;
+  background: linear-gradient(135deg, var(--eval), var(--iq));
+  border-radius: 8px; display: flex; align-items: center; justify-content: center;
+  font-size: 18px; color: white;
+  box-shadow: 0 2px 6px rgba(124,58,237,0.25);
+}
+.hdr-title { font-size: 14px; font-weight: 700; color: var(--text); }
+.hdr-sub   { font-size: 11px; color: var(--dim); }
+.hdr-right { display: flex; gap: 8px; align-items: center; }
+.hdr-badge {
+  padding: 3px 10px; border-radius: 20px;
+  font-size: 11px; font-weight: 600;
+  font-family: 'JetBrains Mono', monospace; border: 1px solid;
+}
+.badge-pipe { background: rgba(124,58,237,0.08); border-color: rgba(124,58,237,0.3); color: var(--eval); }
+.badge-cyc  { background: rgba(234,88,12,0.07);  border-color: rgba(234,88,12,0.25);  color: var(--upd); }
+/* ═══════════════════ LAYOUT ═══════════════════ */
+.layout {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 264px 1fr;
+  overflow: hidden;
+}
+
+/* ═══════════════════ LEFT PANEL ═══════════════════ */
+.left-panel {
+  background: var(--s1); border-right: 1px solid var(--b1);
+  display: flex; flex-direction: column;
+  overflow-y: auto; padding: 14px 14px 10px;
+}
+.left-panel::-webkit-scrollbar { width: 4px; }
+.left-panel::-webkit-scrollbar-thumb { background: var(--b1); border-radius: 2px; }
+
+/* ═══════════════════ BACK TO MAIN MENU — consistent top-of-left-column position ═══════════════════ */
+.back-menu-link {
+  display: block; text-align: center; text-decoration: none;
+  padding: 7px 9px; margin-bottom: 12px;
+  border: 1px solid var(--b1); border-radius: var(--rs);
+  background: var(--s2); color: var(--text); font-weight: 600;
+  font-family: 'Inter', sans-serif; font-size: 13px;
+  transition: background 0.18s, border-color 0.18s;
+}
+.back-menu-link:hover { background: var(--s3); }
+
+/* ═══════════════════ FLOW SWITCHER — jump directly between the 3 walkthroughs ═══════════════════ */
+.flow-switch {
+  display: flex; flex-direction: column; gap: 3px;
+  padding-bottom: 12px; margin-bottom: 6px;
+  border-bottom: 1px solid var(--b1);
+}
+.flow-switch-lbl {
+  font-size: 9px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.12em; color: var(--dim);
+  margin-bottom: 4px;
+}
+.flow-switch-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 9px; border-radius: var(--rxs);
+  font-size: 12px; font-weight: 600; text-decoration: none;
+  color: var(--muted); border: 1px solid transparent;
+  transition: all 0.18s;
+}
+.flow-switch-item::before {
+  content: ''; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--dot, var(--dim)); flex-shrink: 0;
+}
+.flow-switch-item:hover { background: var(--s2); border-color: var(--b1); color: var(--text); }
+.flow-switch-item.current {
+  color: var(--dot, var(--text)); font-weight: 700; cursor: default;
+  background: color-mix(in srgb, var(--dot, var(--dim)) 8%, transparent);
+  border-color: color-mix(in srgb, var(--dot, var(--dim)) 30%, transparent);
+  pointer-events: none;
+}
+.flow-switch-item.fs-blue   { --dot: #2563eb; }
+.flow-switch-item.fs-cyan   { --dot: var(--iq); }
+.flow-switch-item.fs-purple { --dot: var(--eval); }
+.flow-switch-item.fs-orange { --dot: var(--upd); }
+
+.sec-lbl {
+  font-size: 9px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.12em; color: var(--dim);
+  margin: 12px 0 6px;
+}
+.sec-lbl:first-child { margin-top: 0; }
+
+/* Step title */
+.step-title-card {
+  border: 1px solid var(--b1); border-radius: var(--r);
+  padding: 11px 13px; background: var(--s2);
+}
+.step-main {
+  font-size: 14px; font-weight: 700; color: var(--text); line-height: 1.3;
+  transition: color var(--tr);
+}
+.step-main.c-eval { color: var(--eval); }
+.step-main.c-upd  { color: var(--upd); }
+.step-main.c-iq   { color: var(--iq); }
+.step-main.c-tran { color: var(--tran); }
+.step-main.c-done { color: var(--done); }
+.step-sub  { font-size: 11px; color: var(--dim); margin-top: 3px; }
+.step-meta-row {
+  display: flex; gap: 6px; margin-top: 8px; align-items: center;
+}
+.step-badge {
+  background: var(--s1); border: 1px solid var(--b1); border-radius: var(--rxs);
+  padding: 2px 8px; font-size: 10px;
+  font-family: 'JetBrains Mono', monospace; color: var(--muted);
+}
+
+/* Cycle display */
+.cycle-display {
+  border: 1px solid var(--b1); border-radius: var(--r);
+  padding: 12px 13px; background: var(--s1);
+  display: flex; align-items: center; gap: 12px;
+}
+.cycle-num {
+  font-size: 44px; font-weight: 800;
+  font-family: 'JetBrains Mono', monospace;
+  line-height: 1; min-width: 48px; text-align: center;
+  color: var(--dim);
+  transition: color var(--tr);
+}
+.cycle-num.c-eval { color: var(--eval); }
+.cycle-num.c-upd  { color: var(--upd); }
+.cycle-num.c-iq   { color: var(--iq); }
+.cycle-num.c-tran { color: var(--tran); }
+.cycle-num.c-done { color: var(--done); }
+.cycle-meta { display: flex; flex-direction: column; gap: 4px; }
+.cycle-lbl  { font-size: 10px; color: var(--dim); }
+.cycle-tag  {
+  font-size: 10px; font-family: 'JetBrains Mono', monospace;
+  background: var(--s2); border: 1px solid var(--b1);
+  border-radius: var(--rxs); padding: 2px 8px; color: var(--muted);
+}
+
+/* Phase chips — 3 chips: IQ, Evaluate, Update */
+.phase-chips { display: flex; gap: 5px; }
+.phase-chip {
+  flex: 1; padding: 7px 6px; border-radius: var(--rs);
+  text-align: center; font-size: 10px; font-weight: 700;
+  border: 1px solid transparent;
+  opacity: 0.28; transition: all var(--tr);
+}
+.chip-iq   { background: rgba(2,132,199,0.07); border-color: rgba(2,132,199,0.2);   color: var(--iq); }
+.chip-eval { background: rgba(124,58,237,0.07); border-color: rgba(124,58,237,0.2); color: var(--eval); }
+.chip-upd  { background: rgba(234,88,12,0.07);  border-color: rgba(234,88,12,0.2);  color: var(--upd); }
+.phase-chip.active { opacity: 1; box-shadow: 0 0 10px currentColor; }
+.chip-icon { font-size: 12px; display: block; margin-bottom: 2px; }
+
+/* Action card */
+.action-card {
+  border: 1px solid var(--b1); border-radius: var(--r);
+  padding: 11px 12px; background: var(--s1);
+}
+.q-tag {
+  font-size: 11px; font-family: 'JetBrains Mono', monospace;
+  color: var(--iq);
+  background: rgba(2,132,199,0.07); border: 1px solid rgba(2,132,199,0.2);
+  border-radius: var(--rxs); padding: 5px 10px;
+  margin-bottom: 8px; line-height: 1.45;
+  transition: color var(--tr), background var(--tr), border-color var(--tr);
+}
+.q-tag.t-eval { color: var(--eval); background: rgba(124,58,237,0.07); border-color: rgba(124,58,237,0.2); }
+.q-tag.t-upd  { color: var(--upd);  background: rgba(234,88,12,0.07);  border-color: rgba(234,88,12,0.2); }
+.q-tag.t-tran { color: var(--tran); background: rgba(217,119,6,0.07);  border-color: rgba(217,119,6,0.2); }
+.q-tag.t-done { color: var(--done); background: rgba(22,163,74,0.07);  border-color: rgba(22,163,74,0.2); }
+.act-text {
+  font-size: 12px; color: var(--muted);
+  line-height: 1.7; white-space: pre-line;
+}
+
+/* Latency card */
+.latency-card {
+  border: 1px solid rgba(22,163,74,0.22);
+  background: rgba(22,163,74,0.04);
+  border-radius: var(--r); padding: 10px 12px;
+}
+.lat-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 4px 0; border-bottom: 1px solid rgba(22,163,74,0.08);
+  font-size: 11px;
+}
+.lat-row:last-child { border-bottom: none; }
+.lat-name { font-family: 'JetBrains Mono', monospace; color: #16a34a; }
+.lat-val  { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: #15803d; }
+
+/* ═══════════════════ NOW BAND (full-width, readable explanation) ═══════════════════ */
+#now-band {
+  flex-shrink: 0;
+  background: var(--s1);
+  border-top: 1px solid var(--b1);
+  border-bottom: 1px solid var(--b1);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.desc-card {
+  border: none; border-left: 4px solid var(--dim);
+  padding: 14px 22px;
+  font-size: 15px; line-height: 1.6; color: var(--muted); font-weight: 500;
+  transition: border-left-color var(--tr);
+}
+.desc-card.d-eval { border-left-color: var(--eval); }
+.desc-card.d-upd  { border-left-color: var(--upd); }
+.desc-card.d-iq   { border-left-color: var(--iq); }
+.desc-card.d-tran { border-left-color: var(--tran); }
+.desc-card.d-done { border-left-color: var(--done); }
+
+/* ═══════════════════ RIGHT AREA ═══════════════════ */
+.right-area { display: flex; flex-direction: column; overflow: hidden; }
+
+.pipe-scroll {
+  flex: 1; overflow-y: auto;
+  padding: 16px 20px 12px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.pipe-scroll::-webkit-scrollbar { width: 5px; }
+.pipe-scroll::-webkit-scrollbar-thumb { background: var(--b1); border-radius: 3px; }
+
+/* Card */
+.card {
+  background: var(--s1); border: 1px solid var(--b1);
+  border-radius: 12px; padding: 16px 18px 14px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.card-title {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--dim);
+  text-align: center; margin-bottom: 14px;
+}
+
+/* Cycle banner */
+.cycle-banner {
+  display: none;
+  align-items: center; justify-content: center; gap: 10px;
+  padding: 10px 16px; margin-bottom: 8px;
+  background: rgba(217,119,6,0.08);
+  border: 1px solid rgba(217,119,6,0.28);
+  border-radius: var(--rs);
+  font-size: 13px; font-weight: 600; color: #92400e;
+}
+.cycle-banner.show { display: flex; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.cb-spin { font-size: 18px; display: inline-block; animation: spin 2s linear infinite; }
+
+/* ═══════════════════ PIPELINE GRID ═══════════════════ */
+.pipeline-grid {
+  display: grid;
+  grid-template-columns: 108px 32px repeat(4, 1fr);
+  grid-template-rows: 22px 76px 76px 40px;
+  gap: 6px;
+}
+
+/* Column headers */
+.pg-hdr {
+  display: flex; align-items: flex-end; justify-content: center;
+  font-size: 9px; font-weight: 700; color: var(--dim);
+  text-transform: uppercase; letter-spacing: 0.06em;
+  padding-bottom: 2px;
+}
+
+/* BW / IQ cell — spans both rows */
+.bw-cell {
+  grid-column: 1; grid-row: 2 / 4;
+  background: var(--idle-bg);
+  border-radius: var(--r);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 4px; position: relative; overflow: hidden;
+  transition: background var(--tr), box-shadow var(--tr), border var(--tr), opacity var(--tr), transform var(--tr);
+  border: 2px solid transparent;
+}
+.bw-abbr {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 22px; font-weight: 700;
+  color: var(--idle-text); transition: color var(--tr);
+}
+.bw-full {
+  font-size: 9px; color: var(--idle-text);
+  text-align: center; line-height: 1.3; transition: color var(--tr);
+}
+
+/* Phase labels — vertical text */
+.phase-lbl {
+  grid-column: 2;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--rxs);
+  font-size: 7.5px; font-weight: 800;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  writing-mode: vertical-rl;
+}
+.eval-lbl {
+  grid-row: 2;
+  color: var(--eval);
+  background: rgba(124,58,237,0.08);
+  border: 1px solid rgba(124,58,237,0.22);
+}
+.upd-lbl {
+  grid-row: 3;
+  color: var(--upd);
+  background: rgba(234,88,12,0.08);
+  border: 1px solid rgba(234,88,12,0.22);
+}
+
+/* Stage cells */
+.stage-cell {
+  border-radius: var(--rs);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  position: relative; overflow: hidden;
+  transition: background var(--tr), box-shadow var(--tr), transform var(--tr),
+              border var(--tr), opacity var(--tr);
+  border: 2px solid transparent;
+}
+.cell-abbr {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 17px; font-weight: 700;
+  color: var(--idle-text); transition: color var(--tr);
+}
+.eval-cell { grid-row: 2; background: var(--idle-bg); }
+.upd-cell  { grid-row: 3; background: var(--idle-bg); }
+
+/* ── ACTIVE STATES ── */
+.bw-cell.active-iq {
+  background: linear-gradient(140deg, #38bdf8, #0369a1);
+  border-color: rgba(255,255,255,0.55);
+  box-shadow: var(--iq-glow), inset 0 0 10px rgba(255,255,255,0.1);
+  transform: scale(1.02); z-index: 5;
+}
+.bw-cell.active-iq .bw-abbr,
+.bw-cell.active-iq .bw-full { color: #fff; }
+
+.stage-cell.active-eval {
+  background: linear-gradient(140deg, #a78bfa, #6d28d9);
+  border-color: rgba(255,255,255,0.55);
+  box-shadow: var(--eval-glow), inset 0 0 10px rgba(255,255,255,0.1);
+  transform: scale(1.025); z-index: 5;
+}
+.stage-cell.active-eval .cell-abbr { color: #fff; }
+
+.stage-cell.active-upd {
+  background: linear-gradient(140deg, #fb923c, #c2410c);
+  border-color: rgba(255,255,255,0.55);
+  box-shadow: var(--upd-glow), inset 0 0 10px rgba(255,255,255,0.1);
+  transform: scale(1.025); z-index: 5;
+}
+.stage-cell.active-upd .cell-abbr { color: #fff; }
+
+/* ── EXECUTED (MUTED) STATE ── */
+.bw-cell.executed {
+  background: rgba(14, 165, 233, 0.15); border-color: rgba(14, 165, 233, 0.3); color: var(--iq); opacity: 0.8;
+}
+.stage-cell.eval-cell.executed {
+  background: rgba(139, 92, 246, 0.15); border-color: rgba(139, 92, 246, 0.3); color: var(--eval); opacity: 0.8;
+}
+.stage-cell.upd-cell.executed {
+  background: rgba(249, 115, 22, 0.15); border-color: rgba(249, 115, 22, 0.3); color: var(--upd); opacity: 0.8;
+}
+.bw-cell.executed::after, .stage-cell.executed::after {
+  content: 'Executed';
+  position: absolute; bottom: 4px; right: 4px;
+  font-size: 7.5px; font-weight: 800; text-transform: uppercase;
+  color: inherit; opacity: 0.7;
+}
+
+/* ── SKIPPED STATE ── */
+.stage-cell.skipped,
+.bw-cell.skipped {
+  opacity: 0.45;
+}
+.stage-cell.skipped::after,
+.bw-cell.skipped::after {
+  content: 'Skipped';
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 700; letter-spacing: 0.04em;
+  color: #64748b;
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 4px,
+    rgba(148,163,184,0.25) 4px,
+    rgba(148,163,184,0.25) 8px
+  );
+}
+
+/* ── FLIT TOKEN ── */
+.flit-token {
+  position: absolute; top: 5px; right: 5px;
+  width: 26px; height: 15px; border-radius: var(--rxs);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 8px; font-weight: 800;
+  font-family: 'JetBrains Mono', monospace;
+  background: rgba(255,255,255,0.92); color: var(--eval);
+  border: 1px solid rgba(255,255,255,0.6);
+  opacity: 0; transform: scale(0.4) translateY(-4px);
+  transition: opacity 0.4s cubic-bezier(0.34,1.56,0.64,1),
+              transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  z-index: 10;
+}
+.stage-cell.active-upd .flit-token  { color: var(--upd); }
+.bw-cell.active-iq .flit-token      { color: var(--iq); }
+.stage-cell.has-flit .flit-token,
+.bw-cell.has-flit .flit-token { opacity: 1; transform: scale(1) translateY(0); }
+
+/* Pulse ring */
+@keyframes pulse-ring {
+  0%   { transform: scale(1); opacity: 0.55; }
+  100% { transform: scale(1.9); opacity: 0; }
+}
+.stage-cell.has-flit::before,
+.bw-cell.has-flit::before {
+  content: '';
+  position: absolute; inset: -1px; border-radius: inherit;
+  border: 2px solid transparent;
+  animation: pulse-ring 1.8s ease-out infinite;
+  pointer-events: none;
+}
+.stage-cell.active-eval.has-flit::before { border-color: var(--eval); }
+.stage-cell.active-upd.has-flit::before  { border-color: var(--upd); }
+.bw-cell.active-iq.has-flit::before      { border-color: var(--iq); }
+
+/* ── OUTPUT BUFFER ── */
+.output-buf {
+  grid-column: 1 / -1; grid-row: 4;
+  border-radius: var(--rs);
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 14px; font-size: 12px; color: var(--dim);
+  border: 1.5px dashed var(--b1); background: var(--s2);
+  transition: all var(--tr);
+}
+.ob-icon { font-size: 14px; }
+.output-buf.flit-here {
+  background: rgba(22,163,74,0.08);
+  border: 1.5px solid rgba(22,163,74,0.4);
+  color: #16a34a;
+  box-shadow: 0 0 14px rgba(22,163,74,0.15);
+}
+
+/* ═══════════════════ DOT GROUPS ═══════════════════ */
+.dot-groups-wrap {
+  display: flex; align-items: flex-start; justify-content: center;
+  gap: 6px; margin-top: 14px; flex-wrap: wrap;
+}
+.dot-group { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+.dg-lbl {
+  font-size: 8.5px; font-weight: 700; color: var(--dim);
+  text-transform: uppercase; letter-spacing: 0.09em;
+}
+.dg-dots { display: flex; gap: 4px; align-items: center; }
+
+.s-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--b1); cursor: pointer;
+  border: none; padding: 0;
+  transition: all 0.22s ease; flex-shrink: 0;
+}
+.s-dot:hover  { background: var(--b2); transform: scale(1.2); }
+.s-dot.done   { background: rgba(22,163,74,0.45); }
+/* Transition step dots: slightly square */
+.s-dot.is-tran { border-radius: 3px; }
+
+/* Current dot: wide pill + phase color */
+.s-dot.cur { width: 20px; border-radius: 4px; }
+.s-dot.cur.c-idle { background: var(--dim); }
+.s-dot.cur.c-iq   { background: var(--iq); }
+.s-dot.cur.c-eval { background: var(--eval); }
+.s-dot.cur.c-upd  { background: var(--upd); }
+.s-dot.cur.c-tran { background: var(--tran); }
+.s-dot.cur.c-done { background: var(--done); }
+
+.dot-sep {
+  width: 1px; height: 28px;
+  background: var(--b1); border-radius: 1px; align-self: center;
+  margin: 0 2px;
+}
+
+/* ═══════════════════ TIMELINE ═══════════════════ */
+.timeline-tbl {
+  width: 100%; border-collapse: separate; border-spacing: 4px;
+}
+.tl-th {
+  font-size: 10px; color: var(--dim); font-weight: 600;
+  padding: 3px 6px; text-align: center;
+}
+.tl-stage {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600;
+  color: var(--muted); padding: 3px 8px; text-align: left;
+}
+.tl-cell { text-align: center; padding: 3px 2px; }
+.tl-e, .tl-u, .tl-i {
+  display: inline-block; padding: 2px 7px; border-radius: 3px;
+  font-size: 10px; font-family: 'JetBrains Mono', monospace; font-weight: 600;
+}
+.tl-i { background: rgba(2,132,199,0.1);   border: 1px solid rgba(2,132,199,0.3);   color: var(--iq); }
+.tl-e { background: rgba(124,58,237,0.1);  border: 1px solid rgba(124,58,237,0.3);  color: var(--eval); }
+.tl-u { background: rgba(234,88,12,0.1);   border: 1px solid rgba(234,88,12,0.3);   color: var(--upd); margin-left: 2px; }
+.tl-i.tl-active { background: rgba(2,132,199,0.28);  box-shadow: 0 0 8px rgba(2,132,199,0.25); }
+.tl-e.tl-active { background: rgba(124,58,237,0.28); box-shadow: 0 0 8px rgba(124,58,237,0.25); }
+.tl-u.tl-active { background: rgba(234,88,12,0.28);  box-shadow: 0 0 8px rgba(234,88,12,0.25); }
+.tl-empty { color: var(--b2); font-size: 12px; }
+
+/* ═══════════════════ CONTROLS ═══════════════════ */
+.controls-bar {
+  background: var(--s1); border-top: 1px solid var(--b1);
+  display: flex; align-items: center; justify-content: center;
+  padding: 10px 22px; gap: 8px; flex-shrink: 0;
+  box-shadow: 0 -1px 3px rgba(0,0,0,0.03);
+}
+.ctrl-btn {
+  padding: 8px 16px; border-radius: var(--rs);
+  border: 1px solid var(--b1); background: var(--s2);
+  color: var(--muted); font-size: 13px; font-weight: 600;
+  cursor: pointer; font-family: 'Inter', sans-serif;
+  transition: all 0.18s; display: flex; align-items: center; gap: 5px;
+}
+.ctrl-btn:hover:not(:disabled) { background: var(--s3); border-color: var(--b2); color: var(--text); }
+.ctrl-btn:disabled { opacity: 0.32; cursor: not-allowed; }
+.play-btn {
+  background: linear-gradient(135deg, var(--eval), #6d28d9);
+  border: none; color: white; padding: 8px 22px;
+  box-shadow: 0 2px 8px rgba(124,58,237,0.25);
+}
+.play-btn:hover:not(:disabled) { box-shadow: 0 3px 14px rgba(124,58,237,0.4); transform: translateY(-1px); }
+.play-btn.playing {
+  background: linear-gradient(135deg, var(--upd), #c2410c);
+  box-shadow: 0 2px 8px rgba(234,88,12,0.25);
+}
+.next-btn {
+  background: var(--iq); border: none; color: white;
+  box-shadow: 0 2px 6px rgba(2,132,199,0.25);
+}
+.next-btn:hover:not(:disabled) { background: #0369a1; box-shadow: 0 3px 12px rgba(2,132,199,0.35); transform: translateY(-1px); }
+.step-count {
+  font-size: 11px; color: var(--dim);
+  font-family: 'JetBrains Mono', monospace;
+  min-width: 80px; text-align: center;
+}
+.prog-wrap { flex: 1; max-width: 200px; display: flex; align-items: center; gap: 8px; }
+.prog-bar  { flex: 1; height: 4px; background: var(--b1); border-radius: 2px; }
+.prog-fill { height: 100%; background: var(--eval); border-radius: 2px; transition: width 0.35s ease; }
+.speed-wrap { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--dim); }
+input[type=range].speed-sl { width: 68px; accent-color: var(--eval); }
+
+/* ═══════════════════ SCROLLBAR ═══════════════════ */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--b1); border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<!-- ══ HEADER ══ -->
+<header>
+  <div class="hdr-left">
+    <div class="hdr-icon">⚙</div>
+    <div>
+      <div class="hdr-title">Router Pipeline — Evaluate &amp; Update Phases</div>
+      <div class="hdr-sub">CHI-Based NoC Simulator · Cycle-Accurate Timestamp Scheduling</div>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <span class="hdr-badge badge-pipe">IQ → RC → VA → SA → ST</span>
+    <span class="hdr-badge badge-cyc">5 Cycles · 19 Steps</span>
+  </div>
+</header>
+
+<!-- ══ LAYOUT ══ -->
+<div class="layout">
+
+  <!-- ── LEFT PANEL ── -->
+  <aside class="left-panel">
+
+    <a href="index.html" class="back-menu-link">← Back to Main Menu</a>
+
+    <div class="flow-switch">
+      <div class="flow-switch-lbl">Switch Flow</div>
+      <a class="flow-switch-item fs-blue" href="index.html?flow=architecture">System Architecture</a>
+      <a class="flow-switch-item fs-cyan" href="flit-lifecycle.html">Flit Lifecycle</a>
+      <a class="flow-switch-item fs-purple current" href="router-pipeline.html">Router Pipeline</a>
+      <a class="flow-switch-item fs-orange" href="chi-channel-architecture.html">CHI Channels</a>
+    </div>
+
+    <div class="sec-lbl">Current Step</div>
+    <div class="step-title-card">
+      <div class="step-main" id="step-main">Pipeline Idle</div>
+      <div class="step-sub"  id="step-sub">All stages waiting for a flit</div>
+      <div class="step-meta-row">
+        <div class="step-badge" id="step-badge">Step 1 / 19</div>
+      </div>
+    </div>
+
+    <div class="sec-lbl">Simulation Cycle</div>
+    <div class="cycle-display">
+      <div class="cycle-num" id="cycle-num">—</div>
+      <div class="cycle-meta">
+        <div class="cycle-lbl">Current Cycle</div>
+        <div class="cycle-tag" id="cycle-tag">idle</div>
+      </div>
+    </div>
+
+    <div class="sec-lbl">Active Phase</div>
+    <div class="phase-chips">
+      <div class="phase-chip chip-iq"   id="chip-iq">
+        <span class="chip-icon">📥</span>IQ
+      </div>
+      <div class="phase-chip chip-eval" id="chip-eval">
+        <span class="chip-icon">⚡</span>Evaluate
+      </div>
+      <div class="phase-chip chip-upd"  id="chip-upd">
+        <span class="chip-icon">✔</span>Update
+      </div>
+    </div>
+
+    <div class="sec-lbl">This Step</div>
+    <div class="action-card">
+      <div class="q-tag"  id="q-tag">—</div>
+      <div class="act-text" id="act-text">The pipeline is idle. No flit is being processed.
+Click Next ➔ to begin.</div>
+    </div>
+
+    <div class="sec-lbl">Stage Latencies</div>
+    <div class="latency-card">
+      <div class="lat-row"><span class="lat-name">RC_Latency</span><span class="lat-val">= 1 cycle</span></div>
+      <div class="lat-row"><span class="lat-name">VA_Latency</span><span class="lat-val">= 1 cycle</span></div>
+      <div class="lat-row"><span class="lat-name">SA_Latency</span><span class="lat-val">= 1 cycle</span></div>
+      <div class="lat-row"><span class="lat-name">ST_Latency</span><span class="lat-val">= 1 cycle</span></div>
+    </div>
+
+  </aside>
+
+  <!-- ── RIGHT AREA ── -->
+  <div class="right-area">
+    <div class="pipe-scroll">
+
+      <!-- PIPELINE CARD -->
+      <div class="card">
+        <div class="card-title">Pipeline Stages — Evaluate &amp; Update Phase Grid</div>
+
+        <!-- Cycle transition banner (hidden by default) -->
+        <div class="cycle-banner" id="cycle-banner">
+          <span class="cb-spin">⟳</span>
+          <span id="cb-text">Cycle 2 begins — advancing simulation cycle</span>
+        </div>
+
+        <div class="pipeline-grid">
+
+          <!-- Row 1: headers -->
+          <div class="pg-hdr" style="grid-column:1;grid-row:1">IQ / BW</div>
+          <div style="grid-column:2;grid-row:1"></div>
+          <div class="pg-hdr" style="grid-column:3;grid-row:1">Route Compute</div>
+          <div class="pg-hdr" style="grid-column:4;grid-row:1">VC Allocation</div>
+          <div class="pg-hdr" style="grid-column:5;grid-row:1">Switch Alloc.</div>
+          <div class="pg-hdr" style="grid-column:6;grid-row:1">Switch Trav.</div>
+
+          <!-- BW/IQ — spans rows 2–3 -->
+          <div class="bw-cell" id="cell-iq" style="grid-column:1;grid-row:2/4">
+            <div class="bw-abbr">IQ</div>
+            <div class="bw-full">Input Queuing<br>(Buffer Write)</div>
+            <div class="flit-token">F</div>
+          </div>
+
+          <!-- Phase labels -->
+          <div class="phase-lbl eval-lbl" style="grid-column:2;grid-row:2">EVAL</div>
+          <div class="phase-lbl upd-lbl"  style="grid-column:2;grid-row:3">UPD</div>
+
+          <!-- Evaluate row (row 2) -->
+          <div class="stage-cell eval-cell" id="cell-rc-e" style="grid-column:3;grid-row:2">
+            <span class="cell-abbr">RC</span><div class="flit-token">F</div>
+          </div>
+          <div class="stage-cell eval-cell" id="cell-va-e" style="grid-column:4;grid-row:2">
+            <span class="cell-abbr">VA</span><div class="flit-token">F</div>
+          </div>
+          <div class="stage-cell eval-cell" id="cell-sa-e" style="grid-column:5;grid-row:2">
+            <span class="cell-abbr">SA</span><div class="flit-token">F</div>
+          </div>
+          <div class="stage-cell eval-cell" id="cell-st-e" style="grid-column:6;grid-row:2">
+            <span class="cell-abbr">ST</span><div class="flit-token">F</div>
+          </div>
+
+          <!-- Update row (row 3) -->
+          <div class="stage-cell upd-cell" id="cell-rc-u" style="grid-column:3;grid-row:3">
+            <span class="cell-abbr">RC</span><div class="flit-token">F</div>
+          </div>
+          <div class="stage-cell upd-cell" id="cell-va-u" style="grid-column:4;grid-row:3">
+            <span class="cell-abbr">VA</span><div class="flit-token">F</div>
+          </div>
+          <div class="stage-cell upd-cell" id="cell-sa-u" style="grid-column:5;grid-row:3">
+            <span class="cell-abbr">SA</span><div class="flit-token">F</div>
+          </div>
+          <div class="stage-cell upd-cell" id="cell-st-u" style="grid-column:6;grid-row:3">
+            <span class="cell-abbr">ST</span><div class="flit-token">F</div>
+          </div>
+
+          <!-- Output buffer -->
+          <div class="output-buf" id="output-buf">
+            <span class="ob-icon">📤</span>
+            <span id="ob-text">Output Buffer Queue — awaiting flit traversal</span>
+          </div>
+
+        </div><!-- /pipeline-grid -->
+
+        <!-- Step dot groups -->
+        <div class="dot-groups-wrap" id="dot-groups-wrap" aria-label="Step navigation"></div>
+
+      </div><!-- /card -->
+
+      <!-- TIMELINE CARD -->
+      <div class="card">
+        <div class="card-title">Cycle-by-Cycle Timeline &nbsp;·&nbsp; I = IQ Arrival &nbsp;·&nbsp; E = Evaluate &nbsp;·&nbsp; U = Update</div>
+        <table class="timeline-tbl" id="timeline-tbl" aria-label="Pipeline timeline"></table>
+      </div>
+
+    </div><!-- /pipe-scroll -->
+
+    <!-- ── NOW BAND (full-width, readable explanation) ── -->
+    <div id="now-band">
+      <div class="desc-card d-tran" id="desc-card">
+        The router pipeline is idle. All stages are waiting. Click Next to start the flit traversal.
+      </div>
+    </div>
+
+    <!-- ── CONTROLS ── -->
+    <div class="controls-bar">
+      <button class="ctrl-btn" id="btn-reset" onclick="App.reset()" title="Reset (R)">↺ Reset</button>
+      <button class="ctrl-btn" id="btn-prev"  onclick="App.prev()"  disabled title="Prev (←)">⬅ Prev</button>
+      <button class="ctrl-btn play-btn" id="btn-play" onclick="App.togglePlay()" title="Play/Pause (Space)">▶ Play</button>
+      <button class="ctrl-btn next-btn" id="btn-next" onclick="App.next()" title="Next (→)">Next ➔</button>
+      <div class="step-count" id="step-count">Step 1 / 19</div>
+      <div class="prog-wrap">
+        <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:4.5%"></div></div>
+      </div>
+      <div class="speed-wrap">
+        🐢
+        <input type="range" class="speed-sl" id="speed-sl" min="400" max="2800" value="1400" step="200">
+        🐇
+      </div>
+    </div>
+
+  </div><!-- /right-area -->
+
+</div><!-- /layout -->
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   ALL CELL IDs
+═══════════════════════════════════════════════════════ */
+const ALL_CELLS = ['iq','rc-e','va-e','sa-e','st-e','rc-u','va-u','sa-u','st-u'];
+
+/* ═══════════════════════════════════════════════════════
+   STEP DATA — 22 steps (0–21)
+   phase: 'idle'|'iq'|'evaluate'|'update'|'transition'|'done'
+   active: cell-id or null
+   skipped: array of cell-ids with Skipped overlay
+   (cells not in active or skipped remain plain gray/idle)
+═══════════════════════════════════════════════════════ */
+const STEPS = [
+/* 0 idle */
+{ cycle: null,  phase:'idle',       label:'Pipeline Idle',          sub:'All stages waiting for a flit',
+  active:null,  skipped:[], executed:[],
+  queueTag:'—',
+  actionText:'The pipeline is idle.\nNo flit is being processed.\nClick Next ➔ to begin.',
+  desc:'The router pipeline is idle. All stages are waiting. Click Next to start the flit traversal.',
+  outputBuf:false },
+
+/* 1 IQ */
+{ cycle:1,      phase:'iq',         label:'Cycle 1 · IQ',           sub:'Flit arrives at Input Queue',
+  active:'iq',  skipped:[], executed:[],
+  queueTag:'In RC_Q with time = −1',
+  actionText:'Add flit to input buffer VC.\nSet VC State → Routing.',
+  desc:'Cycle 1: Flit arrives at the router and is written into the Input Queue (IQ / Buffer Write). It enters RC_Q with timestamp −1. VC state → Routing.',
+  outputBuf:false },
+
+/* 2 RC Eval enter */
+{ cycle:1,      phase:'evaluate',   label:'Cycle 1 · RC Evaluate',  sub:'RC Evaluate — entering',
+  active:'rc-e', skipped:[], executed:['iq'],
+  queueTag:'In RC_Q with time = 2',
+  actionText:'Set RC timestamp:\nCurrent(1) + RC_Latency(1) = 2',
+  desc:'Cycle 1 — Evaluate Phase: Route Compute stage becomes active. RC timestamp is stamped to cycle 2. Other stages are not yet scheduled.',
+  outputBuf:false },
+
+/* 3 RC Eval skip reveal */
+{ cycle:1,      phase:'evaluate',   label:'Cycle 1 · RC Evaluate',  sub:'Other stages skipped this cycle',
+  active:'rc-e', skipped:['va-e','sa-e','st-e','rc-u','va-u','sa-u','st-u'], executed:['iq'],
+  queueTag:'RC timestamp = 2 stamped.',
+  actionText:'RC Evaluate complete.\nVA, SA, ST → Skipped (not scheduled).\nRC Update → Skipped (executes Cycle 2).',
+  desc:'Cycle 1: Only RC Evaluate runs. VA, SA, ST (both rows) and RC Update are all Skipped — not scheduled for this cycle.',
+  outputBuf:false },
+
+/* 4 Cycle 2 transition */
+{ cycle:2,      phase:'transition', label:'Cycle 2 Begins',          sub:'Advancing simulation cycle',
+  active:null,  skipped:[], executed:[],
+  queueTag:'→ Advancing to Cycle 2',
+  actionText:'Cycle 2 begins.\nRC Update timestamp (2) has matured.\nReady to execute RC Update.',
+  desc:'The simulator advances to Cycle 2. The RC Update timestamp matches, so RC Update will now execute. All stages are momentarily idle.',
+  outputBuf:false },
+
+/* 5 RC Upd enter — before = Skipped */
+{ cycle:2,      phase:'update',     label:'Cycle 2 · RC Update',    sub:'All Evaluate stages marked Skipped',
+  active:'rc-u', skipped:['iq','rc-e','va-e','sa-e','st-e'], executed:[],
+  queueTag:'Output Port Set. VA time = −1.',
+  actionText:'Route Compute done.\nOutput port determined.\nVC State → VC Alloc.\nFlit added to VA_Q.',
+  desc:'Cycle 2 — Update Phase: RC Update executes. IQ and all Evaluate stages are Skipped (their phase passed this cycle). VA, SA, ST Update not yet scheduled.',
+  outputBuf:false },
+
+/* 6 RC Upd skip reveal — all others Skipped */
+{ cycle:2,      phase:'update',     label:'Cycle 2 · RC Update',    sub:'All remaining stages skipped',
+  active:'rc-u', skipped:['iq','rc-e','va-e','sa-e','st-e','va-u','sa-u','st-u'], executed:[],
+  queueTag:'Flit moved to VA_Q.',
+  actionText:'RC Update complete.\nVA, SA, ST → Skipped this cycle.\nFlit enqueued in VA_Q for Cycle 3.',
+  desc:'Cycle 2: RC Update completes. All remaining stages are Skipped for this cycle. The flit is now in VA_Q waiting for Cycle 3.',
+  outputBuf:false },
+
+/* 7 Cycle 3 transition */
+{ cycle:3,      phase:'transition', label:'Cycle 3 Begins',          sub:'Advancing simulation cycle',
+  active:null,  skipped:[], executed:[],
+  queueTag:'→ Advancing to Cycle 3',
+  actionText:'Cycle 3 begins.\nVA Evaluate and VA Update\nboth execute this cycle.',
+  desc:'The simulator advances to Cycle 3. Both VA Evaluate and VA Update timestamps match Cycle 3 — both execute within this cycle.',
+  outputBuf:false },
+
+/* 8 VA Eval enter */
+{ cycle:3,      phase:'evaluate',   label:'Cycle 3 · VA Evaluate',  sub:'Previous stages marked Skipped',
+  active:'va-e', skipped:['iq','rc-e'], executed:[],
+  queueTag:'In VA_Q with time = 3',
+  actionText:'Set VA timestamp = 3.\nPoll VC requests.\nRun allocation algorithm.\nGrant output VCs.',
+  desc:'Cycle 3 — Evaluate Phase: VC Allocation stage active. IQ and RC Evaluate are Skipped (already evaluated in earlier stages).',
+  outputBuf:false },
+
+/* 9 VA Upd enter */
+{ cycle:3,      phase:'update',     label:'Cycle 3 · VA Update',    sub:'VC reservation committed',
+  active:'va-u', skipped:['iq','rc-e','sa-e','st-e','rc-u'], executed:['va-e'],
+  queueTag:'Output VC Set. Flit → SA_Q, time = −1.',
+  actionText:'Reserve output VC.\nVC State → Active.\nFlit moved to SA_Q.',
+  desc:'Cycle 3 — Update Phase: VA Update executes. IQ, RC Update, and all Evaluate stages (except VA Eval) are Skipped.',
+  outputBuf:false },
+
+/* 10 VA Upd skip reveal */
+{ cycle:3,      phase:'update',     label:'Cycle 3 · VA Update',    sub:'All remaining stages skipped',
+  active:'va-u', skipped:['iq','rc-e','sa-e','st-e','rc-u','sa-u','st-u'], executed:['va-e'],
+  queueTag:'Flit enqueued in SA_Q for Cycle 4.',
+  actionText:'VA Update complete.\nSA, ST → Skipped this cycle.\nFlit enqueued in SA_Q for Cycle 4.',
+  desc:'Cycle 3: VA Update completes. SA and ST Update are Skipped. The flit is in SA_Q waiting for Cycle 4.',
+  outputBuf:false },
+
+/* 11 Cycle 4 transition */
+{ cycle:4,      phase:'transition', label:'Cycle 4 Begins',          sub:'Advancing simulation cycle',
+  active:null,  skipped:[], executed:[],
+  queueTag:'→ Advancing to Cycle 4',
+  actionText:'Cycle 4 begins.\nSA Evaluate and SA Update\nboth execute this cycle.',
+  desc:'The simulator advances to Cycle 4. Both SA Evaluate and SA Update timestamps match Cycle 4.',
+  outputBuf:false },
+
+/* 12 SA Eval enter */
+{ cycle:4,      phase:'evaluate',   label:'Cycle 4 · SA Evaluate',  sub:'Previous stages marked Skipped',
+  active:'sa-e', skipped:['iq','rc-e','va-e'], executed:[],
+  queueTag:'Flit SA Time = 4',
+  actionText:'Set SA timestamp = 4.\nPoll switch requests.\nRun arbiter.\nGrant crossbar access.',
+  desc:'Cycle 4 — Evaluate Phase: Switch Allocation stage active. All previous evaluate stages (IQ, RC, VA) are Skipped.',
+  outputBuf:false },
+
+/* 13 SA Upd enter */
+{ cycle:4,      phase:'update',     label:'Cycle 4 · SA Update',    sub:'Flit moves to crossbar',
+  active:'sa-u', skipped:['iq','rc-e','va-e','st-e','rc-u','va-u'], executed:['sa-e'],
+  queueTag:'Switch Granted. ST_Q, time = −1.',
+  actionText:'Pop flit from Input VC.\nAdd flit to Crossbar_Q.\nUpdate upstream credit.',
+  desc:'Cycle 4 — Update Phase: SA Update executes. Previous update stages and all evaluate stages (except SA Eval) are Skipped.',
+  outputBuf:false },
+
+/* 14 SA Upd skip reveal */
+{ cycle:4,      phase:'update',     label:'Cycle 4 · SA Update',    sub:'All remaining stages skipped',
+  active:'sa-u', skipped:['iq','rc-e','va-e','st-e','rc-u','va-u','st-u'], executed:['sa-e'],
+  queueTag:'Flit enqueued in ST_Q for Cycle 5.',
+  actionText:'SA Update complete.\nST → Skipped this cycle.\nFlit enqueued in ST_Q for Cycle 5.',
+  desc:'Cycle 4: SA Update completes. ST Update is Skipped. The flit is in ST_Q waiting for Cycle 5.',
+  outputBuf:false },
+
+/* 15 Cycle 5 transition */
+{ cycle:5,      phase:'transition', label:'Cycle 5 Begins',          sub:'Final cycle of traversal',
+  active:null,  skipped:[], executed:[],
+  queueTag:'→ Advancing to Cycle 5',
+  actionText:'Cycle 5 begins — final stage!\nST Evaluate and ST Update\nboth execute this cycle.',
+  desc:'The simulator advances to Cycle 5. Switch Traversal Evaluate and Update execute — this is the final stage of the pipeline.',
+  outputBuf:false },
+
+/* 16 ST Eval enter */
+{ cycle:5,      phase:'evaluate',   label:'Cycle 5 · ST Evaluate',  sub:'Previous stages marked Skipped',
+  active:'st-e', skipped:['iq','rc-e','va-e','sa-e'], executed:[],
+  queueTag:'Flit ST time = 5',
+  actionText:'Set ST timestamp = 5.\nPrepare for switch traversal.\nAll prior stages complete.',
+  desc:'Cycle 5 — Evaluate Phase: Switch Traversal stage active. All previous evaluate stages (IQ, RC, VA, SA) are Skipped.',
+  outputBuf:false },
+
+/* 17 ST Upd enter — flit exits! */
+{ cycle:5,      phase:'update',     label:'Cycle 5 · ST Update',    sub:'Flit traverses crossbar!',
+  active:'st-u', skipped:['iq','rc-e','va-e','sa-e','rc-u','va-u','sa-u'], executed:['st-e'],
+  queueTag:'Flit → Output Buffer Queue! 🎉',
+  actionText:'Flit traverses crossbar switch.\nAdded to Output Buffer Queue.\nPipeline complete in 5 cycles!',
+  desc:'Cycle 5 — Update Phase: The flit traverses the crossbar switch fabric. All previous update and evaluate stages are Skipped.',
+  outputBuf:true },
+
+/* 18 Done */
+{ cycle:5,      phase:'done',       label:'Pipeline Complete! 🎉',  sub:'5 cycles · IQ → RC → VA → SA → ST done',
+  active:null,  skipped:[], executed:[],
+  queueTag:'Flit in Output Buffer Queue',
+  actionText:'Pipeline traversal complete!\n5 simulation cycles elapsed.\nIQ → RC → VA → SA → ST ✅',
+  desc:'✅ The flit has successfully traversed all 5 stages of the router pipeline in 5 simulation cycles. It now sits in the Output Buffer Queue, ready for inter-router transmission.',
+  outputBuf:true },
+];
+
+/* ═══════════════════════════════════════════════════════
+   DOT GROUPS — grouped by cycle
+═══════════════════════════════════════════════════════ */
+const DOT_GROUPS = [
+  { label: 'Start',   steps: [0] },
+  { label: 'Cycle 1', steps: [1, 2, 3] },
+  { label: 'Cycle 2', steps: [4, 5, 6] },
+  { label: 'Cycle 3', steps: [7, 8, 9, 10] },
+  { label: 'Cycle 4', steps: [11, 12, 13, 14] },
+  { label: 'Cycle 5', steps: [15, 16, 17, 18] },
+];
+
+/* ═══════════════════════════════════════════════════════
+   TIMELINE DATA
+═══════════════════════════════════════════════════════ */
+const TIMELINE = {
+  IQ: [{ c:1, type:'I', cell:'iq' }],
+  RC: [{ c:1, type:'E', cell:'rc-e' }, { c:2, type:'U', cell:'rc-u' }],
+  VA: [{ c:3, type:'E', cell:'va-e' }, { c:3, type:'U', cell:'va-u' }],
+  SA: [{ c:4, type:'E', cell:'sa-e' }, { c:4, type:'U', cell:'sa-u' }],
+  ST: [{ c:5, type:'E', cell:'st-e' }, { c:5, type:'U', cell:'st-u' }],
+};
+
+/* ═══════════════════════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════════════════════ */
+function phaseToDotClass(phase) {
+  return { idle:'c-idle', iq:'c-iq', evaluate:'c-eval', update:'c-upd',
+           transition:'c-tran', done:'c-done' }[phase] || 'c-idle';
+}
+
+function phaseToDotColor(phase) {
+  return phase === 'transition'; // true → is-tran class
+}
+
+function phaseToStepMainClass(phase) {
+  return { idle:'', iq:'c-iq', evaluate:'c-eval', update:'c-upd',
+           transition:'c-tran', done:'c-done' }[phase] || '';
+}
+
+/* ═══════════════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════════════ */
+let cur = 0, isPlaying = false, timer = null;
+
+/* Neighbors in the master presentation sequence */
+const PREV_DECK_URL = "flit-lifecycle.html?end=1";
+const NEXT_DECK_URL = "chi-channel-architecture.html?step=0";
+
+/* ═══════════════════════════════════════════════════════
+   RENDER
+═══════════════════════════════════════════════════════ */
+function render(idx) {
+  const s = STEPS[idx];
+
+  /* — Pipeline cells — */
+  ALL_CELLS.forEach(id => {
+    const el = document.getElementById('cell-' + id);
+    if (!el) return;
+    el.classList.remove('has-flit','active-iq','active-eval','active-upd','skipped','executed');
+  });
+  if (s.active) {
+    const el = document.getElementById('cell-' + s.active);
+    if (el) {
+      el.classList.add('has-flit');
+      if      (s.phase === 'iq')       el.classList.add('active-iq');
+      else if (s.phase === 'evaluate') el.classList.add('active-eval');
+      else if (s.phase === 'update')   el.classList.add('active-upd');
+    }
+  }
+  if (s.skipped) {
+    s.skipped.forEach(id => {
+      const el = document.getElementById('cell-' + id);
+      if (el) el.classList.add('skipped');
+    });
+  }
+  if (s.executed) {
+    s.executed.forEach(id => {
+      const el = document.getElementById('cell-' + id);
+      if (el) el.classList.add('executed');
+    });
+  }
+
+  /* — Cycle number — */
+  const cn = document.getElementById('cycle-num');
+  cn.textContent = s.cycle !== null ? s.cycle : '—';
+  cn.className = 'cycle-num ' + phaseToDotClass(s.phase);
+
+  /* — Cycle tag — */
+  document.getElementById('cycle-tag').textContent =
+    s.cycle !== null ? 'Cycle ' + s.cycle : 'idle';
+
+  /* — Step title — */
+  const sm = document.getElementById('step-main');
+  sm.textContent = s.label;
+  sm.className   = 'step-main ' + phaseToStepMainClass(s.phase);
+  document.getElementById('step-sub').textContent = s.sub;
+  document.getElementById('step-badge').textContent = `Step ${idx+1} / ${STEPS.length}`;
+
+  /* — Phase chips — */
+  ['chip-iq','chip-eval','chip-upd'].forEach(id =>
+    document.getElementById(id).classList.remove('active'));
+  if (s.phase === 'iq')       document.getElementById('chip-iq').classList.add('active');
+  if (s.phase === 'evaluate') document.getElementById('chip-eval').classList.add('active');
+  if (s.phase === 'update')   document.getElementById('chip-upd').classList.add('active');
+
+  /* — Queue tag — */
+  const qt = document.getElementById('q-tag');
+  qt.textContent = s.queueTag;
+  qt.className   = 'q-tag' + (s.phase === 'evaluate' ? ' t-eval' :
+                               s.phase === 'update'   ? ' t-upd'  :
+                               s.phase === 'transition'? ' t-tran' :
+                               s.phase === 'done'      ? ' t-done' : '');
+
+  /* — Action text — */
+  document.getElementById('act-text').textContent = s.actionText;
+
+  /* — Description card — */
+  const dc = document.getElementById('desc-card');
+  dc.textContent = s.desc;
+  dc.className   = 'desc-card d-' + (s.phase === 'idle' ? 'tran' :
+                                      s.phase === 'iq'   ? 'iq'   :
+                                      s.phase === 'evaluate' ? 'eval' :
+                                      s.phase === 'update'   ? 'upd'  :
+                                      s.phase === 'transition' ? 'tran' :
+                                      s.phase === 'done' ? 'done' : 'tran');
+
+  /* — Cycle banner — */
+  const banner = document.getElementById('cycle-banner');
+  if (s.phase === 'transition') {
+    banner.classList.add('show');
+    document.getElementById('cb-text').textContent =
+      s.label + ' — ' + s.sub;
+  } else {
+    banner.classList.remove('show');
+  }
+
+  /* — Output buffer — */
+  const ob = document.getElementById('output-buf');
+  ob.classList.toggle('flit-here', s.outputBuf);
+  document.getElementById('ob-text').textContent = s.outputBuf
+    ? '📦 Flit arrived at Output Buffer Queue — pipeline traversal complete! 🎉'
+    : 'Output Buffer Queue — awaiting flit traversal';
+
+  /* — Dot groups — */
+  document.querySelectorAll('[data-step]').forEach(dot => {
+    const si = parseInt(dot.dataset.step);
+    const sp = STEPS[si].phase;
+    dot.className = 's-dot' + (phaseToDotColor(sp) ? ' is-tran' : '');
+    if (si < idx)  dot.classList.add('done');
+    if (si === idx) dot.classList.add('cur', phaseToDotClass(sp));
+  });
+
+  /* — Controls — */
+  document.getElementById('btn-prev').disabled = false;
+  document.getElementById('btn-next').disabled = false;
+  document.getElementById('step-count').textContent = `Step ${idx+1} / ${STEPS.length}`;
+  document.getElementById('prog-fill').style.width =
+    `${((idx+1)/STEPS.length)*100}%`;
+
+  /* — Timeline — */
+  renderTimeline(idx);
+}
+
+/* ═══════════════════════════════════════════════════════
+   TIMELINE RENDER
+═══════════════════════════════════════════════════════ */
+function renderTimeline(idx) {
+  const s  = STEPS[idx];
+  const tbl = document.getElementById('timeline-tbl');
+
+  let html = '<thead><tr>';
+  html += '<th class="tl-th" style="text-align:left;padding:3px 8px">Stage</th>';
+  [1,2,3,4,5].forEach(c =>
+    html += `<th class="tl-th">Cycle ${c}</th>`);
+  html += '</tr></thead><tbody>';
+
+  Object.entries(TIMELINE).forEach(([stage, events]) => {
+    html += '<tr>';
+    html += `<td class="tl-stage">${stage}</td>`;
+    [1,2,3,4,5].forEach(c => {
+      const evs = events.filter(e => e.c === c);
+      let cellHtml = evs.map(e => {
+        const isActive = s.active === e.cell;
+        const cls = `tl-${e.type.toLowerCase()}${isActive ? ' tl-active' : ''}`;
+        return `<span class="${cls}">${e.type}</span>`;
+      }).join('');
+      if (!cellHtml) cellHtml = '<span class="tl-empty">—</span>';
+      html += `<td class="tl-cell">${cellHtml}</td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</tbody>';
+  tbl.innerHTML = html;
+}
+
+/* ═══════════════════════════════════════════════════════
+   APP CONTROLLER
+═══════════════════════════════════════════════════════ */
+const App = {
+  reset()  { this.stopPlay(); cur = 0; render(0); },
+  prev()   { if (cur > 0) render(--cur); else window.location.href = PREV_DECK_URL; },
+  next()   { if (cur < STEPS.length - 1) render(++cur); else window.location.href = NEXT_DECK_URL; },
+  goTo(i)  { cur = i; render(i); },
+  togglePlay() { isPlaying ? this.stopPlay() : this.startPlay(); },
+  startPlay() {
+    isPlaying = true;
+    const btn = document.getElementById('btn-play');
+    btn.textContent = '⏸ Pause'; btn.classList.add('playing');
+    const ms = 3200 - parseInt(document.getElementById('speed-sl').value);
+    const tick = () => {
+      if (cur < STEPS.length - 1) { cur++; render(cur); timer = setTimeout(tick, ms); }
+      else this.stopPlay();
+    };
+    timer = setTimeout(tick, ms);
+  },
+  stopPlay() {
+    isPlaying = false; clearTimeout(timer); timer = null;
+    const btn = document.getElementById('btn-play');
+    btn.textContent = '▶ Play'; btn.classList.remove('playing');
+  },
+};
+
+/* ═══════════════════════════════════════════════════════
+   INIT — build dot groups
+═══════════════════════════════════════════════════════ */
+(function init() {
+  const wrap = document.getElementById('dot-groups-wrap');
+  DOT_GROUPS.forEach((grp, gi) => {
+    // Separator between groups (not before first)
+    if (gi > 0) {
+      const sep = document.createElement('div');
+      sep.className = 'dot-sep'; wrap.appendChild(sep);
+    }
+    const gEl = document.createElement('div');
+    gEl.className = 'dot-group';
+
+    const lbl = document.createElement('div');
+    lbl.className = 'dg-lbl'; lbl.textContent = grp.label;
+    gEl.appendChild(lbl);
+
+    const dotsEl = document.createElement('div');
+    dotsEl.className = 'dg-dots';
+    grp.steps.forEach(si => {
+      const d = document.createElement('button');
+      d.className = 's-dot';
+      d.dataset.step = si;
+      d.title = `Step ${si+1}: ${STEPS[si].label}`;
+      d.setAttribute('aria-label', `Go to step ${si+1}`);
+      d.onclick = () => App.goTo(si);
+      dotsEl.appendChild(d);
+    });
+    gEl.appendChild(dotsEl);
+    wrap.appendChild(gEl);
+  });
+
+  /* Keyboard navigation */
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowLeft')  { e.preventDefault(); App.prev(); }
+    if (e.key === 'ArrowRight') { e.preventDefault(); App.next(); }
+    if (e.key === ' ')          { e.preventDefault(); App.togglePlay(); }
+    if (e.key === 'r' || e.key === 'R') App.reset();
+  });
+
+  const params = new URLSearchParams(location.search);
+  if (params.get('end') === '1') {
+    cur = STEPS.length - 1;
+  } else {
+    const step = parseInt(params.get('step'), 10);
+    cur = (!isNaN(step) && step >= 0 && step < STEPS.length) ? step : 0;
+  }
+  render(cur);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,573 @@
+/* ================================================================
+   DESIGN TOKENS — PREMIUM LIGHT THEME (SDLC RECAP)
+================================================================ */
+:root {
+  --bg:       #f8fafc; /* slate-50 background */
+  --s1:       #ffffff; /* crisp white panels */
+  --s2:       #f1f5f9; /* slate-100 card fills */
+  --s3:       #e2e8f0; /* slate-200 component fills */
+  --b1:       #cbd5e1; /* slate-300 borders */
+  --b2:       #94a3b8; /* slate-400 borders */
+
+  --text:     #0f172a; /* slate-900 high contrast text */
+  --muted:    #334155; /* slate-700 readable secondary text */
+  --dim:      #64748b; /* slate-500 muted text */
+
+  --col-cyan:   #0284c7;
+  --col-blue:   #2563eb;
+  --col-purple: #7c3aed;
+  --col-orange: #ea580c; /* deck accent — Completed status is green, not this */
+  --col-green:  #16a34a; /* status: Completed */
+  --col-pink:   #db2777; /* status: Planned */
+  --col-yellow: #d97706; /* status: In Progress; deck accent pairing */
+  --col-teal:   #0d9488;
+
+  --nav-w:    230px;
+  --det-w:    340px;
+  --hdr-h:    54px;
+  --ctrl-h:   64px;
+  --r:        10px;
+  --rs:       6px;
+  --rxs:      4px;
+}
+
+/* ── RESET ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  display: grid;
+  grid-template-rows: var(--hdr-h) 1fr auto var(--ctrl-h);
+  grid-template-columns: var(--nav-w) 1fr var(--det-w);
+  grid-template-areas:
+    "hdr  hdr    hdr"
+    "nav  canvas det"
+    "nav  band   det"
+    "ctrl ctrl   ctrl";
+}
+
+/* ================================================================
+   HEADER
+================================================================ */
+#app-header {
+  grid-area: hdr;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.4rem;
+  background: var(--s1);
+  border-bottom: 1px solid var(--b1);
+  position: relative;
+  z-index: 50;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+#app-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg,
+    transparent 0%, var(--col-yellow) 25%,
+    var(--col-orange) 75%, transparent 100%);
+  opacity: 0.7;
+}
+
+.brand {
+  display: flex; align-items: center; gap: .6rem;
+}
+.brand-icon {
+  width: 30px; height: 30px; border-radius: 8px;
+  background: linear-gradient(135deg, var(--col-orange), var(--col-yellow));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; color: white; flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(234,88,12,0.3);
+}
+#app-header h1 {
+  font-size: 1rem; font-weight: 700; letter-spacing: -.2px; color: var(--text);
+}
+.chi-badge {
+  font-size: .63rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .8px; color: var(--col-orange);
+  background: rgba(234,88,12,.08); border: 1px solid rgba(234,88,12,.25);
+  padding: 2px 8px; border-radius: 20px;
+}
+
+.phase-pill {
+  display: flex; align-items: center; gap: .4rem;
+  font-size: .7rem; font-family: 'JetBrains Mono', monospace;
+  color: var(--muted); font-weight: 600;
+  background: var(--s2); padding: 4px 10px; border-radius: 14px;
+  border: 1px solid var(--b1);
+}
+.phase-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--col-green);
+  box-shadow: 0 0 6px var(--col-green);
+  animation: phase-glow 2s ease-in-out infinite;
+}
+@keyframes phase-glow {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: .5; transform: scale(0.85); }
+}
+
+/* ================================================================
+   LEFT NAVIGATOR
+================================================================ */
+#stage-nav {
+  grid-area: nav;
+  background: var(--s1);
+  border-right: 1px solid var(--b1);
+  padding: 1rem .75rem .6rem;
+  display: flex; flex-direction: column; gap: 4px;
+  overflow: hidden;
+}
+
+.nav-group-label {
+  font-size: .62rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1.5px; color: var(--dim);
+  padding: 0 .5rem; margin-bottom: .5rem;
+}
+
+.back-menu-link {
+  display: block; text-align: center; text-decoration: none;
+  padding: .55rem .75rem; margin-bottom: 12px;
+  border: 1px solid var(--b1); border-radius: var(--rs);
+  background: var(--s2); color: var(--text); font-weight: 600;
+  font-family: 'Inter', sans-serif; font-size: .8rem;
+  transition: background .2s, border-color .2s;
+}
+.back-menu-link:hover { background: var(--s3); }
+
+.nav-item {
+  display: flex; align-items: center; gap: .6rem;
+  padding: .55rem .75rem; border-radius: var(--rs);
+  cursor: pointer; border: 1px solid transparent;
+  background: transparent; color: var(--muted);
+  text-align: left; width: 100%;
+  transition: background .2s, border-color .2s;
+  font-family: 'Inter', sans-serif;
+}
+.nav-item:hover { background: var(--s2); }
+.nav-item.active {
+  background: rgba(234,88,12,.08);
+  border-color: rgba(234,88,12,.3);
+  box-shadow: 0 1px 3px rgba(234,88,12,.1);
+}
+.nav-item.done { background: rgba(22,163,74,.05); }
+
+.nav-status-icon {
+  width: 20px; height: 20px; border-radius: 50%;
+  border: 2px solid var(--b1); flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; transition: all .3s; font-weight: 700;
+}
+.nav-item.done   .nav-status-icon { background: var(--col-green); border-color: var(--col-green); color: white; }
+.nav-item.done   .nav-status-icon::after { content: '✓'; }
+.nav-item.active .nav-status-icon { border-color: var(--col-orange); background: rgba(234,88,12,.15); }
+.nav-item.active .nav-status-icon::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--col-orange); }
+
+.nav-text { flex: 1; min-width: 0; }
+.nav-num  { font-size: .6rem; color: var(--dim); font-family: 'JetBrains Mono', monospace; font-weight: 600; margin-bottom: 1px; }
+.nav-name { font-size: .78rem; font-weight: 600; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nav-item.active .nav-name { color: var(--col-orange); }
+.nav-item.done   .nav-name { color: var(--text); }
+.nav-color-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+.nav-kbd-hint {
+  margin-top: auto; padding-top: .6rem;
+  font-size: .63rem; color: var(--dim);
+  text-align: center; letter-spacing: .2px;
+}
+.kbd {
+  display: inline-block;
+  padding: 1px 5px; border-radius: 4px;
+  background: var(--s2); border: 1px solid var(--b1);
+  font-family: 'JetBrains Mono', monospace; font-size: .6rem;
+  color: var(--muted); font-weight: 600;
+}
+
+/* ================================================================
+   MAIN CANVAS
+================================================================ */
+#main-canvas {
+  grid-area: canvas;
+  position: relative;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.canvas-header {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  padding: 1.2rem 1.6rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  z-index: 10;
+}
+.canvas-header .band-title {
+  font-size: 1.35rem; font-weight: 800; color: var(--text);
+}
+
+.canvas-view {
+  position: absolute; top: 66px; left: 0; right: 0; bottom: 0;
+  display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start;
+  padding: 1rem 1.8rem 1.2rem;
+  overflow-y: auto;
+  opacity: 0; pointer-events: none; transform: scale(.98);
+  transition: opacity .4s, transform .4s;
+}
+.canvas-view.active { opacity: 1; pointer-events: auto; transform: scale(1); }
+
+/* ================================================================
+   NOW BAND & DETAILS PANEL
+================================================================ */
+#now-band {
+  grid-area: band;
+  background: var(--s1);
+  border-top: 1px solid var(--b1); border-bottom: 1px solid var(--b1);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  min-height: 100px;
+}
+#band-body {
+  display: flex; align-items: flex-start; gap: 1.1rem;
+  padding: 1.2rem 1.6rem;
+  border-left: 4px solid transparent;
+  transition: opacity .15s;
+}
+#band-body.fading { opacity: 0; }
+
+.band-badge {
+  flex-shrink: 0; display: inline-flex; align-items: center; gap: .35rem;
+  padding: .3rem .8rem; border-radius: 20px;
+  font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .8px;
+  border: 1px solid; white-space: nowrap;
+}
+.band-badge.c-orange { background: rgba(234,88,12,.08);  border-color: rgba(234,88,12,.3);  color: var(--col-orange); }
+
+.band-title { flex-shrink: 0; font-size: 1.15rem; font-weight: 800; color: var(--text); white-space: nowrap; }
+.band-desc { flex: 1; min-width: 0; font-size: .92rem; color: var(--muted); line-height: 1.5; font-weight: 500; }
+
+#details-panel {
+  grid-area: det;
+  background: var(--s1); border-left: 1px solid var(--b1);
+  overflow-y: auto; overflow-x: hidden;
+  padding: 1rem .9rem;
+  box-shadow: -1px 0 4px rgba(0,0,0,0.03);
+}
+#details-panel::-webkit-scrollbar { width: 5px; }
+#details-panel::-webkit-scrollbar-thumb { background: var(--b1); border-radius: 3px; }
+
+#details-body { transition: opacity .15s; }
+#details-body.fading { opacity: 0; }
+
+.det-sec { margin-bottom: .9rem; }
+.det-lbl { font-size: .62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.3px; color: var(--dim); margin-bottom: .4rem; }
+
+.summary-grid {
+  display: grid; grid-template-columns: 1fr;
+  gap: .45rem; margin-top: .35rem;
+}
+.sum-card {
+  background: var(--s2); border: 1px solid var(--b1);
+  border-radius: var(--rs); padding: .5rem .65rem;
+  display: flex; flex-direction: column; gap: 2px;
+}
+.sum-lbl { font-size: .58rem; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: var(--dim); }
+.sum-val { font-size: .74rem; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: var(--text); word-break: break-word; }
+
+.opt-btn-group { display: flex; flex-direction: column; gap: .4rem; }
+.opt-btn {
+  padding: .45rem .55rem; font-family: 'Inter', sans-serif;
+  font-size: .72rem; font-weight: 700; border-radius: var(--rxs);
+  border: 1px solid var(--b1); background: var(--s1); color: var(--muted);
+  cursor: pointer; transition: all .18s; text-align: left;
+}
+.opt-btn:hover { background: var(--s3); color: var(--text); }
+.opt-btn.active {
+  background: var(--col-orange); border-color: var(--col-orange); color: white;
+  box-shadow: 0 2px 6px rgba(234,88,12,0.3);
+}
+
+/* ================================================================
+   STATUS LEGEND (static fixture, sits above #details-body — pages 1-3 only,
+   hidden on pages 0 and 4 via App.updateView()'s noLegend check)
+================================================================ */
+.status-legend {
+  display: flex; flex-direction: column; gap: .4rem;
+  padding: .7rem .85rem; margin-bottom: .9rem;
+  background: var(--s2); border: 1px solid var(--b1); border-radius: var(--r);
+}
+.legend-item { display: flex; align-items: center; gap: .5rem; font-size: .7rem; font-weight: 700; color: var(--muted); }
+.legend-dot  { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.dot-done     { background: var(--col-green); }
+.dot-progress { background: var(--col-yellow); }
+.dot-planned  { background: var(--col-pink); }
+
+/* ================================================================
+   PAGE 0 — STANDARD SDLC FLOW
+   One row of 6 SDLC phases, all shown simultaneously (same behavior as the
+   Verification deck's own V&V Lifecycle page — stepping through phases only
+   dims the non-active columns, never hides content). Below it, always on
+   screen, the Pipelined Incremental SDLC Model diagram builds up one Time
+   Block at a time as the walkthrough continues. No V&V content on this page
+   — the V&V lifecycle stays on its own page in the Verification & Validation
+   deck.
+================================================================ */
+.vv-flow { display: flex; gap: .5rem; width: 100%; max-width: 1200px; align-items: stretch; flex-wrap: nowrap; justify-content: center; margin: 0 auto; }
+.vv-arrow-right {
+  display: flex; align-items: center; justify-content: center;
+  color: var(--b2); font-size: 1.4rem; font-weight: 900;
+}
+.vv-col { flex: 1 1 0; min-width: 130px; display: flex; flex-direction: column; align-items: stretch; gap: .35rem; }
+.vv-sdlc-box {
+  width: 100%; text-align: center; padding: .4rem .5rem; border-radius: var(--rs);
+  background: linear-gradient(135deg, var(--c), color-mix(in srgb, var(--c) 70%, var(--text)));
+  color: #fff; font-size: .82rem; font-weight: 800; letter-spacing: .2px;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--c) 35%, transparent);
+  height: 3.2rem; display: flex; align-items: center; justify-content: center;
+}
+
+/* SDLC-detail bullets — always visible (dimming, not hiding, is the only
+   step-through effect); flex:1 + centered content keeps every column's
+   detail box the same size regardless of how many bullets it holds. */
+.vv-sdlc-detail {
+  list-style: none; display: flex; flex-direction: column; justify-content: center; gap: .35rem;
+  flex: 1; margin: .35rem 0 0; padding: .65rem .75rem;
+  background: var(--s2); border-radius: var(--rs);
+  transition: opacity .25s, box-shadow .25s;
+}
+.vv-sdlc-detail li { font-size: .88rem; color: var(--text); line-height: 1.4; padding-left: .95rem; position: relative; font-weight: 500; }
+.vv-sdlc-detail li::before { content: '›'; position: absolute; left: 0; color: var(--c); font-weight: 800; }
+
+/* Generic focus/dim mechanism — shared by page 0's phase columns and page 4's
+   Documentation Flow steps. Inert on pages 1-3 (no .vv-focusable there). */
+.vv-focusable { cursor: pointer; transition: opacity .25s, filter .25s, border-color .25s, box-shadow .25s, transform .2s; }
+.vv-focusable.dimmed { opacity: .32; filter: grayscale(55%); }
+.vv-focusable:hover:not(.dimmed) { transform: translateY(-1px); }
+
+/* Pipelined Incremental SDLC Model — visible from the start (heading always
+   shown). Grid: column = Time Block, row = a FIXED increment number (row 1 is
+   always Increment 1's row, row 2 always Increment 2's, etc.) so reading
+   across a row traces one increment's phase over time, and reading down a
+   column shows every increment active at that time block — a cell is simply
+   blank if that increment hasn't started yet or has already finished there.
+   Columns reveal cumulatively as App._paintTopic() walks the "tb1".."tb5"
+   steps (grid-template-columns is grown via JS); earlier columns stay fully
+   visible once revealed — only the most-recently-revealed one is "active". */
+.flow-section-lbl {
+  font-size: .68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.2px;
+  color: var(--dim); text-align: center; margin-top: 1.6rem;
+}
+.flow-bottom-wrap { display: flex; flex-direction: column; align-items: center; }
+.pipeline-grid {
+  display: grid; grid-template-rows: auto repeat(5, auto);
+  gap: .5rem .6rem; width: 100%; max-width: 1250px; margin: .7rem auto 0;
+  justify-content: center;
+}
+[data-tb]:not(.revealed) { display: none; }
+.tb-col-hdr {
+  font-size: .68rem; font-weight: 800; text-transform: uppercase; letter-spacing: .5px;
+  color: var(--dim); text-align: center; align-self: end; padding-bottom: .5rem;
+}
+.tb-box {
+  border-radius: var(--rs); padding: .35rem .5rem; color: #fff; text-align: center;
+  background: linear-gradient(135deg, var(--c), color-mix(in srgb, var(--c) 70%, var(--text)));
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--c) 30%, transparent);
+  min-height: 2.7rem; min-width: 140px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 1px;
+  transition: box-shadow .25s, transform .25s;
+}
+.tb-box-inc { font-size: .64rem; font-weight: 800; letter-spacing: .3px; opacity: .95; }
+.tb-box-phase { font-size: .76rem; font-weight: 700; }
+.tb-box.active {
+  box-shadow: 0 0 0 2px var(--c), 0 4px 10px color-mix(in srgb, var(--c) 35%, transparent);
+  transform: translateY(-2px);
+}
+
+/* ================================================================
+   SDLC CHECKLIST CONTENT (pill/box treatment — pages 1-3)
+================================================================ */
+.sdlc-cols {
+  display: grid; gap: 1.5rem; width: 100%; max-width: 1300px; margin: 0 auto;
+  align-items: stretch;
+  flex: 1 1 auto; min-height: 0;
+}
+.sdlc-cols-2 { grid-template-columns: repeat(2, 1fr); }
+.sdlc-cols-3 { grid-template-columns: repeat(3, 1fr); }
+
+/* 4-col page (Development & Coding): 2 equal rows so the two split columns
+   (Simulation Kernel/Interconnect Layer, Experimentation/GUI Tool) each get
+   boxes of matching height, while Network Layer and Device & Endpoints span
+   both rows and pin the shared top/bottom edges everything aligns to. */
+.sdlc-cols-4 { grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, 1fr); }
+.sdlc-cols-4 > .sdlc-col:nth-child(1) { grid-column: 1; grid-row: 1; }          /* Simulation Kernel */
+.sdlc-cols-4 > .sdlc-col:nth-child(2) { grid-column: 2; grid-row: 1 / span 2; } /* Network Layer */
+.sdlc-cols-4 > .sdlc-col:nth-child(3) { grid-column: 3; grid-row: 1 / span 2; } /* Device & Endpoints */
+.sdlc-cols-4 > .sdlc-col:nth-child(4) { grid-column: 4; grid-row: 1; }          /* Experimentation */
+.sdlc-cols-4 > .sdlc-col:nth-child(5) { grid-column: 1; grid-row: 2; }          /* Interconnect Layer */
+.sdlc-cols-4 > .sdlc-col:nth-child(6) { grid-column: 4; grid-row: 2; }          /* GUI Tool */
+
+.sdlc-col {
+  background: var(--s1); border: 1px solid var(--b1); border-radius: var(--r);
+  padding: 1.3rem 1.4rem; display: flex; flex-direction: column; gap: .5rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  min-height: 0;
+  overflow-y: auto;
+}
+.sdlc-col::-webkit-scrollbar { width: 5px; }
+.sdlc-col::-webkit-scrollbar-thumb { background: var(--b1); border-radius: 3px; }
+
+.sdlc-col-hdr {
+  font-size: 1.05rem; font-weight: 800; color: var(--text);
+  padding-bottom: .5rem; margin-bottom: .3rem; border-bottom: 2px solid var(--s3);
+}
+.sdlc-sub-hdr {
+  font-size: .82rem; font-weight: 800; text-transform: uppercase; letter-spacing: .5px;
+  color: var(--dim); margin-top: .7rem; margin-bottom: .15rem;
+}
+.sdlc-col-hdr + .sdlc-sub-hdr { margin-top: 0; }
+.sdlc-sub-hdr.st-done     { color: var(--col-green); }
+.sdlc-sub-hdr.st-progress { color: var(--col-yellow); }
+.sdlc-sub-hdr.st-planned  { color: var(--col-pink); }
+
+.sdlc-list, .sdlc-tree, .sdlc-tree ul { list-style: none; }
+.sdlc-list li, .sdlc-tree li { position: relative; }
+
+/* Pill/box item — color is the ONLY signal between statuses: no italics,
+   no per-status font-weight/style difference. */
+.sdlc-item {
+  display: block; font-size: 1rem; font-weight: 600; line-height: 1.4; color: var(--text);
+  padding: .55rem .85rem; margin-bottom: .45rem;
+  border-radius: var(--rs); border: 1.5px solid var(--b1); border-left-width: 5px;
+  background: var(--s2);
+}
+.sdlc-item.st-done {
+  background: color-mix(in srgb, var(--col-green) 13%, var(--s1));
+  border-color: color-mix(in srgb, var(--col-green) 42%, var(--b1));
+  border-left-color: var(--col-green);
+}
+.sdlc-item.st-progress {
+  background: color-mix(in srgb, var(--col-yellow) 13%, var(--s1));
+  border-color: color-mix(in srgb, var(--col-yellow) 42%, var(--b1));
+  border-left-color: var(--col-yellow);
+}
+.sdlc-item.st-planned {
+  background: color-mix(in srgb, var(--col-pink) 10%, var(--s1));
+  border-color: color-mix(in srgb, var(--col-pink) 38%, var(--b1));
+  border-left-color: var(--col-pink);
+}
+
+/* Nested tree levels (up to 3 deep) — smaller pills signal hierarchy depth
+   only; status color rules above are unchanged at every depth. */
+.sdlc-tree ul { margin: .3rem 0 .5rem 1rem; padding-left: .75rem; border-left: 2px dashed var(--b1); }
+.sdlc-tree ul .sdlc-item    { font-size: .88rem; padding: .48rem .75rem; margin-bottom: .38rem; }
+.sdlc-tree ul ul .sdlc-item { font-size: .8rem;  padding: .42rem .7rem;  margin-bottom: .32rem; }
+
+/* ================================================================
+   PAGE 4 — DOCUMENTATION FLOW (ported from verification-presentation)
+================================================================ */
+.doc-flow { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 640px; margin: 0 auto; }
+.doc-step {
+  width: 100%; display: flex; align-items: center; gap: .9rem;
+  background: var(--s1); border: 1.5px solid var(--b1); border-radius: var(--r);
+  padding: .75rem 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.doc-step:not(.dimmed):hover { border-color: var(--b2); }
+.doc-num {
+  width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+  background: var(--s2); border: 2px solid var(--b1); color: var(--muted);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: .8rem;
+  transition: all .25s;
+}
+.doc-step.vv-focusable:not(.dimmed) .doc-num { background: var(--col-orange); border-color: var(--col-orange); color: #fff; }
+.doc-title { font-size: .84rem; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+.doc-desc { font-size: .73rem; color: var(--muted); line-height: 1.4; }
+.doc-connector { color: var(--b2); font-size: .9rem; padding: .1rem 0; }
+
+/* ================================================================
+   CONTROL BAR (FOOTER)
+================================================================ */
+#control-bar {
+  grid-area: ctrl;
+  background: var(--s1); border-top: 1px solid var(--b1);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 1.4rem; gap: .75rem;
+  box-shadow: 0 -1px 3px rgba(0,0,0,0.03);
+}
+
+.prog-row { display: flex; align-items: center; gap: .75rem; flex: 1; min-width: 0; }
+.prog-pips { display: flex; gap: .28rem; align-items: center; flex-wrap: wrap; }
+.pip { height: 5px; width: 20px; border-radius: 3px; background: var(--b1); transition: all .3s; }
+.pip.done { background: var(--col-green); }
+.pip.cur { background: var(--col-orange); width: 34px; }
+.prog-lbl { font-size: .75rem; color: var(--muted); font-weight: 600; font-family: 'JetBrains Mono', monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.prog-lbl span { color: var(--col-orange); font-weight: 700; }
+
+.ctrl-btns { display: flex; gap: .5rem; align-items: center; flex-shrink: 0; }
+.ctrl-btn { display: flex; align-items: center; justify-content: center; gap: .4rem; height: 36px; padding: 0 1.05rem; border: none; border-radius: var(--rs); font-family: 'Inter', sans-serif; font-size: .78rem; font-weight: 700; cursor: pointer; transition: all .18s; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.ctrl-btn:disabled { opacity: .3; cursor: not-allowed; }
+.reset-btn { background: var(--s2); border: 1px solid var(--b1); color: var(--muted); font-size: .72rem; padding: 0 .75rem; }
+.reset-btn:hover:not(:disabled) { background: var(--s3); color: var(--text); }
+.prev-btn { background: var(--s1); border: 1px solid var(--b1); color: var(--text); }
+.prev-btn:hover:not(:disabled) { background: var(--s2); border-color: var(--b2); }
+.play-btn { background: linear-gradient(135deg, var(--col-orange), var(--col-yellow)); color: white; min-width: 85px; box-shadow: 0 2px 8px rgba(234,88,12,0.3); }
+.play-btn:hover:not(:disabled) { box-shadow: 0 3px 12px rgba(234,88,12,0.45); transform: translateY(-1px); }
+.play-btn.playing { background: linear-gradient(135deg, var(--col-orange), #dc2626); box-shadow: 0 2px 8px rgba(234,88,12,0.3); }
+.next-btn { background: var(--col-orange); color: white; box-shadow: 0 2px 8px rgba(234,88,12,0.3); }
+.next-btn:hover:not(:disabled) { background: var(--col-yellow); box-shadow: 0 3px 12px rgba(217,119,6,0.45); transform: translateY(-1px); }
+
+/* Landing View */
+#landing-view {
+  position: fixed; inset: 0; z-index: 500;
+  background: var(--bg);
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+  padding: 3rem 2rem; overflow-y: auto;
+}
+.landing-toc-link {
+  position: fixed; top: 1.5rem; left: 1.5rem; z-index: 501;
+  display: inline-flex; align-items: center; gap: .3rem;
+  text-decoration: none; color: var(--dim); font-size: .78rem; font-weight: 600;
+  padding: .45rem .8rem; border: 1px solid var(--b1); border-radius: var(--rs);
+  background: var(--bg);
+  transition: background .2s, border-color .2s, color .2s;
+}
+.landing-toc-link:hover { background: var(--s3); color: var(--text); }
+.landing-continue-row { display: flex; justify-content: center; width: 100%; }
+.landing-start-btn {
+  display: inline-flex; align-items: center; gap: .5rem;
+  padding: .85rem 1.8rem; border: none; border-radius: var(--rs); cursor: pointer;
+  font-family: 'Inter', sans-serif; font-size: .92rem; font-weight: 700; color: #fff;
+  background: linear-gradient(135deg, var(--col-orange), var(--col-yellow)); box-shadow: 0 2px 10px rgba(234,88,12,.3);
+  transition: all .18s;
+}
+.landing-start-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(234,88,12,.45); }
+.landing-inner { margin: auto 0; max-width: 780px; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 2.4rem; }
+.landing-title-block { text-align: center; }
+.landing-title { font-size: 2.5rem; font-weight: 800; letter-spacing: -1px; color: var(--text); line-height: 1.15; }
+.landing-subtitle { margin-top: .6rem; font-size: .95rem; font-family: 'JetBrains Mono', monospace; color: var(--dim); font-weight: 500; letter-spacing: .3px; }
+.landing-list { width: 100%; display: flex; flex-direction: column; gap: .8rem; }
+.landing-divider { width: 100%; display: flex; align-items: center; gap: .8rem; color: var(--dim); font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+.landing-divider::before, .landing-divider::after { content: ''; flex: 1; height: 1px; background: var(--b1); }
+.landing-card {
+  display: flex; align-items: center; gap: 1rem; width: 100%;
+  padding: 1.1rem 1.3rem; background: var(--s1); border: 1px solid var(--b1); border-radius: var(--r);
+  text-decoration: none; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  transition: all .18s;
+}
+.landing-card:hover { border-color: var(--b2); box-shadow: 0 4px 14px rgba(0,0,0,0.08); transform: translateY(-1px); }
+.landing-card-icon { width: 44px; height: 44px; border-radius: 10px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #fff; }
+.landing-card-text { flex: 1; min-width: 0; }
+.landing-card-name { font-size: .98rem; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+.landing-card-desc { font-size: .78rem; color: var(--muted); line-height: 1.5; }
+.landing-card-arrow { font-size: 1.1rem; color: var(--b2); flex-shrink: 0; transition: transform .18s, color .18s; }
+.landing-card:hover .landing-card-arrow { color: var(--col-orange); transform: translateX(3px); }

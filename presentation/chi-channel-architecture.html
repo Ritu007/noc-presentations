@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CHI NoC — Channel Architecture</title>
+  <meta name="description" content="Interactive walkthrough of how the 4 independent CHI channels (DAT, REQ, RSP, SNP) are implemented on top of a single shared 5-stage router pipeline, driven by the Event Scheduler.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Page-specific additions only — style.css itself is never modified. */
+    .stg-pipe-box.chdone { opacity: .55; }
+
+    .note-txt {
+      font-family: 'Inter', sans-serif; font-size: 10.5px; font-weight: 600;
+      fill: var(--col-orange); text-anchor: middle; dominant-baseline: middle;
+      opacity: 0; transition: opacity .4s;
+    }
+    .note-txt.show { opacity: 1; }
+
+    /* Traveling flit box: same footprint as the static Flits-box chips, animates via transform */
+    .chi-flit-g {
+      opacity: 0;
+      transition: transform .5s ease-out, opacity .3s;
+    }
+    .chi-flit-g.show { opacity: 1; }
+
+    /* Per-channel flit identity: distinct fill so each channel's flit is visually its own, not one reused dot */
+    .flit-DAT .flit-badge-bg { fill: #0284c7; stroke: #0369a1; }
+    .flit-REQ .flit-badge-bg { fill: #2563eb; stroke: #1d4ed8; }
+    .flit-RSP .flit-badge-bg { fill: #7c3aed; stroke: #6d28d9; }
+    .flit-SNP .flit-badge-bg { fill: #ea580c; stroke: #c2410c; }
+
+    /* ── Flit Definition & Transitions overlay ── */
+    #flit-detail-view {
+      position: absolute; inset: 0; background: var(--bg);
+      opacity: 0; pointer-events: none; transform: scale(1.03);
+      transition: opacity .4s, transform .4s;
+      overflow-y: auto; padding: 1.2rem 1.6rem;
+    }
+    #flit-detail-view.show { opacity: 1; pointer-events: all; transform: scale(1); }
+
+    .fd-header { display: flex; align-items: center; gap: .9rem; margin-bottom: .9rem; }
+    .fd-title { font-size: 1rem; font-weight: 800; color: var(--text); }
+
+    .fd-note {
+      font-size: .78rem; color: var(--text); line-height: 1.55; font-weight: 500;
+      background: var(--s2); border: 1px solid var(--b1); border-radius: var(--rs);
+      padding: .75rem .9rem; margin-bottom: 1rem; max-width: 760px;
+    }
+    .fd-note .fd-green { color: var(--col-green); font-weight: 700; }
+    .fd-note .fd-red { color: #dc2626; font-weight: 700; }
+
+    .fd-pool {
+      display: flex; align-items: center; gap: .5rem; margin-bottom: 1.2rem; flex-wrap: wrap;
+    }
+    .fd-pool-box {
+      background: var(--s1); border: 1.5px solid var(--col-blue); border-radius: var(--rs);
+      padding: .55rem .9rem; font-size: .74rem; font-weight: 700; color: var(--col-blue);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .fd-pool-arrow { color: var(--dim); font-size: .85rem; }
+
+    .fd-cols { display: grid; grid-template-columns: repeat(5, minmax(150px, 1fr)); gap: .7rem; }
+    .fd-card {
+      background: var(--s1); border: 1px solid var(--b1); border-radius: var(--rs);
+      padding: .7rem .8rem;
+    }
+    .fd-card h4 { font-size: .8rem; font-weight: 800; color: var(--text); margin-bottom: .5rem; }
+    .fd-card ul { list-style: none; font-family: 'JetBrains Mono', monospace; font-size: .68rem; line-height: 1.85; }
+    .fd-card li.fd-green { color: var(--col-green); font-weight: 600; }
+    .fd-card li.fd-red { color: #dc2626; font-weight: 600; }
+    .fd-card li.fd-gap { height: .5rem; }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════
+     HEADER
+══════════════════════════════════════════════════════════════ -->
+<header id="app-header">
+  <div class="brand">
+    <div class="brand-icon">⬡</div>
+    <h1>CHI NoC — Channel Architecture</h1>
+    <span class="chi-badge">How CHI Channels Are Implemented</span>
+  </div>
+  <div class="hdr-center" id="hdr-stage-info">
+    Step <span id="hdr-num">1</span> of 8
+    &nbsp;·&nbsp;
+    <span id="hdr-name">Enter Architecture View</span>
+  </div>
+  <div class="phase-pill" id="phase-pill">
+    <span class="phase-dot"></span>
+    <span id="phase-text">SimPhase::Dispatch</span>
+  </div>
+</header>
+
+<!-- ══════════════════════════════════════════════════════════════
+     LEFT NAVIGATOR
+══════════════════════════════════════════════════════════════ -->
+<nav id="stage-nav" aria-label="Channel architecture steps">
+  <a href="index.html" class="back-menu-link">← Back to Main Menu</a>
+
+  <div class="flow-switch">
+    <div class="flow-switch-lbl">Switch Flow</div>
+    <a class="flow-switch-item fs-blue" href="index.html?flow=architecture">System Architecture</a>
+    <a class="flow-switch-item fs-cyan" href="flit-lifecycle.html">Flit Lifecycle</a>
+    <a class="flow-switch-item fs-purple" href="router-pipeline.html">Router Pipeline</a>
+    <a class="flow-switch-item fs-orange current" href="chi-channel-architecture.html">CHI Channels</a>
+  </div>
+
+  <div class="nav-group-label">Architecture Steps</div>
+
+  <button class="nav-item active" id="nav-0" onclick="App.goToStep(0)">
+    <div class="nav-status-icon" id="nav-st-0"></div>
+    <div class="nav-text">
+      <div class="nav-num">1</div>
+      <div class="nav-name">Enter Architecture View</div>
+    </div>
+    <div class="nav-color-dot" style="background:var(--col-cyan)"></div>
+  </button>
+
+  <button class="nav-item" id="nav-1" onclick="App.goToStep(1)">
+    <div class="nav-status-icon" id="nav-st-1"></div>
+    <div class="nav-text">
+      <div class="nav-num">2</div>
+      <div class="nav-name">Event Scheduler Dispatch</div>
+    </div>
+    <div class="nav-color-dot" style="background:var(--col-blue)"></div>
+  </button>
+
+  <button class="nav-item" id="nav-2" onclick="App.goToStep(2)">
+    <div class="nav-status-icon" id="nav-st-2"></div>
+    <div class="nav-text">
+      <div class="nav-num">3</div>
+      <div class="nav-name">TM Generates Channel Flits</div>
+    </div>
+    <div class="nav-color-dot" style="background:var(--col-cyan)"></div>
+  </button>
+
+  <button class="nav-item" id="nav-3" onclick="App.goToStep(3)">
+    <div class="nav-status-icon" id="nav-st-3"></div>
+    <div class="nav-text">
+      <div class="nav-num">4</div>
+      <div class="nav-name">Process DAT Channel</div>
+    </div>
+    <div class="nav-color-dot" style="background:var(--col-purple)"></div>
+  </button>
+
+  <button class="nav-item" id="nav-4" onclick="App.goToStep(4)">
+    <div class="nav-status-icon" id="nav-st-4"></div>
+    <div class="nav-text">
+      <div class="nav-num">5</div>
+      <div class="nav-name">Process REQ Channel</div>
+    </div>
+    <div class="nav-color-dot" style="background:var(--col-purple)"></div>
+  </button>
+
+  <button class="nav-item" id="nav-5" onclick="App.goToStep(5)">
+    <div class="nav-status-icon" id="nav-st-5"></div>
+    <div class="nav-text">
+      <div class="nav-num">6</div>
+      <div class="nav-name">Process RSP Channel</div>
+    </div>
+    <div class="nav-color-dot" style="background:var(--col-purple)"></div>
+  </button>
+
+  <button class="nav-item" id="nav-6" onclick="App.goToStep(6)">
+    <div class="nav-status-icon" id="nav-st-6"></div>
+    <div class="nav-text">
+      <div class="nav-num">7</div>
+      <div class="nav-name">Process SNP Channel</div>
+    </div>
+    <div class="nav-color-dot" style="background:var(--col-purple)"></div>
+  </button>
+
+  <button class="nav-item" id="nav-7" onclick="App.goToStep(7)">
+    <div class="nav-status-icon" id="nav-st-7"></div>
+    <div class="nav-text">
+      <div class="nav-num">8</div>
+      <div class="nav-name">Shared Pipeline Reuse</div>
+    </div>
+    <div class="nav-color-dot" style="background:var(--col-pink)"></div>
+  </button>
+
+  <div class="nav-kbd-hint">
+    <span class="kbd">←</span><span class="kbd">→</span> navigate &nbsp;·&nbsp;
+    <span class="kbd">Space</span> play
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════════
+     MAIN CANVAS
+══════════════════════════════════════════════════════════════ -->
+<main id="main-canvas">
+  <div id="network-view">
+    <svg id="net-svg" viewBox="0 0 900 640" xmlns="http://www.w3.org/2000/svg"
+         aria-label="CHI Channel Architecture Diagram">
+
+      <!-- Row 1: Event Scheduler -->
+      <g id="mod-es">
+        <rect x="30" y="20" width="460" height="56" rx="10" class="mod-box"/>
+        <text x="260" y="42" class="mod-title">Event Scheduler</text>
+        <text x="260" y="58" class="mod-sub">Drives one cycle across all components</text>
+      </g>
+
+      <!-- Dispatch arrows -->
+      <path id="sig-es-tm"      d="M100,76 L100,110" class="sig-path" opacity="0"/>
+      <path id="sig-es-router"  d="M260,76 L260,110" class="sig-path" opacity="0"/>
+      <path id="sig-es-network" d="M420,76 L420,110" class="sig-path" opacity="0"/>
+
+      <!-- Row 2: Traffic Manager / CHI Router / Network -->
+      <g id="mod-tm">
+        <rect x="30" y="110" width="140" height="56" rx="10" class="mod-box"/>
+        <text x="100" y="133" class="mod-title">Traffic Manager</text>
+        <text x="100" y="150" class="mod-sub">Generates flits</text>
+      </g>
+
+      <g id="mod-router">
+        <rect x="190" y="110" width="140" height="56" rx="10" class="mod-box"/>
+        <text x="260" y="133" class="mod-title">CHI Router</text>
+        <text x="260" y="150" class="mod-sub">Calls 4 channels</text>
+      </g>
+
+      <g id="mod-network">
+        <rect x="350" y="110" width="140" height="56" rx="10" class="mod-box"/>
+        <text x="420" y="133" class="mod-title">Network</text>
+        <text x="420" y="150" class="mod-sub">Local + Router links</text>
+      </g>
+
+      <!-- TM -> Flits box -->
+      <path id="sig-tm-flits" d="M100,166 L100,200" class="sig-path" opacity="0"/>
+
+      <!-- Flits box -->
+      <g id="mod-flits">
+        <rect x="30" y="200" width="140" height="100" rx="10" class="mod-box"/>
+        <text x="100" y="220" class="mod-title">Flits</text>
+        <text x="100" y="234" class="mod-sub">Generated this cycle</text>
+
+        <g id="chip-dat" class="flit-badge-g flit-DAT" opacity="0" style="cursor:pointer" onclick="App.openFlitDetails()">
+          <rect x="38" y="244" width="60" height="20" rx="5" class="flit-badge-bg"/>
+          <text x="68" y="254" class="flit-badge-txt">DAT</text>
+        </g>
+        <g id="chip-req" class="flit-badge-g flit-REQ" opacity="0" style="cursor:pointer" onclick="App.openFlitDetails()">
+          <rect x="102" y="244" width="60" height="20" rx="5" class="flit-badge-bg"/>
+          <text x="132" y="254" class="flit-badge-txt">REQ</text>
+        </g>
+        <g id="chip-rsp" class="flit-badge-g flit-RSP" opacity="0" style="cursor:pointer" onclick="App.openFlitDetails()">
+          <rect x="38" y="270" width="60" height="20" rx="5" class="flit-badge-bg"/>
+          <text x="68" y="280" class="flit-badge-txt">RSP</text>
+        </g>
+        <g id="chip-snp" class="flit-badge-g flit-SNP" opacity="0" style="cursor:pointer" onclick="App.openFlitDetails()">
+          <rect x="102" y="270" width="60" height="20" rx="5" class="flit-badge-bg"/>
+          <text x="132" y="280" class="flit-badge-txt">SNP</text>
+        </g>
+      </g>
+
+      <!-- Router -> Channel arrows (straight elbow routing via a shared bus at x=180) -->
+      <path id="sig-router-dat" d="M260,166 L260,180 L180,180 L180,227 L190,227" class="sig-path" opacity="0"/>
+      <path id="sig-router-req" d="M260,166 L260,180 L180,180 L180,291 L190,291" class="sig-path" opacity="0"/>
+      <path id="sig-router-rsp" d="M260,166 L260,180 L180,180 L180,355 L190,355" class="sig-path" opacity="0"/>
+      <path id="sig-router-snp" d="M260,166 L260,180 L180,180 L180,419 L190,419" class="sig-path" opacity="0"/>
+
+      <!-- 4 CHI Channel boxes -->
+      <g id="ch-dat">
+        <rect x="190" y="200" width="140" height="54" rx="10" class="stg-pipe-box"/>
+        <text x="260" y="221" class="stg-pipe-title">DAT Channel</text>
+        <text x="260" y="238" class="stg-pipe-sub">Data</text>
+      </g>
+      <g id="ch-req">
+        <rect x="190" y="264" width="140" height="54" rx="10" class="stg-pipe-box"/>
+        <text x="260" y="285" class="stg-pipe-title">REQ Channel</text>
+        <text x="260" y="302" class="stg-pipe-sub">Request</text>
+      </g>
+      <g id="ch-rsp">
+        <rect x="190" y="328" width="140" height="54" rx="10" class="stg-pipe-box"/>
+        <text x="260" y="349" class="stg-pipe-title">RSP Channel</text>
+        <text x="260" y="366" class="stg-pipe-sub">Response</text>
+      </g>
+      <g id="ch-snp">
+        <rect x="190" y="392" width="140" height="54" rx="10" class="stg-pipe-box"/>
+        <text x="260" y="413" class="stg-pipe-title">SNP Channel</text>
+        <text x="260" y="430" class="stg-pipe-sub">Snoop</text>
+      </g>
+
+      <!-- Channel -> Shared Pipeline arrows (straight elbow routing via a shared bus at x=400) -->
+      <path id="sig-dat-pipe" d="M330,227 L400,227 L400,323 L460,323" class="sig-path" opacity="0"/>
+      <path id="sig-req-pipe" d="M330,291 L400,291 L400,323 L460,323" class="sig-path" opacity="0"/>
+      <path id="sig-rsp-pipe" d="M330,355 L400,355 L400,323 L460,323" class="sig-path" opacity="0"/>
+      <path id="sig-snp-pipe" d="M330,419 L400,419 L400,323 L460,323" class="sig-path" opacity="0"/>
+
+      <!-- Shared 5-Stage Pipeline -->
+      <g id="pipe-5stage">
+        <rect x="460" y="273" width="240" height="100" rx="12" class="stg-pipe-box"/>
+        <text x="580" y="308" class="stg-pipe-title" style="font-size:13px">5-Stage Pipeline</text>
+        <text x="580" y="328" class="stg-pipe-sub">IQ → RC → VA → SA → ST</text>
+        <text x="580" y="346" class="stg-pipe-sub">Implemented once</text>
+      </g>
+
+      <text id="pipe-note" class="note-txt" x="580" y="400">
+        <tspan x="580" dy="0">Router &amp; Pipeline implemented once —</tspan>
+        <tspan x="580" dy="14">each channel calls them independently.</tspan>
+      </text>
+
+      <!-- Traveling flit indicator (labeled box, same size as the Flits-box chips) -->
+      <g id="chi-flit-box" class="chi-flit-g" transform="translate(230,217)">
+        <rect width="60" height="20" rx="5" class="flit-badge-bg"/>
+        <text id="chi-flit-label" x="30" y="11" class="flit-badge-txt">DAT</text>
+      </g>
+    </svg>
+  </div>
+
+  <div id="flit-detail-view">
+    <div class="fd-header">
+      <button class="back-btn" onclick="App.closeFlitDetails()">← Back to Architecture</button>
+      <div class="fd-title">Flits Definition and Transitions</div>
+    </div>
+
+    <div class="fd-note">
+      Flits have many internal parameters that are required for different processes in the pipeline.
+      The ones in <span class="fd-green">green</span> are the inherent flit parameters.
+      The ones in <span class="fd-red">red</span> are the ones defined for the simulation.
+    </div>
+
+    <div class="fd-pool">
+      <div class="fd-pool-box">Flit Pool</div>
+      <span class="fd-pool-arrow">➔</span>
+      <div class="fd-pool-box">New Flit</div>
+      <span class="fd-pool-arrow">➔</span>
+      <div class="fd-pool-box">Flit in Transition</div>
+      <span class="fd-pool-arrow">➔</span>
+      <div class="fd-pool-box">Flit Retired</div>
+      <span class="fd-pool-arrow">↩ recycled back to Flit Pool</span>
+    </div>
+
+    <div class="fd-note" style="margin-bottom:1.2rem">
+      The flits are created from a pool of flits and are recycled when the flit is retired. This is done for efficient memory management.
+    </div>
+
+    <div class="fd-cols">
+      <div class="fd-card">
+        <h4>Base Flit</h4>
+        <ul>
+          <li class="fd-green">id</li>
+          <li class="fd-red">creation time</li>
+          <li class="fd-green">src port</li>
+          <li class="fd-green">dst port</li>
+          <li class="fd-green">vc</li>
+          <li class="fd-red">flit type</li>
+          <li class="fd-gap"></li>
+          <li class="fd-green">src node</li>
+          <li class="fd-green">dst node</li>
+          <li class="fd-green">out port</li>
+          <li class="fd-green">out vc</li>
+          <li class="fd-gap"></li>
+          <li class="fd-green">packet id</li>
+          <li class="fd-green">head - if head</li>
+          <li class="fd-red">injection time</li>
+          <li class="fd-red">arrival time</li>
+          <li class="fd-red">record - for stats</li>
+          <li class="fd-green">hops</li>
+          <li class="fd-green">class</li>
+          <li class="fd-green">priority</li>
+        </ul>
+      </div>
+
+      <div class="fd-card">
+        <h4>Request Flit</h4>
+        <ul>
+          <li class="fd-red">source id</li>
+          <li class="fd-red">target id</li>
+          <li class="fd-red">transaction id</li>
+          <li class="fd-red">return nid</li>
+          <li class="fd-red">address</li>
+          <li class="fd-red">opcode</li>
+          <li class="fd-gap"></li>
+          <li class="fd-red">size</li>
+          <li class="fd-red">memory address</li>
+          <li class="fd-red">flit type</li>
+        </ul>
+      </div>
+
+      <div class="fd-card">
+        <h4>Data Flit</h4>
+        <ul>
+          <li class="fd-red">source id</li>
+          <li class="fd-red">target id</li>
+          <li class="fd-red">transaction id</li>
+          <li class="fd-red">opcode</li>
+          <li class="fd-red">home nid</li>
+          <li class="fd-red">data payload</li>
+          <li class="fd-red">byte enable</li>
+          <li class="fd-red">data chunk id</li>
+          <li class="fd-gap"></li>
+          <li class="fd-red">flit type</li>
+        </ul>
+      </div>
+
+      <div class="fd-card">
+        <h4>Response Flit</h4>
+        <ul>
+          <li class="fd-red">source id</li>
+          <li class="fd-red">target id</li>
+          <li class="fd-red">transaction id</li>
+          <li class="fd-red">opcode</li>
+          <li class="fd-gap"></li>
+          <li class="fd-red">flit type</li>
+          <li class="fd-red">response error</li>
+        </ul>
+      </div>
+
+      <div class="fd-card">
+        <h4>Snoop Flit</h4>
+        <ul>
+          <li class="fd-red">source id</li>
+          <li class="fd-red">target id</li>
+          <li class="fd-red">transaction id</li>
+          <li class="fd-red">opcode</li>
+          <li class="fd-red">forward node id</li>
+          <li class="fd-red">forward txn id</li>
+          <li class="fd-red">address</li>
+          <li class="fd-gap"></li>
+          <li class="fd-red">flit type</li>
+          <li class="fd-red">response error</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- ══════════════════════════════════════════════════════════════
+     NOW BAND (full-width, readable explanation)
+══════════════════════════════════════════════════════════════ -->
+<div id="now-band">
+  <div id="band-body">
+    <!-- populated by JS -->
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     DETAILS PANEL (right — reference / supporting material)
+══════════════════════════════════════════════════════════════ -->
+<aside id="details-panel">
+  <div id="details-body">
+    <!-- populated by JS -->
+  </div>
+</aside>
+
+<!-- ══════════════════════════════════════════════════════════════
+     CONTROL BAR
+══════════════════════════════════════════════════════════════ -->
+<footer id="control-bar">
+  <div class="prog-row">
+    <div class="prog-pips" id="prog-pips">
+      <!-- populated by JS -->
+    </div>
+    <div class="prog-lbl" id="prog-lbl">
+      Step <span id="prog-num">1</span> of 8 &nbsp;·&nbsp;
+      <span id="prog-name">Enter Architecture View</span>
+    </div>
+  </div>
+  <div class="ctrl-btns">
+    <button class="ctrl-btn reset-btn"  id="btn-reset" onclick="App.reset()">↺ Reset</button>
+    <button class="ctrl-btn prev-btn"   id="btn-prev"  onclick="App.prev()" disabled>⬅ Prev</button>
+    <button class="ctrl-btn play-btn"   id="btn-play"  onclick="App.togglePlay()">▶ Play</button>
+    <button class="ctrl-btn next-btn"   id="btn-next"  onclick="App.next()">Next ➔</button>
+  </div>
+</footer>
+
+<script>
+/* ================================================================
+   CHI CHANNEL ARCHITECTURE — self-contained page script
+   Does not read or modify app.js / index.html / style.css.
+================================================================ */
+const CHANNEL_HEX = { DAT: '#7c3aed', REQ: '#7c3aed', RSP: '#7c3aed', SNP: '#7c3aed' };
+
+const STEPS = [
+  {
+    name: 'Enter Architecture View', hex: '#0284c7',
+    overview: 'This view zooms out from the single-flit lifecycle to show how the CHI Router\'s 4 independent channels are actually implemented under the hood.',
+    summary: [
+      { lbl: 'Channels', val: 'DAT, REQ, RSP, SNP' },
+      { lbl: 'Pipeline Instances', val: '1 (shared)' },
+      { lbl: 'Driven By', val: 'Event Scheduler' },
+      { lbl: 'Cycles / Channel', val: '5 (IQ→RC→VA→SA→ST)' }
+    ]
+  },
+  {
+    name: 'Event Scheduler Dispatch', hex: '#2563eb',
+    overview: 'The Event Scheduler calls the Traffic Manager, CHI Router, and Network components (Local Links and Router Link) in order for execution, every simulation cycle.',
+    summary: [
+      { lbl: 'Calls', val: 'TM, CHI Router, Network' },
+      { lbl: 'Frequency', val: 'Every cycle' },
+      { lbl: 'Order', val: 'Sequential dispatch' },
+      { lbl: 'State Change', val: '—' }
+    ]
+  },
+  {
+    name: 'TM Generates Channel Flits', hex: '#0284c7',
+    overview: 'The Traffic Manager generates flits for all 4 channels based on the active transactions — DAT, REQ, RSP, and SNP are each populated independently.',
+    summary: [
+      { lbl: 'Module', val: 'Traffic Manager' },
+      { lbl: 'Produces', val: 'DAT, REQ, RSP, SNP flits' },
+      { lbl: 'Source', val: 'Active transactions' },
+      { lbl: 'Next', val: 'CHI Router processes each' }
+    ]
+  },
+  {
+    name: 'Process DAT Channel', hex: '#7c3aed', channel: 'DAT',
+    overview: 'The CHI Router calls the DAT channel, which calls the shared 5-stage pipeline for its own flit processing.',
+    summary: [
+      { lbl: 'Channel', val: 'DAT (Data)' },
+      { lbl: 'Pipeline', val: 'Shared (1 instance)' },
+      { lbl: 'Latency', val: '5 cycles' },
+      { lbl: 'Order', val: '1 of 4 this cycle' }
+    ]
+  },
+  {
+    name: 'Process REQ Channel', hex: '#7c3aed', channel: 'REQ',
+    overview: 'The CHI Router calls the REQ channel, which calls the shared 5-stage pipeline for its own flit processing — independent of the DAT channel processed just before it.',
+    summary: [
+      { lbl: 'Channel', val: 'REQ (Request)' },
+      { lbl: 'Pipeline', val: 'Shared (1 instance)' },
+      { lbl: 'Latency', val: '5 cycles' },
+      { lbl: 'Order', val: '2 of 4 this cycle' }
+    ]
+  },
+  {
+    name: 'Process RSP Channel', hex: '#7c3aed', channel: 'RSP',
+    overview: 'The CHI Router calls the RSP channel, which calls the shared 5-stage pipeline for its own flit processing.',
+    summary: [
+      { lbl: 'Channel', val: 'RSP (Response)' },
+      { lbl: 'Pipeline', val: 'Shared (1 instance)' },
+      { lbl: 'Latency', val: '5 cycles' },
+      { lbl: 'Order', val: '3 of 4 this cycle' }
+    ]
+  },
+  {
+    name: 'Process SNP Channel', hex: '#7c3aed', channel: 'SNP',
+    overview: 'The CHI Router calls the SNP channel, which calls the shared 5-stage pipeline for its own flit processing — the last of the 4 channels this cycle.',
+    summary: [
+      { lbl: 'Channel', val: 'SNP (Snoop)' },
+      { lbl: 'Pipeline', val: 'Shared (1 instance)' },
+      { lbl: 'Latency', val: '5 cycles' },
+      { lbl: 'Order', val: '4 of 4 this cycle' }
+    ]
+  },
+  {
+    name: 'Shared Pipeline Reuse', hex: '#db2777',
+    overview: 'The Router and Pipeline are implemented once — each of the 4 channels calls that same implementation independently, one after another, for its own flit processing. This keeps router logic compact instead of duplicating pipeline hardware/code per channel.',
+    summary: [
+      { lbl: 'Router Instances', val: '1' },
+      { lbl: 'Pipeline Instances', val: '1 (shared)' },
+      { lbl: 'Channels Served', val: '4' },
+      { lbl: 'Code Reuse', val: '100%' }
+    ]
+  }
+];
+
+const CHANNEL_ORDER = ['DAT', 'REQ', 'RSP', 'SNP'];
+const CHANNEL_POS = {
+  DAT: { chip: 'chip-dat', ch: 'ch-dat', router: 'sig-router-dat', pipe: 'sig-dat-pipe', x: 230, y: 217 },
+  REQ: { chip: 'chip-req', ch: 'ch-req', router: 'sig-router-req', pipe: 'sig-req-pipe', x: 230, y: 281 },
+  RSP: { chip: 'chip-rsp', ch: 'ch-rsp', router: 'sig-router-rsp', pipe: 'sig-rsp-pipe', x: 230, y: 345 },
+  SNP: { chip: 'chip-snp', ch: 'ch-snp', router: 'sig-router-snp', pipe: 'sig-snp-pipe', x: 230, y: 409 }
+};
+const PIPE_BOX_POS = { x: 550, y: 313 };
+
+let _step = 0;
+
+/* Neighbors in the master presentation sequence */
+const PREV_DECK_URL = "router-pipeline.html?end=1";
+const NEXT_DECK_URL = "../sdlc-presentation/index.html";
+let _playing = false;
+let _timer = null;
+let _flitTimer = null;
+
+function _el(id) { return document.getElementById(id); }
+
+function resetCanvas() {
+  clearTimeout(_flitTimer);
+  ['sig-es-tm','sig-es-router','sig-es-network','sig-tm-flits',
+   'sig-router-dat','sig-router-req','sig-router-rsp','sig-router-snp',
+   'sig-dat-pipe','sig-req-pipe','sig-rsp-pipe','sig-snp-pipe'
+  ].forEach(id => _el(id).setAttribute('opacity', '0'));
+
+  ['chip-dat','chip-req','chip-rsp','chip-snp'].forEach(id => _el(id).setAttribute('opacity', '0'));
+
+  ['mod-es','mod-tm','mod-router','mod-network'].forEach(id => {
+    _el(id).querySelector('rect').classList.remove('act');
+  });
+
+  CHANNEL_ORDER.forEach(name => {
+    _el(CHANNEL_POS[name].ch).querySelector('rect').classList.remove('act', 'chdone');
+  });
+
+  _el('pipe-5stage').querySelector('rect').classList.remove('act');
+  _el('pipe-note').classList.remove('show');
+
+  const flitBox = _el('chi-flit-box');
+  flitBox.classList.remove('show');
+  CHANNEL_ORDER.forEach(name => flitBox.classList.remove('flit-' + name));
+}
+
+function highlightBox(id, on = true) {
+  const rect = _el(id).querySelector('rect');
+  if (on) rect.classList.add('act'); else rect.classList.remove('act');
+}
+
+function showPath(id, on = true) {
+  _el(id).setAttribute('opacity', on ? '1' : '0');
+}
+
+function applyStep(idx) {
+  resetCanvas();
+
+  if (idx === 1) {
+    highlightBox('mod-es');
+    showPath('sig-es-tm'); showPath('sig-es-router'); showPath('sig-es-network');
+  }
+
+  if (idx >= 2) {
+    highlightBox('mod-es'); showPath('sig-es-tm'); showPath('sig-es-router'); showPath('sig-es-network');
+  }
+
+  if (idx === 2) {
+    highlightBox('mod-tm');
+    showPath('sig-tm-flits');
+    ['chip-dat','chip-req','chip-rsp','chip-snp'].forEach((id, i) => {
+      setTimeout(() => { if (_step === 2) _el(id).setAttribute('opacity', '1'); }, i * 150);
+    });
+  }
+
+  if (idx >= 3 && idx <= 6) {
+    ['chip-dat','chip-req','chip-rsp','chip-snp'].forEach(id => _el(id).setAttribute('opacity', '1'));
+    highlightBox('mod-router');
+
+    const name = CHANNEL_ORDER[idx - 3];
+    const pos = CHANNEL_POS[name];
+
+    CHANNEL_ORDER.slice(0, idx - 3).forEach(done => {
+      _el(CHANNEL_POS[done].ch).querySelector('rect').classList.add('chdone');
+    });
+
+    highlightBox(pos.ch);
+    showPath(pos.router);
+    showPath(pos.pipe);
+    highlightBox('pipe-5stage');
+
+    const flitBox = _el('chi-flit-box');
+    _el('chi-flit-label').textContent = name;
+    flitBox.classList.add('flit-' + name, 'show');
+    flitBox.setAttribute('transform', `translate(${pos.x},${pos.y})`);
+    _flitTimer = setTimeout(() => {
+      flitBox.setAttribute('transform', `translate(${PIPE_BOX_POS.x},${PIPE_BOX_POS.y})`);
+    }, 450);
+  }
+
+  if (idx === 7) {
+    ['chip-dat','chip-req','chip-rsp','chip-snp'].forEach(id => _el(id).setAttribute('opacity', '1'));
+    CHANNEL_ORDER.forEach(name => {
+      _el(CHANNEL_POS[name].ch).querySelector('rect').classList.add('chdone');
+    });
+    highlightBox('mod-router');
+    highlightBox('pipe-5stage');
+    _el('pipe-note').classList.add('show');
+  }
+}
+
+const DetailsPanel = {
+  renderBand(idx) {
+    const s = STEPS[idx];
+    _el('band-body').style.borderLeftColor = s.hex;
+    return `
+      <div class="band-badge" style="color:${s.hex};background:${s.hex}18;border-color:${s.hex}40">
+        ⬡ &nbsp; Step ${idx + 1} of ${STEPS.length}
+      </div>
+      <div class="band-title">${s.name}</div>
+      <div class="band-subtitle">CHI Channel Architecture</div>
+      <div class="band-desc">${s.overview}</div>
+    `;
+  },
+
+  renderPanel(idx) {
+    const s = STEPS[idx];
+    return `
+      <div class="det-sec">
+        <div class="det-lbl">Architecture Steps (Click to Jump)</div>
+        <div class="flow-timeline">
+          ${STEPS.map((step, i) => {
+            const isAct = (i === idx);
+            return `
+              <div class="flow-step${isAct ? ' active' : ''}" onclick="App.goToStep(${i})">
+                <div class="flow-num" style="background:${isAct ? step.hex : step.hex + '18'};color:${isAct ? '#ffffff' : step.hex};border-color:${step.hex}">${i + 1}</div>
+                <div class="flow-content">
+                  <div class="flow-title" style="color:${isAct ? step.hex : 'var(--text)'}">${step.name}</div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+
+      <div class="det-sec">
+        <div class="det-lbl">Summary</div>
+        <div class="summary-grid">
+          ${s.summary.map(item => `
+            <div class="sum-card">
+              <div class="sum-lbl">${item.lbl}</div>
+              <div class="sum-val" style="color:${s.hex}">${item.val}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+};
+
+const App = {
+  goToStep(idx) {
+    if (idx < 0 || idx >= STEPS.length) return;
+    _step = idx;
+    this._render();
+  },
+
+  next() { if (_step < STEPS.length - 1) { _step++; this._render(); } else { window.location.href = NEXT_DECK_URL; } },
+  prev() { if (_step > 0) { _step--; this._render(); } else { window.location.href = PREV_DECK_URL; } },
+
+  reset() { this._stopPlay(); _step = 0; this._render(); },
+
+  togglePlay() { _playing ? this._stopPlay() : this._startPlay(); },
+
+  openFlitDetails() { _el('flit-detail-view').classList.add('show'); },
+  closeFlitDetails() { _el('flit-detail-view').classList.remove('show'); },
+
+  _startPlay() {
+    _playing = true;
+    const btn = _el('btn-play');
+    btn.classList.add('playing'); btn.textContent = '⏸ Pause';
+    this._tick();
+  },
+
+  _tick() {
+    if (!_playing) return;
+    if (_step < STEPS.length - 1) {
+      _step++;
+      this._render();
+      _timer = setTimeout(() => this._tick(), 1800);
+    } else {
+      this._stopPlay();
+    }
+  },
+
+  _stopPlay() {
+    _playing = false; clearTimeout(_timer);
+    const btn = _el('btn-play');
+    btn.classList.remove('playing'); btn.textContent = '▶ Play';
+  },
+
+  _render() {
+    const s = STEPS[_step];
+
+    _el('hdr-num').textContent = _step + 1;
+    _el('hdr-name').textContent = s.name;
+    _el('prog-num').textContent = _step + 1;
+    _el('prog-name').textContent = s.name;
+
+    for (let i = 0; i < STEPS.length; i++) {
+      const p = _el(`pip-${i}`);
+      if (p) p.className = 'pip' + (i < _step ? ' done' : i === _step ? ' cur' : '');
+      const ni = _el(`nav-${i}`);
+      if (ni) { ni.classList.remove('active', 'done'); if (i < _step) ni.classList.add('done'); if (i === _step) ni.classList.add('active'); }
+    }
+
+    _el('btn-prev').disabled = false;
+    _el('btn-next').disabled = false;
+    _el('btn-next').textContent = (_step === STEPS.length - 1) ? '✓ Done' : 'Next ➔';
+
+    applyStep(_step);
+
+    const band = _el('band-body');
+    const body = _el('details-body');
+    band.classList.add('fading');
+    body.classList.add('fading');
+    setTimeout(() => {
+      band.innerHTML = DetailsPanel.renderBand(_step);
+      body.innerHTML = DetailsPanel.renderPanel(_step);
+      band.classList.remove('fading');
+      body.classList.remove('fading');
+    }, 150);
+  },
+
+  init() {
+    const pips = _el('prog-pips');
+    pips.innerHTML = '';
+    for (let i = 0; i < STEPS.length; i++) {
+      const d = document.createElement('div');
+      d.className = 'pip'; d.id = `pip-${i}`;
+      pips.appendChild(d);
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); App.next(); }
+      else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); App.prev(); }
+      else if (e.key === ' ') { e.preventDefault(); App.togglePlay(); }
+      else if (e.key === 'r' || e.key === 'R') App.reset();
+    });
+
+    this._render();
+  }
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+  App.init();
+  const params = new URLSearchParams(location.search);
+  if (params.get('end') === '1') App.goToStep(STEPS.length - 1);
+  else {
+    const step = params.get('step');
+    if (step !== null) App.goToStep(parseInt(step, 10));
+  }
+});
+</script>
+</body>
+</html>

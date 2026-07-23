@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Network-on-Chip (NoC) Simulator — C-DAC Northeast Centre</title>
+<meta name="description" content="Master hub for the NoC Simulator project: cover, team, and a full table of contents linking into the Hardware Architecture, System Architecture & Execution Flow, Verification & Validation, and Software Development Lifecycle presentations.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #f8fafc;
+  --s1:       #ffffff;
+  --s2:       #f1f5f9;
+  --s3:       #e2e8f0;
+  --b1:       #cbd5e1;
+  --b2:       #94a3b8;
+
+  --text:     #0f172a;
+  --muted:    #334155;
+  --dim:      #64748b;
+
+  --col-cyan:   #0284c7;
+  --col-blue:   #2563eb;
+  --col-purple: #7c3aed;
+  --col-orange: #ea580c;
+  --col-green:  #16a34a;
+  --col-pink:   #db2777;
+  --col-yellow: #d97706;
+  --col-teal:   #0d9488;
+  --navy:       #10265c;
+
+  --r: 12px; --rs: 8px; --rxs: 4px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden;
+}
+
+/* ================================================================
+   HUB SHELL — 3 full-viewport sections, one active at a time
+================================================================ */
+.hub-page {
+  position: fixed; inset: 0;
+  display: flex; flex-direction: column; align-items: center;
+  padding: 3rem 2rem 2.5rem;
+  opacity: 0; pointer-events: none; transform: scale(.97);
+  transition: opacity .4s, transform .4s;
+  overflow-y: auto;
+  background: var(--bg);
+}
+.hub-page.active { opacity: 1; pointer-events: auto; transform: scale(1); }
+
+.hub-dots { display: flex; gap: .5rem; margin-bottom: 1.6rem; flex-shrink: 0; }
+.hub-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--b1); transition: all .25s; }
+.hub-dot.cur { background: var(--col-teal); width: 26px; border-radius: 5px; }
+.hub-dot.done { background: var(--col-green); }
+
+.hub-back {
+  position: absolute; top: 1.6rem; left: 2rem;
+  font-size: .82rem; font-weight: 600; color: var(--muted);
+  text-decoration: none; cursor: pointer; display: flex; align-items: center; gap: .3rem;
+  transition: color .18s;
+}
+.hub-back:hover { color: var(--col-teal); }
+
+.hub-continue-row { display: flex; gap: .8rem; margin-top: 1.8rem; flex-shrink: 0; }
+.hub-btn {
+  display: inline-flex; align-items: center; gap: .5rem;
+  padding: .7rem 1.5rem; border-radius: var(--rs); border: none; cursor: pointer;
+  font-family: 'Inter', sans-serif; font-size: .88rem; font-weight: 700;
+  transition: all .18s; box-shadow: 0 2px 8px rgba(13,148,136,0.25);
+}
+.hub-btn.primary { background: linear-gradient(135deg, var(--col-teal), var(--col-cyan)); color: #fff; }
+.hub-btn.primary:hover { box-shadow: 0 3px 14px rgba(13,148,136,0.4); transform: translateY(-1px); }
+.hub-btn.ghost { background: var(--s1); border: 1px solid var(--b1); color: var(--text); box-shadow: none; }
+.hub-btn.ghost:hover { background: var(--s2); }
+
+/* ================================================================
+   SECTION 1 — COVER
+================================================================ */
+#hub-cover { justify-content: center; }
+.cover-box {
+  border: 1.5px solid var(--b2); border-radius: var(--rs);
+  padding: 1.6rem 3rem; margin-bottom: 2.4rem;
+}
+.cover-title {
+  font-size: 2.1rem; font-weight: 800; text-decoration: underline;
+  text-underline-offset: 6px; text-align: center; letter-spacing: -.3px;
+}
+.cdac-logo-wrap { display: flex; flex-direction: column; align-items: center; gap: .2rem; margin-bottom: 1.6rem; }
+.cdac-logo-wrap img { height: 90px; width: auto; }
+.cdac-wordmark-fallback {
+  display: none; flex-direction: column; align-items: center; gap: 2px;
+}
+.cdac-wordmark-fallback .cdac-big { font-size: 2.2rem; font-weight: 800; color: var(--navy); letter-spacing: 1px; }
+.cdac-wordmark-fallback .cdac-small { font-size: .68rem; font-weight: 700; letter-spacing: 3px; color: var(--dim); text-transform: uppercase; }
+.cover-subtitle { font-size: 1.25rem; font-weight: 700; color: var(--muted); text-align: center; }
+
+/* ================================================================
+   SECTION 2 — TEAM
+================================================================ */
+#hub-team { justify-content: flex-start; }
+.team-hdr-box {
+  border: 1.5px solid var(--b2); border-radius: var(--rs);
+  padding: .7rem 2.2rem; margin-bottom: 2rem; flex-shrink: 0;
+}
+.team-hdr-box .cover-title { font-size: 1.5rem; }
+.team-row { display: flex; align-items: flex-start; gap: 0; width: 100%; max-width: 1180px; flex: 1; min-height: 0; }
+.team-director { display: flex; flex-direction: column; align-items: center; text-align: center; width: 165px; flex-shrink: 0; gap: .5rem; padding-top: .5rem; }
+.avatar.team-director-photo { width: 96px; height: 96px; }
+.team-vdiv { width: 1px; align-self: stretch; border-left: 2px dashed var(--b1); margin: 0 1.6rem; }
+.team-cols { display: flex; flex: 1; gap: 0; }
+.team-col { display: flex; flex-direction: column; gap: 1.5rem; flex: 1; padding: 0 1.4rem; }
+.team-col + .team-col { border-left: 2px dashed var(--b1); }
+
+.member { display: flex; flex-direction: column; align-items: center; text-align: center; gap: .45rem; }
+.avatar {
+  width: 66px; height: 66px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 800; font-size: 1.1rem; font-family: 'JetBrains Mono', monospace;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12); object-fit: cover;
+}
+.member-name { font-size: .88rem; font-weight: 800; color: var(--text); }
+.member-role { font-size: .78rem; font-style: italic; color: var(--muted); margin-top: -6px; }
+.member-edu { font-size: .68rem; color: var(--dim); line-height: 1.5; margin-top: 2px; }
+.member-edu .uni { color: var(--col-blue); font-weight: 600; }
+
+.team-tagline {
+  margin-top: 1.6rem; padding-top: 1.1rem; border-top: 1px solid var(--b1);
+  width: 100%; max-width: 1180px; text-align: center; flex-shrink: 0;
+  font-style: italic; font-weight: 700; color: var(--col-blue); font-size: .95rem;
+}
+
+/* ================================================================
+   SECTION 3 — CONTENT / TABLE OF CONTENTS
+================================================================ */
+#hub-content { justify-content: flex-start; }
+.content-title { font-size: 1.7rem; font-weight: 800; margin-bottom: .3rem; flex-shrink: 0; }
+.content-sub { font-size: .85rem; color: var(--dim); margin-bottom: 1.6rem; flex-shrink: 0; font-family: 'JetBrains Mono', monospace; }
+
+.deck-block { width: 100%; max-width: 980px; margin-bottom: 1.7rem; }
+.deck-hdr {
+  display: flex; align-items: center; gap: 1rem; text-decoration: none;
+  background: var(--s1); border: 1.5px solid var(--b1); border-radius: var(--r);
+  padding: 1rem 1.2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04); transition: all .18s;
+}
+.deck-hdr:hover { border-color: var(--c); box-shadow: 0 4px 14px color-mix(in srgb, var(--c) 15%, transparent); }
+.deck-icon {
+  width: 46px; height: 46px; border-radius: 10px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 21px; color: #fff;
+  background: linear-gradient(135deg, var(--c), color-mix(in srgb, var(--c) 65%, var(--text)));
+}
+.deck-hdr-text { flex: 1; min-width: 0; }
+.deck-name { font-size: 1.02rem; font-weight: 800; color: var(--text); }
+.deck-desc { font-size: .78rem; color: var(--muted); margin-top: 2px; line-height: 1.4; }
+.deck-arrow { font-size: 1.2rem; color: var(--b2); flex-shrink: 0; }
+
+.subtopic-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: .5rem; margin-top: .7rem; padding-left: .3rem; }
+.subtopic-pill {
+  display: flex; align-items: center; justify-content: center; text-align: center;
+  min-height: 2.6rem; padding: .4rem .75rem; border-radius: 16px; text-decoration: none;
+  background: var(--s1); border: 1px solid var(--b1); color: var(--muted);
+  font-size: .74rem; font-weight: 600; transition: all .18s;
+}
+.subtopic-pill:hover { border-color: var(--c); color: var(--c); background: color-mix(in srgb, var(--c) 6%, var(--s1)); transform: translateY(-1px); }
+.subtopic-pill.plain { cursor: default; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SECTION 1 — COVER
+══════════════════════════════════════════════════════════════ -->
+<div id="hub-cover" class="hub-page active">
+  <div class="cdac-logo-wrap">
+    <!-- Drop the real CDAC logo at assets/cdac-logo.png — falls back to a text wordmark until then -->
+    <img src="assets/cdac-logo.png" alt="C-DAC logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+    <div class="cdac-wordmark-fallback">
+      <div class="cdac-big">C-DAC</div>
+      <div class="cdac-small">Centre for Development of Advanced Computing</div>
+    </div>
+  </div>
+  <div class="cover-box">
+    <div class="cover-title">Network-on-Chip (NoC) Simulator</div>
+  </div>
+  <div class="cover-subtitle">C-DAC Northeast Centre, Guwahati, Assam</div>
+  <div class="hub-continue-row">
+    <button class="hub-btn primary" onclick="Hub.next()">Continue →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SECTION 2 — TEAM
+══════════════════════════════════════════════════════════════ -->
+<div id="hub-team" class="hub-page">
+  <a class="hub-back" href="javascript:void(0)" onclick="Hub.prev()">← Back</a>
+  <div class="hub-dots">
+    <div class="hub-dot done"></div><div class="hub-dot cur"></div><div class="hub-dot"></div>
+  </div>
+  <div class="team-hdr-box"><div class="cover-title">Team Members</div></div>
+
+  <!-- Photo fallback: drop files at assets/team/<slug>.jpg (slugs = lowercase-hyphenated names below)
+       to automatically replace the initials avatars — no code changes needed. -->
+  <div class="team-row">
+    <div class="team-director">
+      <div class="avatar-wrap">
+        <img class="avatar team-director-photo" src="assets/team/jitesh-choudhary.jpg" alt="Jitesh Choudhary"
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+        <div class="avatar team-director-photo" style="display:none; background:var(--col-purple);">JC</div>
+      </div>
+      <div class="member-name">Jitesh Choudhary</div>
+      <div class="member-role">Director / Centre Head</div>
+      <div class="member-edu">CDAC<br>Centre in Northeast<br>Guwahati</div>
+    </div>
+
+    <div class="team-vdiv"></div>
+
+    <div class="team-cols">
+      <div class="team-col">
+        <div class="member">
+          <img class="avatar" src="assets/team/chandermani.jpg" alt="Chandermani" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+          <div class="avatar" style="display:none; background:var(--col-cyan);">C</div>
+          <div class="member-name">Chandermani</div>
+          <div class="member-role">Knowledge Associate</div>
+          <div class="member-edu">M.Tech<br>Communication Engineering<br><span class="uni">IIT Guwahati</span></div>
+        </div>
+        <div class="member">
+          <img class="avatar" src="assets/team/shubham-tomar.jpg" alt="Shubham Tomar" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+          <div class="avatar" style="display:none; background:var(--col-blue);">ST</div>
+          <div class="member-name">Shubham Tomar</div>
+          <div class="member-role">Project Engineer</div>
+          <div class="member-edu">M.Tech<br>Communication Engineering<br><span class="uni">NIT Jamshedpur</span></div>
+        </div>
+        <div class="member">
+          <img class="avatar" src="assets/team/sushama.jpg" alt="Sushama" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+          <div class="avatar" style="display:none; background:var(--col-pink);">S</div>
+          <div class="member-name">Sushama</div>
+          <div class="member-role">Project Associate</div>
+          <div class="member-edu">M.Tech<br>VLSI Design<br><span class="uni">Jadavpur University</span></div>
+        </div>
+      </div>
+
+      <div class="team-col">
+        <div class="member">
+          <img class="avatar" src="assets/team/rituraj-das.jpg" alt="Rituraj Das" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+          <div class="avatar" style="display:none; background:var(--col-blue);">RD</div>
+          <div class="member-name">Rituraj Das</div>
+          <div class="member-role">Project Engineer</div>
+          <div class="member-edu">M.Tech<br>Artificial Intelligence<br><span class="uni">NIT Silchar</span></div>
+        </div>
+        <div class="member">
+          <img class="avatar" src="assets/team/imran-hussain.jpg" alt="Imran Hussain" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+          <div class="avatar" style="display:none; background:var(--col-orange);">IH</div>
+          <div class="member-name">Imran Hussain</div>
+          <div class="member-role">Project Engineer</div>
+          <div class="member-edu">M.Tech<br>VLSI Design<br><span class="uni">Assam University</span></div>
+        </div>
+        <div class="member">
+          <img class="avatar" src="assets/team/bhanuday-bhardwaj.jpg" alt="Bhanuday Bhardwaj" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+          <div class="avatar" style="display:none; background:var(--col-green);">BB</div>
+          <div class="member-name">Bhanuday Bhardwaj</div>
+          <div class="member-role">Project Associate</div>
+          <div class="member-edu">B.Tech<br>ECE<br><span class="uni">Chandigarh University</span></div>
+        </div>
+      </div>
+
+      <div class="team-col">
+        <div class="member">
+          <img class="avatar" src="assets/team/nibaran-saikia.jpg" alt="Nibaran Saikia" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+          <div class="avatar" style="display:none; background:var(--col-teal);">NS</div>
+          <div class="member-name">Nibaran Saikia</div>
+          <div class="member-role">Project Engineer</div>
+          <div class="member-edu">B.Tech<br>ECE<br><span class="uni">NIT Silchar</span></div>
+        </div>
+        <div class="member">
+          <img class="avatar" src="assets/team/ritu-daryani.jpg" alt="Dr. Ritu Daryani" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+          <div class="avatar" style="display:none; background:var(--col-yellow);">RD</div>
+          <div class="member-name">Dr. Ritu Daryani</div>
+          <div class="member-role">Project Engineer</div>
+          <div class="member-edu">PhD<br>EEE<br><span class="uni">NSUT, New Delhi</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="team-tagline">"One Vision. One Goal...Advanced Computing for Human Advancement"</div>
+
+  <div class="hub-continue-row">
+    <button class="hub-btn ghost" onclick="Hub.prev()">⬅ Back</button>
+    <button class="hub-btn primary" onclick="Hub.next()">Continue →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SECTION 3 — CONTENT / TABLE OF CONTENTS
+══════════════════════════════════════════════════════════════ -->
+<div id="hub-content" class="hub-page">
+  <a class="hub-back" href="javascript:void(0)" onclick="Hub.prev()">← Back</a>
+  <div class="hub-dots">
+    <div class="hub-dot done"></div><div class="hub-dot done"></div><div class="hub-dot cur"></div>
+  </div>
+  <div class="content-title">Table of Contents</div>
+  <div class="content-sub">NoC Simulator · click any subtopic to jump straight there</div>
+
+  <!-- DECK 1 — HARDWARE ARCHITECTURE -->
+  <div class="deck-block" style="--c: var(--col-purple)">
+    <a class="deck-hdr" href="hardware-presentation/index.html">
+      <div class="deck-icon">⬡</div>
+      <div class="deck-hdr-text">
+        <div class="deck-name">Hardware Architecture &amp; Router Design</div>
+        <div class="deck-desc">CHI protocol nodes, the 6-port router, buffer sizing, and the 5-stage data path.</div>
+      </div>
+      <div class="deck-arrow">→</div>
+    </a>
+    <div class="subtopic-grid">
+      <a class="subtopic-pill" href="hardware-presentation/index.html?page=0">Roadmap &amp; CHI Node Integration</a>
+      <a class="subtopic-pill" href="hardware-presentation/index.html?page=1">6-Port Configurable Router Architecture</a>
+      <a class="subtopic-pill" href="hardware-presentation/index.html?page=2">CHI Buffer Sizing &amp; Credit Flow Control</a>
+      <a class="subtopic-pill" href="hardware-presentation/index.html?page=3">Router Data Path &amp; 5-Stage Pipeline</a>
+      <a class="subtopic-pill" href="hardware-presentation/index.html?page=4">Router Functional Blocks</a>
+      <a class="subtopic-pill" href="hardware-presentation/index.html?page=5">Arbiters &amp; Allocators</a>
+    </div>
+  </div>
+
+  <!-- DECK 2 — SYSTEM ARCHITECTURE & EXECUTION FLOW -->
+  <div class="deck-block" style="--c: var(--col-cyan)">
+    <a class="deck-hdr" href="presentation/index.html">
+      <div class="deck-icon">⬡</div>
+      <div class="deck-hdr-text">
+        <div class="deck-name">System Architecture &amp; Execution Flow</div>
+        <div class="deck-desc">System architecture, the event scheduler, flit lifecycle, router pipeline, and CHI channels.</div>
+      </div>
+      <div class="deck-arrow">→</div>
+    </a>
+    <div class="subtopic-grid">
+      <a class="subtopic-pill" href="presentation/index.html?page=0">System Architecture</a>
+      <a class="subtopic-pill" href="presentation/flit-lifecycle.html?stage=0">Flit Lifecycle</a>
+      <a class="subtopic-pill" href="presentation/router-pipeline.html">Router Pipeline (Cycle-Accurate)</a>
+      <a class="subtopic-pill" href="presentation/chi-channel-architecture.html?step=0">CHI Channel &amp; Flit Details</a>
+    </div>
+  </div>
+
+  <!-- DECK 3 — SDLC RECAP -->
+  <div class="deck-block" style="--c: var(--col-orange)">
+    <a class="deck-hdr" href="sdlc-presentation/index.html">
+      <div class="deck-icon">☑</div>
+      <div class="deck-hdr-text">
+        <div class="deck-name">Software Development Lifecycle</div>
+        <div class="deck-desc">The standard SDLC &amp; V&amp;V lifecycle, requirement gathering &amp; analysis, system design, development &amp; coding, and the documentation flow.</div>
+      </div>
+      <div class="deck-arrow">→</div>
+    </a>
+    <div class="subtopic-grid">
+      <a class="subtopic-pill" href="sdlc-presentation/index.html?page=0">Standard SDLC Flow</a>
+      <a class="subtopic-pill" href="sdlc-presentation/index.html?page=1">Requirement Gathering and Analysis</a>
+      <a class="subtopic-pill" href="sdlc-presentation/index.html?page=2">System Design</a>
+      <a class="subtopic-pill" href="sdlc-presentation/index.html?page=3">Development and Coding</a>
+      <a class="subtopic-pill" href="sdlc-presentation/index.html?page=4">Documentation Flow</a>
+    </div>
+  </div>
+
+  <!-- DECK 4 — VERIFICATION & VALIDATION -->
+  <div class="deck-block" style="--c: var(--col-teal)">
+    <a class="deck-hdr" href="verification-presentation/index.html">
+      <div class="deck-icon">✓</div>
+      <div class="deck-hdr-text">
+        <div class="deck-name">Verification &amp; Validation</div>
+        <div class="deck-desc">IEEE V&amp;V lifecycle, testing methodology, bug taxonomy, and the practical verification toolchain.</div>
+      </div>
+      <div class="deck-arrow">→</div>
+    </a>
+    <div class="subtopic-grid">
+      <a class="subtopic-pill" href="verification-presentation/index.html?page=0">IEEE Standard V&amp;V Lifecycle</a>
+      <a class="subtopic-pill" href="verification-presentation/index.html?page=1">Standard Testing Methodology</a>
+      <a class="subtopic-pill" href="verification-presentation/index.html?page=2">Taxonomy of Failure</a>
+      <a class="subtopic-pill" href="verification-presentation/index.html?page=3">Validation Methods without RTL</a>
+      <a class="subtopic-pill" href="verification-presentation/index.html?page=4">Formal Verification Tools</a>
+      <a class="subtopic-pill" href="verification-presentation/index.html?page=5">The Verification Toolchain</a>
+      <a class="subtopic-pill" href="verification-presentation/index.html?page=6">The Complete Picture</a>
+    </div>
+  </div>
+
+  <div class="hub-continue-row">
+    <button class="hub-btn ghost" onclick="Hub.prev()">⬅ Back</button>
+    <button class="hub-btn primary" onclick="Hub.next()">Start Presentation →</button>
+  </div>
+</div>
+
+<script>
+/* Neighbors in the master presentation sequence — the hub is the very start,
+   so Prev on the cover wraps to the deck's last slide and Next from the
+   content page enters the first deck. */
+const PREV_DECK_URL = "verification-presentation/index.html?end=1";
+const NEXT_DECK_URL = "hardware-presentation/index.html";
+
+const Hub = {
+  idx: 0,
+  show(idx) {
+    this.idx = idx;
+    document.querySelectorAll(".hub-page").forEach((el, i) => el.classList.toggle("active", i === idx));
+  },
+  next() {
+    if (this.idx < 2) this.show(this.idx + 1);
+    else window.location.href = NEXT_DECK_URL;
+  },
+  prev() {
+    if (this.idx > 0) this.show(this.idx - 1);
+    else window.location.href = PREV_DECK_URL;
+  }
+};
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "ArrowRight") { e.preventDefault(); Hub.next(); }
+  else if (e.key === "ArrowLeft") { e.preventDefault(); Hub.prev(); }
+});
+
+/* Arriving back from hardware-presentation's Prev at its very first step —
+   land on the last hub section (content/TOC) instead of the cover. */
+if (new URLSearchParams(location.search).get("end") === "1") {
+  Hub.show(2);
+}
+</script>
+</body>
+</html>

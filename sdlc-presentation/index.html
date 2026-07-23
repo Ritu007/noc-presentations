@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NoC Simulator — Software Development Lifecycle</title>
+<meta name="description" content="The standard SDLC and V&amp;V lifecycle the project follows, requirement gathering &amp; analysis, system design, development &amp; coding status, and the documentation flow across the CHI-based NoC Simulator project.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════
+     LANDING VIEW (Title Slide Modal)
+══════════════════════════════════════════════════════════════ -->
+<div id="landing-view">
+  <a class="landing-toc-link" href="../index.html?end=1">← Table of Contents</a>
+  <div class="landing-inner">
+    <div class="landing-title-block">
+      <div class="landing-title">Software Development Lifecycle</div>
+      <div class="landing-subtitle">C-DAC Network-on-Chip (NoC) Simulator</div>
+    </div>
+    <div class="landing-continue-row">
+      <button class="landing-start-btn" onclick="Landing.enter(0)">Start Presentation →</button>
+    </div>
+    <div class="landing-list">
+      <div class="landing-card" onclick="Landing.enter(0)">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-orange), var(--col-yellow))">⬡</div>
+        <div class="landing-card-text">
+          <div class="landing-card-name">01. Standard SDLC Flow</div>
+          <div class="landing-card-desc">The 6-phase SDLC paired with its IEEE V&amp;V lifecycle, plus the incremental/iterative model the project follows.</div>
+        </div>
+        <div class="landing-card-arrow">→</div>
+      </div>
+      <div class="landing-card" onclick="Landing.enter(1)">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-orange), var(--col-yellow))">▤</div>
+        <div class="landing-card-text">
+          <div class="landing-card-name">02. Requirement Gathering and Analysis</div>
+          <div class="landing-card-desc">Concept study, feasibility study, and defining features, requirements, and configurability.</div>
+        </div>
+        <div class="landing-card-arrow">→</div>
+      </div>
+      <div class="landing-card" onclick="Landing.enter(2)">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-orange), var(--col-yellow))">❖</div>
+        <div class="landing-card-text">
+          <div class="landing-card-name">03. System Design</div>
+          <div class="landing-card-desc">High-level system design and low-level system design, from module hierarchy down to class and algorithm design.</div>
+        </div>
+        <div class="landing-card-arrow">→</div>
+      </div>
+      <div class="landing-card" onclick="Landing.enter(3)">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-orange), var(--col-yellow))">☑</div>
+        <div class="landing-card-text">
+          <div class="landing-card-name">04. Development and Coding</div>
+          <div class="landing-card-desc">Component-by-component build status across the Simulation Kernel, Network Layer, Device &amp; Endpoints, and GUI Tool.</div>
+        </div>
+        <div class="landing-card-arrow">→</div>
+      </div>
+      <div class="landing-card" onclick="Landing.enter(4)">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-orange), var(--col-yellow))">✎</div>
+        <div class="landing-card-text">
+          <div class="landing-card-name">05. Documentation Flow</div>
+          <div class="landing-card-desc">The 7-stage top-down documentation trail from the initial SRS to the final signed-off test report.</div>
+        </div>
+        <div class="landing-card-arrow">→</div>
+      </div>
+
+      <div class="landing-divider">Other Presentations</div>
+      <a class="landing-card" href="../hardware-presentation/index.html">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-purple), var(--col-blue))">⬡</div>
+        <div class="landing-card-text">
+          <div class="landing-card-name">Hardware Architecture &amp; Router Design</div>
+          <div class="landing-card-desc">CHI protocol nodes, the 6-port router, buffer sizing, and the 5-stage data path.</div>
+        </div>
+        <div class="landing-card-arrow">↗</div>
+      </a>
+      <a class="landing-card" href="../presentation/index.html">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-cyan), var(--col-blue))">⬡</div>
+        <div class="landing-card-text">
+          <div class="landing-card-name">System Architecture &amp; Execution Flow</div>
+          <div class="landing-card-desc">System architecture, event scheduler, flit lifecycle, router pipeline, and CHI channels.</div>
+        </div>
+        <div class="landing-card-arrow">↗</div>
+      </a>
+      <a class="landing-card" href="../verification-presentation/index.html">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-teal), var(--col-cyan))">✓</div>
+        <div class="landing-card-text">
+          <div class="landing-card-name">Verification &amp; Validation</div>
+          <div class="landing-card-desc">IEEE V&amp;V lifecycle, testing methodology, bug taxonomy, and the practical verification toolchain.</div>
+        </div>
+        <div class="landing-card-arrow">↗</div>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     HEADER BAR
+══════════════════════════════════════════════════════════════ -->
+<header id="app-header">
+  <div class="brand">
+    <div class="brand-icon">☑</div>
+    <h1>NoC Simulator — Software Development Lifecycle</h1>
+    <span class="chi-badge">SDLC Recap</span>
+  </div>
+  <div class="phase-pill" id="phase-pill">
+    <span class="phase-dot"></span>
+    <span>Project Journey</span>
+  </div>
+</header>
+
+<!-- ══════════════════════════════════════════════════════════════
+     LEFT NAVIGATOR
+══════════════════════════════════════════════════════════════ -->
+<nav id="stage-nav" aria-label="SDLC Recap Topics">
+  <a href="javascript:void(0)" class="back-menu-link" onclick="Landing.show()">← Back to Main Menu</a>
+
+  <div class="nav-group-label">SDLC Phases</div>
+
+  <button class="nav-item active" id="nav-0" onclick="App.goToPage(0)">
+    <div class="nav-status-icon" id="nav-st-0"></div>
+    <div class="nav-text"><div class="nav-num">01</div><div class="nav-name">Standard SDLC Flow</div></div>
+    <div class="nav-color-dot" style="background:var(--col-orange)"></div>
+  </button>
+
+  <button class="nav-item" id="nav-1" onclick="App.goToPage(1)">
+    <div class="nav-status-icon" id="nav-st-1"></div>
+    <div class="nav-text"><div class="nav-num">02</div><div class="nav-name">Requirement Gathering</div></div>
+    <div class="nav-color-dot" style="background:var(--col-orange)"></div>
+  </button>
+
+  <button class="nav-item" id="nav-2" onclick="App.goToPage(2)">
+    <div class="nav-status-icon" id="nav-st-2"></div>
+    <div class="nav-text"><div class="nav-num">03</div><div class="nav-name">System Design</div></div>
+    <div class="nav-color-dot" style="background:var(--col-orange)"></div>
+  </button>
+
+  <button class="nav-item" id="nav-3" onclick="App.goToPage(3)">
+    <div class="nav-status-icon" id="nav-st-3"></div>
+    <div class="nav-text"><div class="nav-num">04</div><div class="nav-name">Development and Coding</div></div>
+    <div class="nav-color-dot" style="background:var(--col-orange)"></div>
+  </button>
+
+  <button class="nav-item" id="nav-4" onclick="App.goToPage(4)">
+    <div class="nav-status-icon" id="nav-st-4"></div>
+    <div class="nav-text"><div class="nav-num">05</div><div class="nav-name">Documentation Flow</div></div>
+    <div class="nav-color-dot" style="background:var(--col-orange)"></div>
+  </button>
+
+  <div class="nav-kbd-hint">
+    <span class="kbd">←</span><span class="kbd">→</span> navigate &nbsp;·&nbsp;
+    <span class="kbd">Space</span> play
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════════
+     MAIN CANVAS
+══════════════════════════════════════════════════════════════ -->
+<main id="main-canvas">
+  <div id="canvas-header" class="canvas-header"></div>
+
+  <!-- ── VIEW 0: STANDARD SDLC FLOW ── -->
+  <div id="view-0" class="canvas-view active">
+    <div class="flow-section-lbl" style="margin-top:0;">Software Development Life Cycle</div>
+    <div class="vv-flow">
+      <div class="vv-col vv-focusable" data-topic="concept">
+        <div class="vv-sdlc-box" style="--c:var(--col-cyan)">Concept / Needs</div>
+        <ul class="vv-sdlc-detail">
+          <li>Study of concepts</li>
+          <li>Feasibility Study</li>
+          <li>Understand client requirement</li>
+        </ul>
+      </div>
+      <div class="vv-arrow-right">→</div>
+      <div class="vv-col vv-focusable" data-topic="requirements">
+        <div class="vv-sdlc-box" style="--c:var(--col-blue)">Requirements</div>
+        <ul class="vv-sdlc-detail">
+          <li>Define functionalities and features</li>
+          <li>Create a requirement doc</li>
+        </ul>
+      </div>
+      <div class="vv-arrow-right">→</div>
+      <div class="vv-col vv-focusable" data-topic="design">
+        <div class="vv-sdlc-box" style="--c:var(--col-purple)">Architecture / Design</div>
+        <ul class="vv-sdlc-detail">
+          <li>System Architecture</li>
+          <li>Modules and Components</li>
+          <li>GUI Design</li>
+          <li>Individual Components design</li>
+          <li>Class Definitions</li>
+          <li>Algorithm Design</li>
+        </ul>
+      </div>
+      <div class="vv-arrow-right">→</div>
+      <div class="vv-col vv-focusable" data-topic="implementation">
+        <div class="vv-sdlc-box" style="--c:var(--col-orange)">Implementation</div>
+        <ul class="vv-sdlc-detail">
+          <li>Implement the modules and components</li>
+          <li>Integrate the components</li>
+          <li>Develop the frontend and backend engine and integration framework</li>
+        </ul>
+      </div>
+      <div class="vv-arrow-right">→</div>
+      <div class="vv-col vv-focusable" data-topic="integration">
+        <div class="vv-sdlc-box" style="--c:var(--col-green)">Integration &amp; Test</div>
+        <ul class="vv-sdlc-detail">
+          <li>Prepare Test Cases and Run the test cases</li>
+        </ul>
+      </div>
+      <div class="vv-arrow-right">→</div>
+      <div class="vv-col vv-focusable" data-topic="maintenance">
+        <div class="vv-sdlc-box" style="--c:var(--col-pink)">Operation &amp; Maint.</div>
+        <ul class="vv-sdlc-detail">
+          <li>Maintain bug list and descriptions</li>
+          <li>Update the code based on the errors/bugs</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="flow-bottom-wrap">
+      <div class="flow-section-lbl">Pipelined Incremental SDLC Model</div>
+      <div class="pipeline-grid">
+        <div class="tb-col-hdr" data-tb="1" style="grid-column:1; grid-row:1;">Time Block 1</div>
+        <div class="tb-col-hdr" data-tb="2" style="grid-column:2; grid-row:1;">Time Block 2</div>
+        <div class="tb-col-hdr" data-tb="3" style="grid-column:3; grid-row:1;">Time Block 3</div>
+        <div class="tb-col-hdr" data-tb="4" style="grid-column:4; grid-row:1;">Time Block 4</div>
+        <div class="tb-col-hdr" data-tb="5" style="grid-column:5; grid-row:1;">Time Block 5</div>
+
+        <!-- Increment 1 — row 2 -->
+        <div class="tb-box" data-tb="1" style="grid-column:1; grid-row:2; --c:var(--col-cyan)">
+          <div class="tb-box-inc">Increment 1</div>
+          <div class="tb-box-phase">Requirements</div>
+        </div>
+        <div class="tb-box" data-tb="2" style="grid-column:2; grid-row:2; --c:var(--col-cyan)">
+          <div class="tb-box-inc">Increment 1</div>
+          <div class="tb-box-phase">Design</div>
+        </div>
+        <div class="tb-box" data-tb="3" style="grid-column:3; grid-row:2; --c:var(--col-cyan)">
+          <div class="tb-box-inc">Increment 1</div>
+          <div class="tb-box-phase">Coding</div>
+        </div>
+        <div class="tb-box" data-tb="4" style="grid-column:4; grid-row:2; --c:var(--col-cyan)">
+          <div class="tb-box-inc">Increment 1</div>
+          <div class="tb-box-phase">Testing</div>
+        </div>
+
+        <!-- Increment 2 — row 3 -->
+        <div class="tb-box" data-tb="2" style="grid-column:2; grid-row:3; --c:var(--col-blue)">
+          <div class="tb-box-inc">Increment 2</div>
+          <div class="tb-box-phase">Requirements</div>
+        </div>
+        <div class="tb-box" data-tb="3" style="grid-column:3; grid-row:3; --c:var(--col-blue)">
+          <div class="tb-box-inc">Increment 2</div>
+          <div class="tb-box-phase">Design</div>
+        </div>
+        <div class="tb-box" data-tb="4" style="grid-column:4; grid-row:3; --c:var(--col-blue)">
+          <div class="tb-box-inc">Increment 2</div>
+          <div class="tb-box-phase">Coding</div>
+        </div>
+        <div class="tb-box" data-tb="5" style="grid-column:5; grid-row:3; --c:var(--col-blue)">
+          <div class="tb-box-inc">Increment 2</div>
+          <div class="tb-box-phase">Testing</div>
+        </div>
+
+        <!-- Increment 3 — row 4 -->
+        <div class="tb-box" data-tb="3" style="grid-column:3; grid-row:4; --c:var(--col-purple)">
+          <div class="tb-box-inc">Increment 3</div>
+          <div class="tb-box-phase">Requirements</div>
+        </div>
+        <div class="tb-box" data-tb="4" style="grid-column:4; grid-row:4; --c:var(--col-purple)">
+          <div class="tb-box-inc">Increment 3</div>
+          <div class="tb-box-phase">Design</div>
+        </div>
+        <div class="tb-box" data-tb="5" style="grid-column:5; grid-row:4; --c:var(--col-purple)">
+          <div class="tb-box-inc">Increment 3</div>
+          <div class="tb-box-phase">Coding</div>
+        </div>
+
+        <!-- Increment 4 — row 5 -->
+        <div class="tb-box" data-tb="4" style="grid-column:4; grid-row:5; --c:var(--col-orange)">
+          <div class="tb-box-inc">Increment 4</div>
+          <div class="tb-box-phase">Requirements</div>
+        </div>
+        <div class="tb-box" data-tb="5" style="grid-column:5; grid-row:5; --c:var(--col-orange)">
+          <div class="tb-box-inc">Increment 4</div>
+          <div class="tb-box-phase">Design</div>
+        </div>
+
+        <!-- Increment 5 — row 6 -->
+        <div class="tb-box" data-tb="5" style="grid-column:5; grid-row:6; --c:var(--col-teal)">
+          <div class="tb-box-inc">Increment 5</div>
+          <div class="tb-box-phase">Requirements</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── VIEW 1: REQUIREMENT GATHERING AND ANALYSIS ── -->
+  <div id="view-1" class="canvas-view">
+    <div class="sdlc-cols sdlc-cols-3">
+      <div class="sdlc-col">
+        <div class="sdlc-col-hdr">Detailed Study and Understanding of Concepts</div>
+        <ul class="sdlc-list">
+          <li><div class="sdlc-item st-planned">CHI Protocol Specs.</div></li>
+          <li><div class="sdlc-item st-done">Router Architecture and pipeline stages.</div></li>
+          <li><div class="sdlc-item st-done">Existing Simulators (focus on Booksim).</div></li>
+          <li><div class="sdlc-item st-done">Cycle accurate simulation.</div></li>
+        </ul>
+      </div>
+      <div class="sdlc-col">
+        <div class="sdlc-col-hdr">Feasibility Study</div>
+        <ul class="sdlc-list">
+          <li><div class="sdlc-item st-done">Cycle Accurate vs Functional</div></li>
+          <li><div class="sdlc-item st-progress">Programming Language and Technology Stack</div></li>
+          <li><div class="sdlc-item st-done">Scope of the simulator</div></li>
+        </ul>
+      </div>
+      <div class="sdlc-col">
+        <div class="sdlc-col-hdr">Define</div>
+        <ul class="sdlc-list">
+          <li><div class="sdlc-item st-progress">Features and Functionalities of Individual Components</div></li>
+          <li><div class="sdlc-item st-done">Functional and Non-Functional Requirements</div></li>
+          <li><div class="sdlc-item st-progress">Configurability</div></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── VIEW 2: SYSTEM DESIGN ── -->
+  <div id="view-2" class="canvas-view">
+    <div class="sdlc-cols sdlc-cols-2">
+      <div class="sdlc-col">
+        <div class="sdlc-col-hdr">High Level System Design</div>
+        <ul class="sdlc-list">
+          <li><div class="sdlc-item st-done">High Level View</div></li>
+          <li><div class="sdlc-item st-done">Hierarchical View</div></li>
+          <li><div class="sdlc-item st-done">Scope of the simulator</div></li>
+          <li><div class="sdlc-item st-done">Layer wise workflow</div></li>
+          <li><div class="sdlc-item st-progress">Modules and Components</div></li>
+          <li><div class="sdlc-item st-done">CHI based router model</div></li>
+          <li><div class="sdlc-item st-done">Simulation Phase</div></li>
+          <li><div class="sdlc-item st-progress">CHI Channels</div></li>
+          <li><div class="sdlc-item st-progress">GUI Design</div></li>
+          <li><div class="sdlc-item st-progress">Interface and Workflow</div></li>
+          <li><div class="sdlc-item st-progress">Call tree/Simulation Flow</div></li>
+        </ul>
+      </div>
+      <div class="sdlc-col">
+        <div class="sdlc-col-hdr">Low Level System Design</div>
+        <ul class="sdlc-tree">
+          <li><div class="sdlc-item st-done">6-port router design</div></li>
+          <li><div class="sdlc-item st-done">Router functional blocks</div></li>
+          <li><div class="sdlc-item st-done">Router pipeline stages</div></li>
+          <li><div class="sdlc-item st-done">Router components: Allocators, arbiters and routing algorithms</div></li>
+          <li><div class="sdlc-item st-done">Flit Lifecycle</div></li>
+          <li><div class="sdlc-item st-done">How to make the system cycle accurate</div></li>
+          <li><div class="sdlc-item st-progress">Flit Structure</div></li>
+          <li>
+            <div class="sdlc-item st-planned">CHI Device flows</div>
+            <ul>
+              <li><div class="sdlc-item st-planned">Transaction flows</div></li>
+              <li><div class="sdlc-item st-planned">State Diagrams</div></li>
+            </ul>
+          </li>
+          <li><div class="sdlc-item st-progress">UI Design for each Interface</div></li>
+          <li><div class="sdlc-item st-progress">Class Diagrams</div></li>
+          <li><div class="sdlc-item st-progress">Algorithm Design</div></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── VIEW 3: DEVELOPMENT AND CODING ── -->
+  <div id="view-3" class="canvas-view">
+    <div class="sdlc-cols sdlc-cols-4">
+      <div class="sdlc-col">
+        <div class="sdlc-col-hdr">Simulation Kernel</div>
+        <ul class="sdlc-list">
+          <li><div class="sdlc-item st-done">Event Scheduler</div></li>
+          <li><div class="sdlc-item st-done">Configuration Handler</div></li>
+          <li><div class="sdlc-item st-planned">Checkpoint Manager</div></li>
+          <li><div class="sdlc-item st-planned">Logger</div></li>
+        </ul>
+      </div>
+
+      <div class="sdlc-col">
+        <div class="sdlc-col-hdr">Network Layer</div>
+        <ul class="sdlc-tree">
+          <li>
+            <div class="sdlc-item st-done">CHI Router</div>
+            <ul>
+              <li><div class="sdlc-item st-done">Router Pipeline</div></li>
+              <li>
+                <div class="sdlc-item st-done">Router Components</div>
+                <ul>
+                  <li><div class="sdlc-item st-done">Virtual Channel</div></li>
+                  <li><div class="sdlc-item st-done">Routing Algorithm</div></li>
+                  <li><div class="sdlc-item st-progress">Allocators</div></li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+          <li><div class="sdlc-item st-progress">Flit</div></li>
+          <li><div class="sdlc-item st-progress">Credit</div></li>
+          <li>
+            <div class="sdlc-item st-planned">Network Interface</div>
+            <ul>
+              <li><div class="sdlc-item st-planned">Buffers</div></li>
+              <li><div class="sdlc-item st-planned">Packet Maker/Dissembler</div></li>
+            </ul>
+          </li>
+          <li><div class="sdlc-item st-progress">Topology Manager</div></li>
+          <li><div class="sdlc-item st-progress">Node Registry</div></li>
+        </ul>
+        <div class="sdlc-sub-hdr st-planned">Protocol Layer</div>
+        <ul class="sdlc-list">
+          <li><div class="sdlc-item st-planned">CHI State Transition</div></li>
+          <li><div class="sdlc-item st-planned">CHI Opcodes</div></li>
+          <li><div class="sdlc-item st-planned">CHI Transactions</div></li>
+        </ul>
+      </div>
+
+      <div class="sdlc-col">
+        <div class="sdlc-col-hdr">Device &amp; Endpoints</div>
+        <ul class="sdlc-tree">
+          <li>
+            <div class="sdlc-item st-planned">RNF</div>
+            <ul>
+              <li>
+                <div class="sdlc-item st-planned">Controller</div>
+                <ul><li><div class="sdlc-item st-planned">DAT/RSP/SNP/REQ Handler</div></li></ul>
+              </li>
+              <li><div class="sdlc-item st-planned">Transaction Manager</div></li>
+              <li><div class="sdlc-item st-planned">SAM</div></li>
+              <li><div class="sdlc-item st-planned">Hazard Checker</div></li>
+              <li><div class="sdlc-item st-planned">Credit Manager</div></li>
+            </ul>
+          </li>
+          <li>
+            <div class="sdlc-item st-planned">HNF</div>
+            <ul>
+              <li>
+                <div class="sdlc-item st-planned">Controller</div>
+                <ul><li><div class="sdlc-item st-planned">DAT/RSP/SNP/REQ Handler</div></li></ul>
+              </li>
+              <li><div class="sdlc-item st-planned">Transaction Manager</div></li>
+              <li><div class="sdlc-item st-planned">SAM</div></li>
+              <li><div class="sdlc-item st-planned">Hazard Checker</div></li>
+              <li><div class="sdlc-item st-planned">Credit Manager</div></li>
+              <li><div class="sdlc-item st-planned">Snoop Filter</div></li>
+              <li><div class="sdlc-item st-planned">SLC</div></li>
+              <li><div class="sdlc-item st-planned">Data Buffer</div></li>
+            </ul>
+          </li>
+          <li>
+            <div class="sdlc-item st-planned">SNF</div>
+            <ul>
+              <li>
+                <div class="sdlc-item st-planned">Controller</div>
+                <ul><li><div class="sdlc-item st-planned">DAT/RSP/SNP/REQ Handler</div></li></ul>
+              </li>
+              <li><div class="sdlc-item st-planned">Transaction Manager</div></li>
+              <li><div class="sdlc-item st-planned">Credit Manager</div></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+
+      <div class="sdlc-col">
+        <div class="sdlc-col-hdr">Experimentation</div>
+        <ul class="sdlc-list">
+          <li><div class="sdlc-item st-progress">Traffic Manager</div></li>
+          <li><div class="sdlc-item st-done">Traffic Pattern</div></li>
+          <li><div class="sdlc-item st-done">Injection Process</div></li>
+          <li><div class="sdlc-item st-progress">Stats</div></li>
+        </ul>
+      </div>
+
+      <div class="sdlc-col">
+        <div class="sdlc-col-hdr">Interconnect Layer</div>
+        <ul class="sdlc-tree">
+          <li><div class="sdlc-item st-done">Network Fabric</div></li>
+          <li>
+            <div class="sdlc-item st-done">CHI Link</div>
+            <ul>
+              <li><div class="sdlc-item st-done">Local Link</div></li>
+              <li><div class="sdlc-item st-done">Router-Router link</div></li>
+            </ul>
+          </li>
+          <li>
+            <div class="sdlc-item st-done">Channels</div>
+            <ul>
+              <li><div class="sdlc-item st-done">Flit Channel</div></li>
+              <li><div class="sdlc-item st-done">Credit Channel</div></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+
+      <div class="sdlc-col">
+        <div class="sdlc-col-hdr">GUI Tool</div>
+        <ul class="sdlc-tree">
+          <li>
+            <div class="sdlc-item st-progress">User Interfaces</div>
+            <ul>
+              <li><div class="sdlc-item st-progress">NoC Creation</div></li>
+              <li><div class="sdlc-item st-progress">NoC Editor</div></li>
+              <li><div class="sdlc-item st-progress">Config Validator</div></li>
+              <li><div class="sdlc-item st-progress">Performance Analyser</div></li>
+            </ul>
+          </li>
+          <li><div class="sdlc-item st-progress">API integration framework</div></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── VIEW 4: DOCUMENTATION FLOW ── -->
+  <div id="view-4" class="canvas-view">
+    <div class="doc-flow">
+      <div class="doc-step vv-focusable" data-topic="srs" onclick="App.setTopic('srs')">
+        <div class="doc-num">1</div>
+        <div class="doc-text">
+          <div class="doc-title">Software Requirement Specification (SRS)</div>
+          <div class="doc-desc">Establishes functional requirements, protocols, and performance goals.</div>
+        </div>
+      </div>
+      <div class="doc-connector">↓</div>
+      <div class="doc-step vv-focusable" data-topic="svvp" onclick="App.setTopic('svvp')">
+        <div class="doc-num">2</div>
+        <div class="doc-text">
+          <div class="doc-title">V&amp;V Plan (SVVP)</div>
+          <div class="doc-desc">Formulated early using the requirements to set up the Requirements Traceability Matrix (RTM), acceptance criteria, and compliance standards.</div>
+        </div>
+      </div>
+      <div class="doc-connector">↓</div>
+      <div class="doc-step vv-focusable" data-topic="sdd" onclick="App.setTopic('sdd')">
+        <div class="doc-num">3</div>
+        <div class="doc-text">
+          <div class="doc-title">Software Design Documentation (SDD)</div>
+          <div class="doc-desc">High-Level and Low-Level architecture designs written to satisfy the requirements and align with the V&amp;V criteria.</div>
+        </div>
+      </div>
+      <div class="doc-connector">↓</div>
+      <div class="doc-step vv-focusable" data-topic="impl" onclick="App.setTopic('impl')">
+        <div class="doc-num">4</div>
+        <div class="doc-text">
+          <div class="doc-title">Software Implementation Documentation</div>
+          <div class="doc-desc">Onboarding, module specifications, and build guidelines established during coding.</div>
+        </div>
+      </div>
+      <div class="doc-connector">↓</div>
+      <div class="doc-step vv-focusable" data-topic="testplan" onclick="App.setTopic('testplan')">
+        <div class="doc-num">5</div>
+        <div class="doc-text">
+          <div class="doc-title">Software Test Plan</div>
+          <div class="doc-desc">Defines the exact scope, setup, and criteria for test execution based on the SDD and SVVP.</div>
+        </div>
+      </div>
+      <div class="doc-connector">↓</div>
+      <div class="doc-step vv-focusable" data-topic="testcases" onclick="App.setTopic('testcases')">
+        <div class="doc-num">6</div>
+        <div class="doc-text">
+          <div class="doc-title">Software Test Cases</div>
+          <div class="doc-desc">Detailed step-by-step test vectors, workloads, and expected outputs derived from the Test Plan.</div>
+        </div>
+      </div>
+      <div class="doc-connector">↓</div>
+      <div class="doc-step vv-focusable" data-topic="testreport" onclick="App.setTopic('testreport')">
+        <div class="doc-num">7</div>
+        <div class="doc-text">
+          <div class="doc-title">Software Test Report</div>
+          <div class="doc-desc">The final output document summarizing pass/fail results, test coverage, and residual issues before release.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div id="now-band">
+  <div id="band-body"><!-- populated dynamically by app.js --></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     RIGHT DETAILS PANEL (STATUS LEGEND + SNAPSHOT)
+══════════════════════════════════════════════════════════════ -->
+<aside id="details-panel">
+  <div class="status-legend" id="status-legend">
+    <div class="legend-item"><span class="legend-dot dot-done"></span>Completed</div>
+    <div class="legend-item"><span class="legend-dot dot-progress"></span>In Progress</div>
+    <div class="legend-item"><span class="legend-dot dot-planned"></span>Planned</div>
+  </div>
+  <div id="details-body">
+    <!-- Populated dynamically by app.js -->
+  </div>
+</aside>
+
+<!-- ══════════════════════════════════════════════════════════════
+     CONTROL BAR (FOOTER)
+══════════════════════════════════════════════════════════════ -->
+<footer id="control-bar">
+  <div class="prog-row">
+    <div class="prog-pips" id="prog-pips"></div>
+    <div class="prog-lbl" id="prog-lbl">
+      Step <span id="prog-num">1</span> of <span id="prog-total">5</span> &nbsp;·&nbsp;
+      <span id="prog-name">Standard SDLC Flow</span>
+    </div>
+  </div>
+  <div class="ctrl-btns">
+    <button class="ctrl-btn reset-btn" id="btn-reset" onclick="App.reset()">↺ Reset</button>
+    <button class="ctrl-btn prev-btn"  id="btn-prev"  onclick="App.prev()">⬅ Prev</button>
+    <button class="ctrl-btn play-btn"  id="btn-play"  onclick="App.togglePlay()">▶ Play</button>
+    <button class="ctrl-btn next-btn"  id="btn-next"  onclick="App.next()">Next ➔</button>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
