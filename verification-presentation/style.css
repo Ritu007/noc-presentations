@@ -296,102 +296,100 @@ body {
 /* ================================================================
    PAGE 2 & 3 — VERTICAL DOCUMENT / TESTING STEPPERS
 ================================================================ */
-.doc-flow { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 640px; }
+.doc-flow { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 760px; }
 .doc-step {
-  width: 100%; display: flex; align-items: center; gap: .9rem;
+  width: 100%; display: flex; align-items: center; gap: 1.1rem;
   background: var(--s1); border: 1.5px solid var(--b1); border-radius: var(--r);
-  padding: .75rem 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  padding: .9rem 1.3rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
 .doc-step:not(.dimmed):hover { border-color: var(--b2); }
 .doc-num {
-  width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+  width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
   background: var(--s2); border: 2px solid var(--b1); color: var(--muted);
   display: flex; align-items: center; justify-content: center;
-  font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: .8rem;
+  font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: .85rem;
   transition: all .25s;
 }
 .doc-step.vv-focusable:not(.dimmed) .doc-num { background: var(--col-teal); border-color: var(--col-teal); color: #fff; }
-.doc-title { font-size: .84rem; font-weight: 700; color: var(--text); margin-bottom: 2px; }
-.doc-desc { font-size: .73rem; color: var(--muted); line-height: 1.4; }
-.doc-connector { color: var(--b2); font-size: .9rem; padding: .1rem 0; }
+.doc-title { font-size: .95rem; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+.doc-desc { font-size: .78rem; color: var(--muted); line-height: 1.4; }
+.doc-connector { color: var(--b2); font-size: 1.1rem; padding: .1rem 0; }
 
 /* ================================================================
    PAGE 4 — TAXONOMY OF FAILURE (TREE)
 ================================================================ */
-.tree-diagram { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 720px; }
+.tree-diagram { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 860px; }
 .tree-root {
-  padding: .6rem 1.3rem; border-radius: var(--rs); font-weight: 800; font-size: .85rem;
+  padding: .75rem 1.6rem; border-radius: var(--rs); font-weight: 800; font-size: .95rem;
   background: var(--text); color: #fff; box-shadow: 0 2px 8px rgba(15,23,42,.25);
 }
-.tree-branches { display: flex; justify-content: center; gap: 2.6rem; margin-top: 26px; position: relative; width: 100%; }
+.tree-branches { display: flex; justify-content: center; gap: 3rem; margin-top: 32px; position: relative; width: 100%; }
 .tree-branches::before { content: ''; position: absolute; top: -13px; left: 27%; right: 27%; height: 2px; background: var(--b2); }
-.tree-branch { position: relative; padding-top: 13px; display: flex; flex-direction: column; align-items: stretch; min-width: 190px; }
+.tree-branch { position: relative; padding-top: 13px; display: flex; flex-direction: column; align-items: stretch; min-width: 220px; }
 .tree-branch::before { content: ''; position: absolute; top: -13px; left: 50%; width: 2px; height: 13px; background: var(--b2); }
 .tree-branch-hdr {
-  text-align: center; padding: .5rem .7rem; border-radius: var(--rs); margin-bottom: .5rem;
+  text-align: center; padding: .6rem .9rem; border-radius: var(--rs); margin-bottom: .5rem;
   background: color-mix(in srgb, var(--col-orange) 12%, var(--s1)); border: 1.5px solid var(--col-orange);
-  color: var(--col-orange); font-weight: 800; font-size: .74rem;
+  color: var(--col-orange); font-weight: 800; font-size: .8rem;
 }
 .tree-leaves { display: flex; flex-direction: column; gap: .4rem; }
 .tree-leaf {
-  text-align: center; padding: .45rem .6rem; border-radius: var(--rxs);
+  text-align: center; padding: .55rem .75rem; border-radius: var(--rxs);
   background: var(--s1); border: 1px solid var(--b1); color: var(--muted);
-  font-size: .72rem; font-weight: 600;
+  font-size: .78rem; font-weight: 600;
 }
 .tree-leaf.lone { font-weight: 800; color: var(--col-orange); border-color: color-mix(in srgb, var(--col-orange) 40%, var(--b1)); }
 
 /* ================================================================
    PAGE 5 — VALIDATION METHODS (3-UP CARDS)
 ================================================================ */
-.method-card-row { display: flex; gap: .9rem; width: 100%; max-width: 980px; flex-wrap: wrap; justify-content: center; }
+.method-card-row { display: flex; gap: 1.1rem; width: 100%; max-width: 1120px; flex-wrap: wrap; justify-content: center; }
 .method-card {
-  flex: 1 1 260px; max-width: 320px; background: var(--s1); border: 1.5px solid var(--b1); border-radius: var(--r);
-  padding: 1.1rem 1.1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04); display: flex; flex-direction: column; gap: .5rem;
+  flex: 1 1 300px; max-width: 380px; background: var(--s1); border: 1.5px solid var(--b1); border-radius: var(--r);
+  padding: 1.4rem 1.3rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04); display: flex; flex-direction: column; gap: .6rem;
 }
 .method-card:not(.dimmed):hover { border-color: var(--col-green); box-shadow: 0 4px 14px rgba(22,163,74,.1); }
 .method-icon {
-  width: 38px; height: 38px; border-radius: var(--rs); background: rgba(22,163,74,.12); color: var(--col-green);
-  display: flex; align-items: center; justify-content: center; font-size: 1.15rem; font-weight: 800;
+  width: 52px; height: 52px; border-radius: var(--rs); background: rgba(22,163,74,.12); color: var(--col-green);
+  display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: 800;
 }
-.method-title { font-size: .92rem; font-weight: 800; color: var(--text); }
-.method-desc { font-size: .74rem; color: var(--muted); line-height: 1.5; }
+.method-title { font-size: 1.1rem; font-weight: 800; color: var(--text); }
 
 /* ================================================================
    PAGE 6 — FORMAL VERIFICATION TOOLS (TABLE)
 ================================================================ */
-.vv-table { width: 100%; max-width: 760px; background: var(--s1); border: 1px solid var(--b1); border-radius: var(--r); overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
-.vv-table-hdr { display: grid; grid-template-columns: 1fr 1.7fr; padding: .6rem 1rem; background: var(--s2); font-size: .64rem; font-weight: 800; text-transform: uppercase; letter-spacing: .8px; color: var(--dim); border-bottom: 1px solid var(--b1); }
-.vv-table-row { display: grid; grid-template-columns: 1fr 1.7fr; padding: .8rem 1rem; border-bottom: 1px solid var(--b1); align-items: center; }
+.vv-table { width: 100%; max-width: 900px; background: var(--s1); border: 1px solid var(--b1); border-radius: var(--r); overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+.vv-table-hdr { display: grid; grid-template-columns: 1fr 1.7fr; padding: .7rem 1.2rem; background: var(--s2); font-size: .68rem; font-weight: 800; text-transform: uppercase; letter-spacing: .8px; color: var(--dim); border-bottom: 1px solid var(--b1); }
+.vv-table-row { display: grid; grid-template-columns: 1fr 1.7fr; padding: 1rem 1.2rem; border-bottom: 1px solid var(--b1); align-items: center; }
 .vv-table-row:last-child { border-bottom: none; }
 .vv-table-row:not(.dimmed):hover { background: var(--s2); }
-.vv-tool-name { font-size: .82rem; font-weight: 800; color: var(--col-pink); }
-.vv-tool-proof { font-size: .76rem; color: var(--muted); line-height: 1.4; }
+.vv-tool-name { font-size: .9rem; font-weight: 800; color: var(--col-pink); }
+.vv-tool-proof { font-size: .8rem; color: var(--muted); line-height: 1.4; }
 
 /* ================================================================
    PAGE 7 — VERIFICATION TOOLCHAIN (2x2 GRID + CALLOUT)
 ================================================================ */
-.toolchain-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; width: 100%; max-width: 780px; }
-.tool-chip { background: var(--s1); border: 1.5px solid var(--b1); border-radius: var(--r); padding: .85rem 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+.toolchain-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; width: 100%; max-width: 940px; }
+.tool-chip { background: var(--s1); border: 1.5px solid var(--b1); border-radius: var(--r); padding: 1.3rem 1.4rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
 .tool-chip:not(.dimmed):hover { border-color: var(--col-yellow); }
-.tool-chip-name { font-size: .84rem; font-weight: 800; color: var(--col-yellow); margin-bottom: .3rem; }
-.tool-chip-desc { font-size: .74rem; color: var(--muted); line-height: 1.45; }
+.tool-chip-name { font-size: 1.05rem; font-weight: 800; color: var(--col-yellow); }
 .callout-box {
-  margin-top: 1rem; width: 100%; max-width: 780px; text-align: center;
-  padding: .85rem 1.2rem; border-radius: var(--r); font-size: .82rem; font-weight: 600;
+  margin-top: 1rem; width: 100%; max-width: 940px; text-align: center;
+  padding: 1rem 1.4rem; border-radius: var(--r); font-size: .88rem; font-weight: 600;
   color: var(--muted); background: rgba(13,148,136,.06); border: 1px solid rgba(13,148,136,.3); line-height: 1.5;
 }
 
 /* ================================================================
    PAGE 8 — THE COMPLETE PICTURE (11-STAGE CAPSTONE GRID)
 ================================================================ */
-.stage-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: .65rem; width: 100%; max-width: 820px; }
+.stage-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: .8rem; width: 100%; max-width: 980px; }
 .stage-chip {
   display: flex; align-items: center; gap: .5rem; background: var(--s1); border: 1.5px solid var(--b1);
-  border-radius: var(--rs); padding: .65rem .8rem; font-size: .78rem; font-weight: 700; color: var(--text);
+  border-radius: var(--rs); padding: .85rem 1rem; font-size: .86rem; font-weight: 700; color: var(--text);
   box-shadow: 0 1px 3px rgba(0,0,0,0.03);
 }
 .stage-chip:not(.dimmed):hover { border-color: var(--col-teal); }
-.stage-num { font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: .74rem; color: var(--col-teal); }
+.stage-num { font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: .8rem; color: var(--col-teal); }
 .stage-chip.stage-final { background: rgba(13,148,136,.1); border-color: var(--col-teal); color: var(--col-teal); font-weight: 800; justify-content: center; cursor: default; }
 
 /* ================================================================

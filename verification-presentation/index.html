@@ -363,17 +363,14 @@
       <div class="method-card vv-focusable" data-topic="analytical" onclick="App.setTopic('analytical')">
         <div class="method-icon">Σ</div>
         <div class="method-title">Analytical Method</div>
-        <div class="method-desc">Compares against queueing math to verify zero-load latency and maximum throughput, while enforcing Little's Law and Flit/Credit Conservation (zero flit drops or credit leaks).</div>
       </div>
       <div class="method-card vv-focusable" data-topic="published" onclick="App.setTopic('published')">
         <div class="method-icon">▤</div>
         <div class="method-title">Published Results</div>
-        <div class="method-desc">Replicates published paper setups to check if latency/throughput curves match.</div>
       </div>
       <div class="method-card vv-focusable" data-topic="simulator" onclick="App.setTopic('simulator')">
         <div class="method-icon">⇄</div>
         <div class="method-title">Other Simulator</div>
-        <div class="method-desc">Runs identical traffic on established tools (BookSim, Garnet) to spot timing discrepancies.</div>
       </div>
     </div>
   </div>
@@ -406,19 +403,15 @@
     <div class="toolchain-grid">
       <div class="tool-chip vv-focusable" data-topic="gtest" onclick="App.setTopic('gtest')">
         <div class="tool-chip-name">GTest</div>
-        <div class="tool-chip-desc">The unit-test framework that structures and runs every test case.</div>
       </div>
       <div class="tool-chip vv-focusable" data-topic="asan" onclick="App.setTopic('asan')">
         <div class="tool-chip-name">ASan / UBSan</div>
-        <div class="tool-chip-desc">Sanitizers that catch memory and undefined-behavior bugs at runtime.</div>
       </div>
       <div class="tool-chip vv-focusable" data-topic="rapidcheck" onclick="App.setTopic('rapidcheck')">
         <div class="tool-chip-name">RapidCheck</div>
-        <div class="tool-chip-desc">Drives property-based testing with generated random inputs.</div>
       </div>
       <div class="tool-chip vv-focusable" data-topic="lcov" onclick="App.setTopic('lcov')">
         <div class="tool-chip-name">lcov</div>
-        <div class="tool-chip-desc">Measures code coverage so untested paths become visible.</div>
       </div>
     </div>
     <div class="callout-box">Wired into continuous integration, these tools turn verification from a manual chore into an automatic gate on every code change.</div>
