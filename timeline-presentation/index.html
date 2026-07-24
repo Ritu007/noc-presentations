@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tentative Timeline for NoC Simulator Development (2026)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --text: #0f172a;
+      
+      /* Legend Colors */
+      --c-purple: #c4b5fd;
+      --c-green: #86efac;
+      --c-yellow: #fde047;
+      --c-red: #fca5a5;
+      --c-blue: #93c5fd;
+
+      /* Header Colors */
+      --h-main: #60a5fa;
+      --h-dec: #e2e8f0; 
+      --h-q1: #dcfce7;
+      --h-q2: #bfdbfe;
+      --h-q3: #fbcfe8;
+      --h-q4: #e5e7eb;
+    }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .back-link {
+      align-self: flex-start;
+      margin-bottom: 1.5rem;
+      font-size: .9rem;
+      font-weight: 600;
+      color: #334155;
+      text-decoration: none;
+      transition: color .2s;
+    }
+    .back-link:hover {
+      color: #0284c7;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      max-width: 1400px;
+      background: #fff;
+      font-size: 0.85rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    
+    th, td {
+      border: 1px solid #64748b;
+      padding: 0.4rem 0.5rem;
+      text-align: center;
+    }
+
+    .row-text {
+      text-align: left;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    
+    .sno {
+      width: 40px;
+    }
+
+    /* Headers */
+    .title-row th {
+      background: var(--h-main);
+      font-size: 1.4rem;
+      padding: 0.8rem;
+    }
+
+    .quarter-row th {
+      font-weight: 600;
+    }
+    .q-dec { background: var(--h-dec); }
+    .q-q1 { background: var(--h-q1); }
+    .q-q2 { background: var(--h-q2); }
+    .q-q3 { background: var(--h-q3); }
+    .q-q4 { background: var(--h-q4); }
+    
+    .module-dev {
+      background: #ffffff;
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    /* Gantt Blocks */
+    .block {
+      border: 1px solid #475569;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      box-sizing: border-box;
+      padding: 0.2rem;
+    }
+    
+    .b-green { background: var(--c-green); }
+    .b-yellow { background: var(--c-yellow); }
+    .b-blue { background: var(--c-blue); }
+    .b-purple { background: var(--c-purple); }
+    .b-red { background: var(--c-red); }
+
+    /* For cells that just have a block, remove padding to fill */
+    .p-0 {
+      padding: 0 !important;
+    }
+
+    .legend-container {
+      margin-top: 2rem;
+      display: flex;
+      justify-content: center;
+    }
+
+    .legend-table {
+      width: 300px;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+    .legend-table td {
+      border: 1px solid #475569;
+      padding: 0.4rem 0.8rem;
+      text-align: left;
+      font-weight: 500;
+    }
+    .legend-color {
+      width: 60px;
+    }
+
+    .nav-row {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 1400px;
+      margin-bottom: 1.5rem;
+    }
+    
+    .nav-btn {
+      font-size: .9rem;
+      font-weight: 600;
+      color: #334155;
+      text-decoration: none;
+      transition: color .2s;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      background: #e2e8f0;
+    }
+    .nav-btn:hover {
+      background: #cbd5e1;
+      color: #0f172a;
+    }
+    .nav-btn.primary {
+      background: #60a5fa;
+      color: #fff;
+    }
+    .nav-btn.primary:hover {
+      background: #3b82f6;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="nav-row">
+    <a href="../index.html" class="nav-btn">← Back to Main Menu</a>
+    <a href="../thank-you/index.html" class="nav-btn primary">Next →</a>
+  </div>
+
+  <table>
+    <tr class="title-row">
+      <th colspan="15">Tentative Timeline for NoC Simulator Development (2026)</th>
+    </tr>
+    <tr class="quarter-row">
+      <th class="sno" style="color:#2563eb;text-decoration:underline;">S.No</th>
+      <th>Task/Quarter</th>
+      <th class="q-dec">Dec, 2025</th>
+      <th class="q-q1" colspan="3">Q1</th>
+      <th class="q-q2" colspan="3">Q2</th>
+      <th class="q-q3" colspan="3">Q3</th>
+      <th class="q-q4" colspan="3">Q4</th>
+    </tr>
+    
+    <!-- Row 1 -->
+    <tr>
+      <td>1</td>
+      <td class="row-text">Exploration of existing NoC Simulators</td>
+      <td class="p-0 b-green" colspan="4"></td>
+      <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+    </tr>
+    <!-- Row 2 -->
+    <tr>
+      <td>2</td>
+      <td class="row-text">Baseline NoC Simulator and CHI Protocol understanding</td>
+      <td class="p-0 b-green" colspan="5"></td>
+      <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+    </tr>
+    <!-- Row 3 -->
+    <tr>
+      <td>3</td>
+      <td class="row-text">Understanding of CHI node Functionalities (RN, HN, SN)</td>
+      <td></td>
+      <td class="p-0 b-green" colspan="4"></td>
+      <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+    </tr>
+    <!-- Row 4 -->
+    <tr>
+      <td>4</td>
+      <td class="row-text">High Level System design</td>
+      <td></td>
+      <td class="p-0 b-yellow" colspan="9"><div class="block b-yellow">High level system design for CHI based Router Mesh</div></td>
+      <td></td><td></td><td></td>
+    </tr>
+    <!-- Row 5 -->
+    <tr>
+      <td>5</td>
+      <td class="row-text">RN-F Architecture Specifications</td>
+      <td></td><td></td>
+      <td class="p-0 b-blue" colspan="2"></td>
+      <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+    </tr>
+    <!-- Row 6 -->
+    <tr>
+      <td>6</td>
+      <td class="row-text">SN-F Architecture Specifications</td>
+      <td></td><td></td>
+      <td class="p-0 b-blue" colspan="2"></td>
+      <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+    </tr>
+    <!-- Row 7 -->
+    <tr>
+      <td>7</td>
+      <td class="row-text">HN-F Architecture Specifications</td>
+      <td></td><td></td>
+      <td class="p-0 b-blue" colspan="2"></td>
+      <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+    </tr>
+
+    <!-- Subheader -->
+    <tr>
+      <td colspan="15" class="module-dev">Module Development</td>
+    </tr>
+
+    <!-- Row 8 -->
+    <tr>
+      <td>8</td>
+      <td class="row-text">Network Fabric</td>
+      <td></td>
+      <td class="p-0 b-green" colspan="6"><div class="block b-green" style="white-space:normal;line-height:1.2;">Router Architectural Design (Finalized the router<br>specifications in collaboration with the C-DAC<br>Hyderabad team)</div></td>
+      <td class="p-0 b-yellow" colspan="3"><div class="block b-yellow">Implementation</div></td>
+      <td></td><td></td><td></td>
+    </tr>
+    <!-- Row 9 -->
+    <tr>
+      <td>9</td>
+      <td class="row-text">Protocol Layer Module</td>
+      <td></td><td></td><td></td><td></td>
+      <td class="p-0 b-yellow" colspan="6"><div class="block b-yellow">Design</div></td>
+      <td class="p-0 b-purple" colspan="3"><div class="block b-purple">Implementation</div></td>
+    </tr>
+    <!-- Row 10 -->
+    <tr>
+      <td>10</td>
+      <td class="row-text">Devices and Endpoint nodes (HN-F, RN-F, SN-F)</td>
+      <td></td><td></td><td></td><td></td><td></td>
+      <td class="p-0 b-yellow" colspan="5"><div class="block b-yellow">Design</div></td>
+      <td class="p-0 b-purple" colspan="3"><div class="block b-purple">Implementation</div></td>
+    </tr>
+    <!-- Row 11 -->
+    <tr>
+      <td>11</td>
+      <td class="row-text">Configuration Module</td>
+      <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+      <td class="p-0 b-yellow" colspan="6"><div class="block b-yellow">Design and Implementation</div></td>
+    </tr>
+    <!-- Row 12 -->
+    <tr>
+      <td>12</td>
+      <td class="row-text">Performance Analyzer Module</td>
+      <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+      <td class="p-0 b-purple" colspan="6"><div class="block b-purple">Design and Implementation</div></td>
+    </tr>
+    <!-- Row 13 -->
+    <tr>
+      <td>13</td>
+      <td class="row-text">Simulation Kernel</td>
+      <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+      <td class="p-0 b-yellow" colspan="6"><div class="block b-yellow">Design and Implementation</div></td>
+    </tr>
+    <!-- Row 14 -->
+    <tr>
+      <td>14</td>
+      <td class="row-text">GUI Designing</td>
+      <td></td>
+      <td class="p-0 b-yellow" colspan="12"><div class="block b-yellow">Design &amp; Implementation</div></td>
+    </tr>
+    <!-- Row 15 -->
+    <tr>
+      <td>15</td>
+      <td class="row-text">Backend Integration with GUI</td>
+      <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+      <td class="p-0 b-purple" colspan="6"><div class="block b-purple">Implementation</div></td>
+    </tr>
+    <!-- RN-I Row (No S.No) -->
+    <tr>
+      <td></td>
+      <td class="row-text">RN-I Architecture Specifications</td>
+      <td></td><td></td><td></td><td></td>
+      <td class="p-0 b-yellow" colspan="7"></td>
+      <td></td><td></td>
+    </tr>
+    <!-- Row 16 -->
+    <tr>
+      <td>16</td>
+      <td class="row-text">Complete System Documentation</td>
+      <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+      <td class="p-0 b-yellow" colspan="6"></td>
+    </tr>
+  </table>
+
+  <div class="legend-container">
+    <table class="legend-table">
+      <tr><td class="legend-color b-purple"></td><td>Task to be Completed</td></tr>
+      <tr><td class="legend-color b-green"></td><td>Completed Task</td></tr>
+      <tr><td class="legend-color b-yellow"></td><td>Ongoing Task</td></tr>
+      <tr><td class="legend-color b-red"></td><td>To be given by NoC Team</td></tr>
+      <tr><td class="legend-color b-blue"></td><td>Received From NoC Team</td></tr>
+    </table>
+  </div>
+
+</body>
+</html>

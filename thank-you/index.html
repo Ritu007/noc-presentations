@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thank You — NoC Simulator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --text: #0f172a;
+      --muted: #334155;
+      --dim: #64748b;
+      --col-teal: #0d9488;
+      --col-cyan: #0284c7;
+      --navy: #10265c;
+    }
+    
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      animation: fadeIn 0.8s ease-out;
+    }
+
+    @keyframes fadeIn {
+      0% { opacity: 0; transform: translateY(20px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .cdac-logo-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: .2rem;
+      margin-bottom: 2rem;
+    }
+
+    .cdac-logo-wrap img {
+      height: 180px;
+      width: auto;
+    }
+
+    .cdac-wordmark-fallback {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .cdac-wordmark-fallback .cdac-big {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: var(--navy);
+      letter-spacing: 1px;
+    }
+
+    .cdac-wordmark-fallback .cdac-small {
+      font-size: .68rem;
+      font-weight: 700;
+      letter-spacing: 3px;
+      color: var(--dim);
+      text-transform: uppercase;
+    }
+
+    .thank-you-title {
+      font-size: 5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--col-teal), var(--col-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 1rem;
+      letter-spacing: -1.5px;
+    }
+
+    .subtitle {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 3rem;
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .8rem 1.8rem;
+      border-radius: 8px;
+      background: var(--bg);
+      border: 1.5px solid #cbd5e1;
+      color: var(--text);
+      font-weight: 700;
+      text-decoration: none;
+      transition: all .2s;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .back-btn:hover {
+      background: #f1f5f9;
+      border-color: #94a3b8;
+      transform: translateY(-1px);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="cdac-logo-wrap">
+      <img src="../assets/cdac-logo.png" alt="C-DAC logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+      <div class="cdac-wordmark-fallback">
+        <div class="cdac-big">C-DAC</div>
+        <div class="cdac-small">Centre for Development of Advanced Computing</div>
+      </div>
+    </div>
+    
+    <div class="thank-you-title">Thank You</div>
+    <div class="subtitle">For your time and attention</div>
+    
+    <a href="../index.html" class="back-btn">Start Again ↺</a>
+  </div>
+
+</body>
+</html>
