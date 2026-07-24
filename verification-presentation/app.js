@@ -246,7 +246,7 @@ const STEPS = [
 
 /* Neighbors in the master presentation sequence */
 const PREV_DECK_URL = "../sdlc-presentation/index.html?end=1";
-const NEXT_DECK_URL = "../index.html";
+const NEXT_DECK_URL = "../pcie-presentation/index.html";
 
 /* Application State */
 const App = {

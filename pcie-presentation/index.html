@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NoC Simulator — PCIe &amp; RN-I Bridge</title>
+<meta name="description" content="Interactive walkthrough of PCI Express fundamentals, the PCIe device hierarchy off the CHI mesh, RN-F vs RN-I node comparison, and the RN-I bridge's inbound/outbound request-response pipeline.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .br-box.act { fill: rgba(37,99,235,.12); stroke: var(--col-blue); stroke-width: 2.2; filter: drop-shadow(0 0 8px rgba(37,99,235,.35)); }
+  .br-box.act .br-box-title { fill: var(--col-blue); }
+  .br-box.act-chi { fill: rgba(124,58,237,.12); stroke: var(--col-purple); stroke-width: 2.2; filter: drop-shadow(0 0 8px rgba(124,58,237,.35)); }
+  .br-box.act-chi .br-box-title { fill: var(--col-purple); }
+  .br-ext.act { stroke-width: 2.6; filter: drop-shadow(0 0 10px rgba(37,99,235,.35)); }
+
+  .br-sig { opacity: .18; transition: opacity .3s; }
+  .br-sig.active { opacity: 1; animation: pcie-sig-flow .8s linear infinite; }
+  @keyframes pcie-sig-flow { to { stroke-dashoffset: -14; } }
+  .br-sig-lbl { font-family: 'Inter', sans-serif; font-size: 9px; font-weight: 700; fill: var(--col-blue); text-anchor: middle; opacity: 0; transition: opacity .3s; }
+  .br-sig-lbl.active { opacity: 1; }
+
+  .pcie-token { opacity: 0; transition: transform .55s ease-out, opacity .3s; }
+  .pcie-token.show { opacity: 1; }
+  .pcie-token-bg { fill: var(--col-blue); stroke: #1d4ed8; }
+  .pcie-token.is-chi .pcie-token-bg { fill: var(--col-purple); stroke: #6d28d9; }
+  .pcie-token-txt { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; fill: #fff; text-anchor: middle; dominant-baseline: middle; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════
+     LANDING VIEW (Title Slide Modal)
+══════════════════════════════════════════════════════════════ -->
+<div id="landing-view">
+  <a class="landing-toc-link" href="../index.html?end=1">← Table of Contents</a>
+  <div class="landing-inner">
+    <div class="landing-title-block">
+      <div class="landing-title">PCIe &amp; the RN-I Bridge</div>
+      <div class="landing-subtitle">C-DAC NoC Simulator</div>
+    </div>
+    <div class="landing-continue-row">
+      <button class="landing-start-btn" onclick="Landing.enter(0)">Start Presentation →</button>
+    </div>
+    <div class="landing-list">
+      <div class="landing-card" onclick="Landing.enter(0)">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-blue), var(--col-cyan))">⇄</div>
+        <div class="landing-card-text">
+          <div class="landing-card-name">01. PCIe Overview &amp; Evolution</div>
+          <div class="landing-card-desc">Point-to-point serial vs legacy shared-bus PCI, and the 3-layer PCIe protocol stack.</div>
+        </div>
+        <div class="landing-card-arrow">→</div>
+      </div>
+      <div class="landing-card" onclick="Landing.enter(1)">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-cyan), var(--col-blue))">⬡</div>
+        <div class="landing-card-text">
+          <div class="landing-card-name">02. PCIe Hierarchy &amp; Operations</div>
+          <div class="landing-card-desc">The device tree from CHI mesh → RN-I → Root Complex → switches, bridges, and endpoints.</div>
+        </div>
+        <div class="landing-card-arrow">→</div>
+      </div>
+      <div class="landing-card" onclick="Landing.enter(2)">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-purple), var(--col-pink))">⚖</div>
+        <div class="landing-card-text">
+          <div class="landing-card-name">03. Request Node Comparison: RN-F vs RN-I</div>
+          <div class="landing-card-desc">Fully-coherent CPU clusters vs I/O bridge controllers, across 7 architectural axes.</div>
+        </div>
+        <div class="landing-card-arrow">→</div>
+      </div>
+      <div class="landing-card" onclick="Landing.enter(3)">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-orange), var(--col-yellow))">⇄</div>
+        <div class="landing-card-text">
+          <div class="landing-card-name">04. RN-I Bridge: Full Request-Response Pipeline</div>
+          <div class="landing-card-desc">The complete 11-step round-trip — PCIe TLP inbound (Steps 1–6) and CHI response outbound (Steps 7–11).</div>
+        </div>
+        <div class="landing-card-arrow">→</div>
+      </div>
+      <div class="landing-card" onclick="Landing.enter(4)">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-pink), var(--col-purple))">⚙</div>
+        <div class="landing-card-text">
+          <div class="landing-card-name">05. Address Translation &amp; Ordering Enforcement</div>
+          <div class="landing-card-desc">How RN-I resolves PCIe addresses and preserves PCIe ordering over an out-of-order mesh.</div>
+        </div>
+        <div class="landing-card-arrow">→</div>
+      </div>
+
+      <div class="landing-divider">Other Presentations</div>
+
+      <a class="landing-card" href="../hardware-presentation/index.html">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-purple), var(--col-blue))">⬡</div>
+        <div class="landing-card-text">
+          <div class="landing-card-name">Hardware Architecture &amp; Router Design</div>
+          <div class="landing-card-desc">CHI protocol nodes, the 6-port router, buffer sizing, and the 5-stage data path.</div>
+        </div>
+        <div class="landing-card-arrow">↗</div>
+      </a>
+      <a class="landing-card" href="../presentation/index.html">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-cyan), var(--col-blue))">⬡</div>
+        <div class="landing-card-text">
+          <div class="landing-card-name">Software Development Progress</div>
+          <div class="landing-card-desc">System architecture, event scheduler, flit lifecycle, router pipeline, and CHI channels.</div>
+        </div>
+        <div class="landing-card-arrow">↗</div>
+      </a>
+      <a class="landing-card" href="../sdlc-presentation/index.html">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-orange), var(--col-yellow))">☑</div>
+        <div class="landing-card-text">
+          <div class="landing-card-name">Software Development Lifecycle</div>
+          <div class="landing-card-desc">Requirement gathering &amp; analysis, system design, and development &amp; coding status.</div>
+        </div>
+        <div class="landing-card-arrow">↗</div>
+      </a>
+      <a class="landing-card" href="../verification-presentation/index.html">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-teal), var(--col-cyan))">✓</div>
+        <div class="landing-card-text">
+          <div class="landing-card-name">Verification &amp; Validation</div>
+          <div class="landing-card-desc">IEEE V&amp;V lifecycle, testing methodology, bug taxonomy, and the practical verification toolchain.</div>
+        </div>
+        <div class="landing-card-arrow">↗</div>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     HEADER BAR
+══════════════════════════════════════════════════════════════ -->
+<header id="app-header">
+  <div class="brand">
+    <div class="brand-icon">⇄</div>
+    <h1>NoC Simulator — PCIe &amp; RN-I Bridge</h1>
+    <span class="chi-badge">CHI-Based NoC Simulator</span>
+  </div>
+  <div class="hdr-center" id="hdr-stage-info" style="display:none;"></div>
+  <div class="phase-pill" id="phase-pill">
+    <span class="phase-dot"></span>
+    <span>PCIe I/O Bridging</span>
+  </div>
+</header>
+
+<!-- ══════════════════════════════════════════════════════════════
+     LEFT NAVIGATOR
+══════════════════════════════════════════════════════════════ -->
+<nav id="stage-nav" aria-label="PCIe & RN-I Bridge Presentation Pages">
+  <a href="javascript:void(0)" class="back-menu-link" onclick="Landing.show()">← Back to Main Menu</a>
+
+  <div class="nav-group-label">PCIe Pages</div>
+
+  <button class="nav-item active" id="nav-0" onclick="App.goToPage(0)">
+    <div class="nav-status-icon" id="nav-st-0"></div>
+    <div class="nav-text"><div class="nav-num">01</div><div class="nav-name">PCIe Overview &amp; Evolution</div></div>
+    <div class="nav-color-dot" style="background:var(--col-blue)"></div>
+  </button>
+
+  <button class="nav-item" id="nav-1" onclick="App.goToPage(1)">
+    <div class="nav-status-icon" id="nav-st-1"></div>
+    <div class="nav-text"><div class="nav-num">02</div><div class="nav-name">PCIe Hierarchy &amp; Operations</div></div>
+    <div class="nav-color-dot" style="background:var(--col-cyan)"></div>
+  </button>
+
+  <button class="nav-item" id="nav-2" onclick="App.goToPage(2)">
+    <div class="nav-status-icon" id="nav-st-2"></div>
+    <div class="nav-text"><div class="nav-num">03</div><div class="nav-name">RN-F vs RN-I</div></div>
+    <div class="nav-color-dot" style="background:var(--col-purple)"></div>
+  </button>
+
+  <button class="nav-item" id="nav-3" onclick="App.goToPage(3)">
+    <div class="nav-status-icon" id="nav-st-3"></div>
+    <div class="nav-text"><div class="nav-num">04</div><div class="nav-name">RN-I Bridge Pipeline</div></div>
+    <div class="nav-color-dot" style="background:var(--col-orange)"></div>
+  </button>
+
+  <button class="nav-item" id="nav-4" onclick="App.goToPage(4)">
+    <div class="nav-status-icon" id="nav-st-4"></div>
+    <div class="nav-text"><div class="nav-num">05</div><div class="nav-name">Address Translation &amp; Ordering</div></div>
+    <div class="nav-color-dot" style="background:var(--col-pink)"></div>
+  </button>
+
+  <div class="nav-kbd-hint">
+    <span class="kbd">←</span><span class="kbd">→</span> navigate &nbsp;·&nbsp;
+    <span class="kbd">Space</span> play
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════════
+     MAIN CANVAS (Interactive Views)
+══════════════════════════════════════════════════════════════ -->
+<main id="main-canvas">
+  <div id="canvas-header" class="canvas-header"></div>
+
+  <!-- ── VIEW 0: PCIe OVERVIEW & EVOLUTION ── -->
+  <div id="view-0" class="canvas-view active">
+    <div class="focusable" data-topic="physical" style="width:100%; display:flex; justify-content:center;">
+      <div class="compare-panel">
+        <div class="compare-col" style="--c:var(--col-purple)">
+          <div class="compare-hdr">
+            <div class="compare-hdr-title">PCI / PCI-X</div>
+            <div class="compare-hdr-sub">Parallel Shared Bus Architecture</div>
+          </div>
+          <div class="compare-devices">
+            <div class="compare-device">Device 1</div>
+            <div class="compare-device">Device 2</div>
+            <div class="compare-device">Device 3</div>
+          </div>
+          <div class="compare-arrows" style="display: flex; gap: .5rem; width: 100%; justify-content: center; margin-top: -0.1rem; margin-bottom: -0.1rem;">
+            <div style="flex: 1; max-width: 120px; text-align: center; color: #ef4444; font-size: 1.4rem; line-height: 1;">↓</div>
+            <div style="flex: 1; max-width: 120px; text-align: center; color: #3b82f6; font-size: 1.4rem; line-height: 1;">↓</div>
+            <div style="flex: 1; max-width: 120px; text-align: center; color: #eab308; font-size: 1.4rem; line-height: 1;">↓</div>
+          </div>
+          <div class="compare-bus">Shared Parallel Bus Lines (PCI Host Bridge)<br><span style="font-size: 0.65rem; font-weight: normal;">(Data, Address, Control Lines Shared Across All Devices)</span></div>
+          <div style="text-align: center; color: #334155; font-size: 1.4rem; line-height: 1; margin-top: -0.1rem; margin-bottom: -0.1rem;">↓</div>
+          <div style="display: flex; align-items: center; justify-content: center; width: 100%;">
+            <div style="color: #334155; font-size: 1.5rem; margin-right: 0.4rem; font-weight: bold;">↔</div>
+            <div class="compare-ctrl" style="flex: 1; margin: 0;">PCI BUS CONTROLLER<br><span style="font-weight:400;font-size:.68rem;">(Host Bridge / Southbridge)</span></div>
+            <div style="color: #334155; font-size: 1.5rem; margin-left: 0.4rem; font-weight: bold;">↔</div>
+          </div>
+          <div class="compare-note"><strong style="color: #1e293b;">PARALLEL CONNECTION</strong><br>All devices share the same bus width.<br>Bus speed limited by slowest device.</div>
+        </div>
+        <div class="compare-col" style="--c:var(--col-blue)">
+          <div class="compare-hdr">
+            <div class="compare-hdr-title">PCIe (PCI Express)</div>
+            <div class="compare-hdr-sub">Point-to-Point Serial Architecture</div>
+          </div>
+          <div class="compare-devices">
+            <div class="compare-device">Device 1</div>
+            <div class="compare-device">Device 2</div>
+          </div>
+          <div class="compare-arrows" style="display: flex; gap: .5rem; width: 100%; justify-content: center; margin-top: -0.1rem; margin-bottom: -0.1rem;">
+            <div style="flex: 1; max-width: 120px; text-align: center; color: #334155; font-size: 1.4rem; line-height: 1;">↓</div>
+            <div style="flex: 1; max-width: 120px; text-align: center; color: #334155; font-size: 1.4rem; line-height: 1;">↓</div>
+          </div>
+          <div class="compare-bus">PCIe Switch</div>
+          <div style="text-align: center; color: #334155; font-size: 1.4rem; line-height: 1; margin-top: -0.1rem; margin-bottom: -0.1rem;">↓</div>
+          <div style="display: flex; align-items: center; justify-content: center; width: 100%;">
+            <div style="color: #334155; font-size: 1.5rem; margin-right: 0.4rem; font-weight: bold;">↔</div>
+            <div class="compare-ctrl" style="flex: 1; margin: 0;">PCIe ROOT COMPLEX<br><span style="font-weight:400;font-size:.68rem;">(Host Bus Controller)</span></div>
+            <div style="color: #334155; font-size: 1.5rem; margin-left: 0.4rem; font-weight: bold;">↔</div>
+          </div>
+          <div class="compare-note"><strong style="color: #1e293b;">SERIAL CONNECTION</strong><br>Dedicated point-to-point serial lanes.<br>Independent bandwidth via central switch routing.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── VIEW 1: PCIe HIERARCHY & OPERATIONS ── -->
+  <div id="view-1" class="canvas-view">
+    <div style="width:100%; height:100%; min-height:0; display:flex; justify-content:center; margin-bottom:.5rem;">
+      <svg id="pcie-tree-svg" viewBox="0 0 900 720" style="width:100%; height:100%; max-height:100%;" xmlns="http://www.w3.org/2000/svg" aria-label="PCIe tree topology integrated into the CHI mesh">
+        <defs>
+          <marker id="arrow" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto-start-reverse">
+            <path d="M0,0 L0,6 L6,3 z" fill="#333"/>
+          </marker>
+        </defs>
+
+        <!-- CPU CLUSTER (TOP) -->
+        <g class="pt-group focusable" data-topic="tree">
+          <!-- Yellow box expanded to contain RN-I (bottom at y=318) -->
+          <rect x="230" y="15" width="420" height="303" rx="0" fill="#fdfde8" stroke="#a3a375" stroke-width="1"/>
+        </g>
+
+        <!-- CHI MESH & ROUTERS -->
+        <g class="pt-group focusable" data-topic="tree">
+          <path d="M 415,100 L 485,100" stroke="#333" stroke-width="1.5" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+          <path d="M 415,180 L 485,180" stroke="#333" stroke-width="1.5" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+          <path d="M 380,120 L 380,160" stroke="#333" stroke-width="1.5" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+          <path d="M 520,120 L 520,160" stroke="#333" stroke-width="1.5" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+          
+          <text x="450" y="145" font-weight="700" font-size="11" text-anchor="middle" fill="#333">CHI Based NoC</text>
+
+          <rect x="345" y="80" width="70" height="40" rx="4" fill="#fbcfe8" stroke="#db2777"/>
+          <text x="380" y="105" text-anchor="middle" font-weight="600" font-size="13">R00</text>
+          <rect x="485" y="80" width="70" height="40" rx="4" fill="#fbcfe8" stroke="#db2777"/>
+          <text x="520" y="105" text-anchor="middle" font-weight="600" font-size="13">R01</text>
+          <rect x="345" y="160" width="70" height="40" rx="4" fill="#fbcfe8" stroke="#db2777"/>
+          <text x="380" y="185" text-anchor="middle" font-weight="600" font-size="13">R10</text>
+          <rect x="485" y="160" width="70" height="40" rx="4" fill="#fbcfe8" stroke="#db2777"/>
+          <text x="520" y="185" text-anchor="middle" font-weight="600" font-size="13">R11</text>
+        </g>
+
+        <!-- CPU Nodes, RN-F / HN-F / SN-F -->
+        <g class="pt-group focusable" data-topic="tree">
+
+          <!-- CPU0 (OUTSIDE box, top-left) → RN-F (inside box) → R00 top-left corner -->
+          <rect x="118" y="27" width="54" height="20" rx="3" fill="#a5f3fc" stroke="#0891b2"/>
+          <text x="145" y="41" text-anchor="middle" font-size="11" font-weight="600">CPU0</text>
+          <rect x="248" y="58" width="40" height="18" rx="3" fill="#f0abfc" stroke="#c026d3"/>
+          <text x="268" y="71" text-anchor="middle" font-size="10" font-weight="600">RN-F</text>
+          <path d="M 172,37 L 248,67" fill="none" stroke="#555" stroke-width="1.2"/>
+          <path d="M 288,67 L 345,80" fill="none" stroke="#555" stroke-width="1.2"/>
+
+          <!-- CPU2 (OUTSIDE box, top-right) → RN-F (inside box) → R01 top-right corner -->
+          <rect x="660" y="27" width="54" height="20" rx="3" fill="#a5f3fc" stroke="#0891b2"/>
+          <text x="687" y="41" text-anchor="middle" font-size="11" font-weight="600">CPU2</text>
+          <rect x="572" y="58" width="40" height="18" rx="3" fill="#f0abfc" stroke="#c026d3"/>
+          <text x="592" y="71" text-anchor="middle" font-size="10" font-weight="600">RN-F</text>
+          <path d="M 660,37 L 612,67" fill="none" stroke="#555" stroke-width="1.2"/>
+          <path d="M 572,67 L 555,80" fill="none" stroke="#555" stroke-width="1.2"/>
+
+          <!-- CPU1 (OUTSIDE box, left) → RN-F (inside box) → R00 bottom-left corner -->
+          <rect x="118" y="111" width="54" height="20" rx="3" fill="#a5f3fc" stroke="#0891b2"/>
+          <text x="145" y="125" text-anchor="middle" font-size="11" font-weight="600">CPU1</text>
+          <rect x="248" y="111" width="40" height="18" rx="3" fill="#f0abfc" stroke="#c026d3"/>
+          <text x="268" y="124" text-anchor="middle" font-size="10" font-weight="600">RN-F</text>
+          <path d="M 172,121 L 248,120" fill="none" stroke="#555" stroke-width="1.2"/>
+          <path d="M 288,120 L 345,120" fill="none" stroke="#555" stroke-width="1.2"/>
+
+          <!-- CPU3 (OUTSIDE box, left) → RN-F (inside box) → R10 bottom-left corner -->
+          <rect x="118" y="190" width="54" height="20" rx="3" fill="#a5f3fc" stroke="#0891b2"/>
+          <text x="145" y="204" text-anchor="middle" font-size="11" font-weight="600">CPU3</text>
+          <rect x="248" y="190" width="40" height="18" rx="3" fill="#f0abfc" stroke="#c026d3"/>
+          <text x="268" y="203" text-anchor="middle" font-size="10" font-weight="600">RN-F</text>
+          <path d="M 172,200 L 248,199" fill="none" stroke="#555" stroke-width="1.2"/>
+          <path d="M 288,199 L 345,200" fill="none" stroke="#555" stroke-width="1.2"/>
+
+          <!-- HN-F (INSIDE box) → connected from R11 right corner -->
+          <rect x="565" y="170" width="42" height="20" rx="3" fill="#bbf7d0" stroke="#16a34a"/>
+          <text x="586" y="184" text-anchor="middle" font-size="10" font-weight="600">HN-F</text>
+          <path d="M 555,180 L 565,180" fill="none" stroke="#555" stroke-width="1.2"/>
+
+          <!-- SN-F (INSIDE box) → connected from R10 bottom-right corner -->
+          <rect x="375" y="214" width="40" height="18" rx="3" fill="#bfdbfe" stroke="#2563eb"/>
+          <text x="395" y="227" text-anchor="middle" font-size="10" font-weight="600">SN-F</text>
+          <path d="M 415,200 L 415,214 L 415,223" fill="none" stroke="#555" stroke-width="1.2"/>
+
+          <!-- Memory (OUTSIDE box, below y=318) connected from SN-F -->
+          <path d="M 395,232 L 350,265 L 350,320" fill="none" stroke="#555" stroke-width="1.2"/>
+          <rect x="318" y="320" width="64" height="20" rx="3" fill="#c7d2fe" stroke="#4f46e5"/>
+          <text x="350" y="334" text-anchor="middle" font-size="10" font-weight="600">Memory</text>
+        </g>
+
+        <!-- RN-I — INSIDE box, directly below R11, connected from R11 bottom-centre -->
+        <g class="pt-group focusable" data-topic="tree">
+          <!-- Straight line from R11 bottom-centre (520,200) down to RN-I top -->
+          <path d="M 520,200 L 520,248" fill="none" stroke="#555" stroke-width="1.5" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+          <!-- RN-I box directly below R11 (centre x=520 matches R11) -->
+          <rect x="480" y="248" width="80" height="40" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+          <text x="520" y="273" text-anchor="middle" font-weight="700" font-size="14" fill="#166534">RN - I</text>
+          <!-- Line from RN-I bottom down to Root Complex (RC top at y=350, RC spans x=230-670) -->
+          <path d="M 520,288 L 520,350" fill="none" stroke="#555" stroke-width="1.5" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+        </g>
+
+        <!-- Root Complex -->
+        <g class="pt-group focusable" data-topic="tree comp_rc">
+          <rect x="230" y="350" width="440" height="70" rx="10" fill="#1e40af" stroke="#1e3a8a"/>
+          <text x="450" y="390" text-anchor="middle" font-weight="700" font-size="18" fill="#ffffff">Root Complex (RC)</text>
+        </g>
+
+        <!-- Root Ports (Inside RC) -->
+        <g class="pt-group focusable" data-topic="tree comp_rp">
+          <rect x="260" y="405" width="40" height="15" fill="#3b82f6" rx="2" stroke="#1e40af"/>
+          <rect x="430" y="405" width="40" height="15" fill="#3b82f6" rx="2" stroke="#1e40af"/>
+          <rect x="610" y="405" width="40" height="15" fill="#3b82f6" rx="2" stroke="#1e40af"/>
+          <text x="280" y="416" text-anchor="middle" font-size="8" fill="#fff" font-weight="600">RP 0</text>
+          <text x="450" y="416" text-anchor="middle" font-size="8" fill="#fff" font-weight="600">RP 1</text>
+          <text x="630" y="416" text-anchor="middle" font-size="8" fill="#fff" font-weight="600">RP 2</text>
+        </g>
+
+        <!-- PCIe Links and Background -->
+        <g class="pt-group focusable" data-topic="tree lane_pair lane_agg lane_scale">
+          <rect x="20" y="500" width="860" height="210" rx="30" fill="#f3f4f6" stroke="#d1d5db" opacity="0.7"/>
+          
+          <path d="M 280,420 L 280,520" fill="none" stroke="#1e40af" stroke-width="2"/>
+          <path d="M 450,420 L 450,520" fill="none" stroke="#1e40af" stroke-width="2"/>
+          <path d="M 630,420 L 630,520" fill="none" stroke="#1e40af" stroke-width="2"/>
+          <text x="275" y="470" text-anchor="end" font-size="11" fill="#1e40af">PCIe Link</text>
+          <text x="445" y="470" text-anchor="end" font-size="11" fill="#1e40af">PCIe Link</text>
+          <text x="625" y="470" text-anchor="end" font-size="11" fill="#1e40af">PCIe Link</text>
+
+          <path d="M 235,565 L 190,565" fill="none" stroke="#16a34a" stroke-width="2"/>
+          <path d="M 255,600 L 210,645" fill="none" stroke="#16a34a" stroke-width="2"/>
+          <path d="M 305,600 L 350,645" fill="none" stroke="#16a34a" stroke-width="2"/>
+          <text x="210" y="560" text-anchor="middle" font-size="10" fill="#16a34a">PCIe</text>
+          <text x="220" y="620" text-anchor="middle" font-size="10" fill="#16a34a">PCIe</text>
+          <text x="340" y="620" text-anchor="middle" font-size="10" fill="#16a34a">PCIe</text>
+        </g>
+
+        <!-- PCIe Switch -->
+        <g class="pt-group focusable" data-topic="tree comp_sw">
+          <circle cx="280" cy="565" r="45" fill="#16a34a" stroke="#14532d"/>
+          <text x="280" y="560" text-anchor="middle" font-weight="700" font-size="15" fill="#ffffff">PCIe</text>
+          <text x="280" y="580" text-anchor="middle" font-weight="700" font-size="15" fill="#ffffff">Switch</text>
+        </g>
+
+        <!-- PCIe Endpoints -->
+        <g class="pt-group focusable" data-topic="tree comp_ep">
+          <rect x="70" y="545" width="120" height="40" rx="8" fill="#d97706" stroke="#92400e"/>
+          <text x="130" y="563" text-anchor="middle" font-weight="700" font-size="12" fill="#ffffff">PCIe Endpoint</text>
+          <text x="130" y="577" text-anchor="middle" font-size="10" fill="#fef3c7">(e.g., GPU)</text>
+
+          <rect x="90" y="645" width="120" height="30" rx="6" fill="#d97706" stroke="#92400e"/>
+          <text x="150" y="664" text-anchor="middle" font-weight="700" font-size="12" fill="#ffffff">PCIe Endpoint</text>
+
+          <rect x="300" y="645" width="120" height="40" rx="6" fill="#ea580c" stroke="#9a3412"/>
+          <text x="360" y="663" text-anchor="middle" font-weight="700" font-size="12" fill="#ffffff">Legacy PCIe</text>
+          <text x="360" y="677" text-anchor="middle" font-size="10" fill="#ffedd5">Endpoint</text>
+
+          <rect x="390" y="520" width="120" height="50" rx="8" fill="#d97706" stroke="#92400e"/>
+          <text x="450" y="542" text-anchor="middle" font-weight="700" font-size="12" fill="#ffffff">PCIe Endpoint</text>
+          <text x="450" y="558" text-anchor="middle" font-size="10" fill="#fef3c7">(e.g., NVMe SSD /</text>
+          <text x="450" y="568" text-anchor="middle" font-size="10" fill="#fef3c7">NIC)</text>
+        </g>
+
+        <!-- PCIe Bridge and Legacy Bus -->
+        <g class="pt-group focusable" data-topic="tree comp_ep comp_sw">
+          <rect x="570" y="520" width="120" height="50" rx="8" fill="#7e22ce" stroke="#4c1d95"/>
+          <text x="630" y="540" text-anchor="middle" font-weight="700" font-size="13" fill="#ffffff">PCIe Bridge</text>
+          <text x="630" y="555" text-anchor="middle" font-size="10" fill="#e9d5ff">To PCI / PCI-X</text>
+
+          <path d="M 630,570 L 630,620" fill="none" stroke="#7e22ce" stroke-width="2"/>
+          <text x="640" y="600" font-size="10" fill="#7e22ce">PCI/PCI-X</text>
+
+          <rect x="530" y="620" width="200" height="24" rx="4" fill="#a855f7" stroke="#6b21a8"/>
+          <text x="630" y="636" text-anchor="middle" font-weight="700" font-size="12" fill="#ffffff">PCI / PCI-X Legacy Bus</text>
+
+          <path d="M 580,644 L 580,670" fill="none" stroke="#a855f7" stroke-width="2"/>
+          <path d="M 680,644 L 680,670" fill="none" stroke="#a855f7" stroke-width="2"/>
+          
+          <rect x="540" y="670" width="80" height="30" rx="6" fill="#d8b4fe" stroke="#9333ea"/>
+          <text x="580" y="683" text-anchor="middle" font-size="9" fill="#4c1d95">Legacy PCI</text>
+          <text x="580" y="694" text-anchor="middle" font-size="9" fill="#4c1d95">Device</text>
+
+          <rect x="640" y="670" width="80" height="30" rx="6" fill="#d8b4fe" stroke="#9333ea"/>
+          <text x="680" y="683" text-anchor="middle" font-size="9" fill="#4c1d95">Legacy PCI</text>
+          <text x="680" y="694" text-anchor="middle" font-size="9" fill="#4c1d95">Device</text>
+        </g>
+      </svg>
+    </div>
+  </div>
+
+  <!-- ── VIEW 2: REQUEST NODE COMPARISON: RN-F vs RN-I ── -->
+  <div id="view-2" class="canvas-view">
+    <div class="focusable" data-topic="table" style="width:100%; display:flex; justify-content:center;">
+      <div class="data-table">
+        <div class="data-table-hdr"><div>Feature</div><div>RN-F — Fully Coherent</div><div>RN-I — I/O</div></div>
+        <div class="data-table-row"><div class="dt-feature">Full Name</div><div class="dt-rnf">Request Node – Fully Coherent</div><div class="dt-rni">Request Node – I/O</div></div>
+        <div class="data-table-row"><div class="dt-feature">Connected Device</div><div class="dt-rnf">CPU Cluster (CPU Core &amp; Cache subsystem)</div><div class="dt-rni">I/O Subsystems (PCIe RC, DMA, Ethernet)</div></div>
+        <div class="data-table-row"><div class="dt-feature">Has Local Cache?</div><div class="dt-rnf">Yes (L1 / L2)</div><div class="dt-rni">No</div></div>
+        <div class="data-table-row"><div class="dt-feature">Cache Coherency</div><div class="dt-rnf">Fully Coherent</div><div class="dt-rni">Supports coherent or non-coherent I/O</div></div>
+        <div class="data-table-row"><div class="dt-feature">Generates CHI Requests</div><div class="dt-rnf">Yes (native CPU memory transactions)</div><div class="dt-rni">Yes (protocol bridge — PCIe TLP → CHI Flit)</div></div>
+        <div class="data-table-row"><div class="dt-feature">Typical Transactions</div><div class="dt-rnf">Loads &amp; Stores (Read and Write)</div><div class="dt-rni">DMA Reads / Writes from peripherals</div></div>
+        <div class="data-table-row"><div class="dt-feature">Performs Cache Operations</div><div class="dt-rnf">Yes (Clean, Invalidate, Evict)</div><div class="dt-rni">No</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── VIEW 3: RN-I BRIDGE — FULL REQUEST-RESPONSE PIPELINE ── -->
+  <div id="view-3" class="canvas-view" style="display: flex; align-items: center; justify-content: center; position: relative;">
+    <svg id="bridge-walk-svg" viewBox="0 0 900 460" xmlns="http://www.w3.org/2000/svg" aria-label="RN-I bridge animated crossing" style="width: 100%; max-width: 920px; height: auto;">
+      <defs>
+        <marker id="arrowhead" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="var(--b2)"/></marker>
+      </defs>
+
+      <rect x="195" y="20" width="510" height="410" rx="14" class="br-outer"/>
+      <text x="450" y="40" class="br-outer-lbl">RN-I (Request Node – I/O) Bridge</text>
+
+      <g id="box-ext"><rect x="20" y="150" width="140" height="160" rx="10" class="br-ext"/><text x="90" y="222" class="br-ext-lbl">External<tspan x="90" dy="14">PCIe Device</tspan></text></g>
+      <g id="box-mesh"><rect x="740" y="150" width="140" height="160" rx="10" class="br-ext" style="fill:#fef2f2;stroke:#b91c1c"/><text x="810" y="222" class="br-ext-lbl" style="fill:#7f1d1d">Local Mesh<tspan x="810" dy="14">Router</tspan></text></g>
+
+      <g id="box-rx"><rect x="225" y="70" width="140" height="50" rx="8" class="br-box"/><text x="295" y="90" class="br-box-title">PCIe RX Port</text><text x="295" y="104" class="br-box-sub">TLP Capture &amp; Buffer</text></g>
+      <g id="box-req"><rect x="400" y="70" width="150" height="50" rx="8" class="br-box"/><text x="475" y="90" class="br-box-title">Request Processing</text><text x="475" y="104" class="br-box-sub">Decode + Translate Addr</text></g>
+      <g id="box-chitx"><rect x="585" y="70" width="105" height="50" rx="8" class="br-box"/><text x="637" y="90" class="br-box-title">CHI TX I/F</text><text x="637" y="104" class="br-box-sub">Flit Packetizer</text></g>
+
+      <g id="box-ibt"><rect x="400" y="150" width="150" height="44" rx="8" class="br-box" style="fill:#eff6ff"/><text x="475" y="168" class="br-box-title">Inbound Tracker</text><text x="475" y="182" class="br-box-sub">Allocate ID &amp; Log</text></g>
+      <g id="box-obt"><rect x="400" y="222" width="150" height="44" rx="8" class="br-box" style="fill:#eff6ff"/><text x="475" y="240" class="br-box-title">Outbound Tracker</text><text x="475" y="254" class="br-box-sub">Match ID &amp; Free</text></g>
+
+      <g id="box-resp"><rect x="400" y="296" width="150" height="50" rx="8" class="br-box"/><text x="475" y="316" class="br-box-title">Response Processing</text><text x="475" y="330" class="br-box-sub">Match ID &amp; Synthesize</text></g>
+      <g id="box-chirx"><rect x="585" y="296" width="105" height="50" rx="8" class="br-box"/><text x="637" y="316" class="br-box-title">CHI RX I/F</text><text x="637" y="330" class="br-box-sub">Depacketizer</text></g>
+      <g id="box-tx"><rect x="225" y="296" width="140" height="50" rx="8" class="br-box"/><text x="295" y="316" class="br-box-title">PCIe TX Port</text><text x="295" y="330" class="br-box-sub">Completion TLP Gen</text></g>
+
+      <path d="M160,225 L225,95" class="br-arrow"/>
+      <path d="M365,95 L400,95" class="br-arrow"/>
+      <path d="M550,95 L585,95" class="br-arrow"/>
+      <path d="M690,95 L740,200" class="br-arrow"/>
+      <path d="M585,321 L550,321" class="br-arrow"/>
+      <path d="M400,321 L365,321" class="br-arrow"/>
+      <path d="M225,321 L160,250" class="br-arrow"/>
+      <path d="M740,255 L690,321" class="br-arrow"/>
+
+      <path id="sig-alloc" d="M475,120 L475,150" class="br-sig"/>
+      <text id="sig-alloc-lbl" x="500" y="138" class="br-sig-lbl">Allocate</text>
+      <path id="sig-sync" d="M475,194 L475,222" class="br-sig"/>
+      <text id="sig-sync-lbl" x="530" y="210" class="br-sig-lbl">Sync Queue State</text>
+      <path id="sig-free" d="M475,266 L475,296" class="br-sig"/>
+      <text id="sig-free-lbl" x="512" y="283" class="br-sig-lbl">Lookup &amp; Free</text>
+
+      <!-- Traveling token -->
+      <g id="pcie-token" class="pcie-token" transform="translate(55,219)">
+        <rect width="70" height="22" rx="6" class="pcie-token-bg"/>
+        <text id="pcie-token-label" x="35" y="12" class="pcie-token-txt">TLP</text>
+      </g>
+    </svg>
+  </div>
+
+  <!-- ── VIEW 4: ADDRESS TRANSLATION & ORDERING ENFORCEMENT ── -->
+  <div id="view-4" class="canvas-view">
+    <div class="dual-col-panel">
+      <div class="focusable dual-col" data-topic="translation">
+        <div class="dual-col-hdr">Address Translation</div>
+        <ul class="bullet-list">
+          <li>PCIe devices send memory requests using their own address space (a PCIe bus address or I/O Virtual Address) — not the actual system memory address.</li>
+          <li>The CHI-based NoC and system memory use System Physical Addresses, so they cannot directly understand the address sent by the PCIe device.</li>
+          <li>RN-I checks the incoming address and, if required, works with the <strong>IOMMU</strong> or an address translation table to find the corresponding System Physical Address.</li>
+          <li>The translated physical address is inserted into the CHI request, ensuring it is routed to the correct destination within the CHI-based NoC.</li>
+          <li>This translation lets PCIe devices and the CHI-based NoC communicate correctly, even though they use different address spaces.</li>
+        </ul>
+      </div>
+      <div class="focusable dual-col" data-topic="ordering">
+        <div class="dual-col-hdr">Ordering Enforcement</div>
+        <ul class="bullet-list">
+          <li><strong>Tracks outstanding PCIe requests</strong> to identify which ones have ordering dependencies.</li>
+          <li><strong>Translates requests into CHI transactions</strong>, understanding the ordering rules PCIe requires.</li>
+          <li><strong>Delays dependent requests</strong> — or holds responses/completions — when necessary to avoid violating order.</li>
+          <li><strong>Reorders CHI responses</strong> so PCIe completions are returned in the correct protocol-defined order.</li>
+          <li><strong>Balances performance and correctness</strong> — ordering is preserved only when necessary, letting independent transactions execute in parallel.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- ══════════════════════════════════════════════════════════════
+     NOW BAND (readable description)
+══════════════════════════════════════════════════════════════ -->
+<div id="now-band">
+  <div id="band-body"><!-- populated by JS --></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     DETAILS PANEL (RIGHT)
+══════════════════════════════════════════════════════════════ -->
+<aside id="details-panel">
+  <div id="details-body"><!-- populated by JS --></div>
+</aside>
+
+<!-- ══════════════════════════════════════════════════════════════
+     CONTROL BAR
+══════════════════════════════════════════════════════════════ -->
+<footer id="control-bar">
+  <div class="prog-row">
+    <div class="prog-pips" id="prog-pips"></div>
+    <div class="prog-lbl" id="prog-lbl">
+      Step <span id="prog-num">1</span> of <span id="prog-total">6</span> &nbsp;·&nbsp;
+      <span id="prog-name">PCIe Overview &amp; Evolution</span>
+    </div>
+  </div>
+  <div class="ctrl-btns">
+    <button class="ctrl-btn reset-btn" id="btn-reset" onclick="App.reset()">↺ Reset</button>
+    <button class="ctrl-btn prev-btn"  id="btn-prev"  onclick="App.prev()" disabled>⬅ Prev</button>
+    <button class="ctrl-btn play-btn"  id="btn-play"  onclick="App.togglePlay()">▶ Play</button>
+    <button class="ctrl-btn next-btn"  id="btn-next"  onclick="App.next()">Next ➔</button>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

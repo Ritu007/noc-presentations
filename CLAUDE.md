@@ -3,11 +3,13 @@
 ## Project
 Interactive HTML/CSS/JS presentation for a Network-on-Chip (NoC) Simulator, built for C-DAC.
 Plain static files, no build step, opened directly in a browser. Entry point: `index.html` (hub:
-Cover → Team → Table of Contents). Three decks, each self-contained:
-- `hardware-presentation/` (Hardware Architecture & Router Design)
+Cover → Team → Table of Contents). Five decks, each self-contained, chained in this order:
+- `hardware-presentation/` (Hardware Architecture & Router Design, + `router-3d-explorer.html`)
 - `presentation/` (Software Development Progress, + 3 sub-pages: `flit-lifecycle.html`,
   `router-pipeline.html`, `chi-channel-architecture.html`)
+- `sdlc-presentation/` (Software Development Lifecycle)
 - `verification-presentation/` (Verification & Validation)
+- `pcie-presentation/` (PCIe & RN-I Bridge, + `rni-bridge-walkthrough.html`)
 
 ## Hard requirement: fully keyboard/clicker-driven navigation
 This is delivered as a live talk. The presenter must be able to go through the ENTIRE
@@ -19,7 +21,7 @@ a button or card with the mouse.
 For any new page or flow added here:
 - Give it a `keydown` listener for `ArrowRight`/`ArrowLeft` (see `setupKeyListeners()` in each
   deck's `app.js`, and the inline listeners in `presentation/index.html`, `router-pipeline.html`,
-  `chi-channel-architecture.html`).
+  `chi-channel-architecture.html`, `pcie-presentation/rni-bridge-walkthrough.html`).
 - Landing/title screens (`#landing-view`) are stops in the flow, not just a launch menu:
   ArrowRight must enter the first topic (same as the "Start Presentation →" button), ArrowLeft
   must return to the hub Table of Contents (`../index.html?end=1`, same as the "← Table of

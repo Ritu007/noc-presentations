@@ -831,6 +831,28 @@
           <a class="subtopic-pill" href="verification-presentation/index.html?page=6">The Complete Picture</a>
         </div>
       </div>
+
+      <!-- DECK 5 — PCIe & RN-I BRIDGE -->
+      <div class="deck-block" style="--c: var(--col-blue)">
+        <a class="deck-hdr" href="pcie-presentation/index.html">
+          <div class="deck-icon">⇄</div>
+          <div class="deck-hdr-text">
+            <div class="deck-name">PCIe &amp; RN-I Bridge</div>
+            <div class="deck-desc">PCIe fundamentals, the device hierarchy off the CHI mesh, RN-F vs RN-I comparison, and the
+              RN-I bridge's inbound/outbound pipeline.</div>
+          </div>
+          <div class="deck-arrow">→</div>
+        </a>
+        <div class="subtopic-grid">
+          <a class="subtopic-pill" href="pcie-presentation/index.html?page=0">PCIe Overview &amp; Evolution</a>
+          <a class="subtopic-pill" href="pcie-presentation/index.html?page=1">PCIe Hierarchy &amp; Operations</a>
+          <a class="subtopic-pill" href="pcie-presentation/index.html?page=2">Request Node Comparison: RN-F vs RN-I</a>
+          <a class="subtopic-pill" href="pcie-presentation/index.html?page=3">RN-I Architecture: Inbound Request Path</a>
+          <a class="subtopic-pill" href="pcie-presentation/index.html?page=4">RN-I Architecture: Outbound Response Path</a>
+          <a class="subtopic-pill" href="pcie-presentation/index.html?page=5">Address Translation &amp; Ordering Enforcement</a>
+          <a class="subtopic-pill" href="pcie-presentation/rni-bridge-walkthrough.html">Animated RN-I Bridge Walkthrough</a>
+        </div>
+      </div>
     </div>
 
     <div class="hub-continue-row">
@@ -843,7 +865,7 @@
     /* Neighbors in the master presentation sequence — the hub is the very start,
        so Prev on the cover wraps to the deck's last slide and Next from the
        content page enters the first deck. */
-    const PREV_DECK_URL = "verification-presentation/index.html?end=1";
+    const PREV_DECK_URL = "pcie-presentation/rni-bridge-walkthrough.html?end=1";
     const NEXT_DECK_URL = "hardware-presentation/index.html";
 
     const Hub = {

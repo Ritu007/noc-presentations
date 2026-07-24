@@ -232,9 +232,37 @@ body {
   padding: 1rem 1.6rem 1.4rem;
   opacity: 0; pointer-events: none; transform: scale(.96);
   transition: opacity .4s, transform .4s;
-  overflow-y: auto; overflow-x: hidden;
+  overflow: hidden;
 }
 .canvas-view.active { opacity: 1; pointer-events: auto; transform: scale(1); }
+
+/* ================================================================
+   PHASE TAB ROW (view-3 merged bridge page)
+================================================================ */
+.phase-tab-row {
+  display: flex; align-items: center; gap: .75rem;
+  width: 100%; max-width: 860px;
+  margin-bottom: .7rem;
+  background: var(--s1); border: 1px solid var(--b1);
+  border-radius: var(--r); padding: .45rem .8rem;
+}
+.phase-tab {
+  flex: 1; text-align: center;
+  font-size: .72rem; font-weight: 700; letter-spacing: .4px;
+  color: var(--dim); padding: .35rem .6rem;
+  border-radius: var(--rs); border: 1.5px solid transparent;
+  transition: all .25s; cursor: default;
+}
+.phase-tab.active {
+  color: var(--col-orange);
+  border-color: var(--col-orange);
+  background: color-mix(in srgb, var(--col-orange) 10%, transparent);
+}
+.phase-tab-sep {
+  font-size: 1rem; color: var(--b2); flex-shrink: 0;
+}
+.bridge-svg-wrap { transition: opacity .2s; }
+
 
 /* Generic focus/dim mechanism shared by every interactive diagram */
 .focusable { cursor: pointer; transition: opacity .25s, filter .25s, border-color .25s, box-shadow .25s, transform .2s; }
@@ -255,43 +283,26 @@ body {
 .bullet-list li strong { color: var(--col-blue); }
 
 /* ================================================================
-   CARD GRID (2/3/4-up info cards — components, lanes, methods)
+   DUAL-COLUMN PANEL (view-5: Address Translation & Ordering)
 ================================================================ */
-.card-grid { display: flex; gap: 1.1rem; width: 100%; max-width: 1120px; flex-wrap: wrap; justify-content: center; }
-.info-card {
-  flex: 1 1 260px; max-width: 380px; background: var(--s1); border: 1.5px solid var(--b1); border-radius: var(--r);
-  padding: 1.2rem 1.3rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04); display: flex; flex-direction: column; gap: .5rem;
+.dual-col-panel {
+  display: flex; gap: 1.6rem; width: 100%; max-width: 1140px;
+  align-items: flex-start;
 }
-.info-card:not(.dimmed):hover { border-color: var(--c, var(--col-blue)); box-shadow: 0 4px 14px color-mix(in srgb, var(--c, var(--col-blue)) 16%, transparent); }
-.info-icon {
-  width: 46px; height: 46px; border-radius: var(--rs);
-  background: color-mix(in srgb, var(--c, var(--col-blue)) 14%, transparent); color: var(--c, var(--col-blue));
-  display: flex; align-items: center; justify-content: center; font-size: 1.25rem; font-weight: 800;
-}
-.info-title { font-size: 1.02rem; font-weight: 800; color: var(--text); }
-.info-desc { font-size: .8rem; color: var(--muted); line-height: 1.45; }
-
-/* ================================================================
-   VERTICAL NUMBERED STEPPER (execution sequences — steps 1-6 / 7-11)
-================================================================ */
-.step-flow { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 760px; }
-.step-item {
-  width: 100%; display: flex; align-items: center; gap: 1.1rem;
+.dual-col {
+  flex: 1; display: flex; flex-direction: column; gap: .9rem;
   background: var(--s1); border: 1.5px solid var(--b1); border-radius: var(--r);
-  padding: .85rem 1.3rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  padding: 1.2rem 1.4rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  transition: border-color .25s, box-shadow .25s;
 }
-.step-item:not(.dimmed):hover { border-color: var(--b2); }
-.step-num {
-  width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
-  background: var(--s2); border: 2px solid var(--b1); color: var(--muted);
-  display: flex; align-items: center; justify-content: center;
-  font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: .8rem;
-  transition: all .25s;
+.dual-col:not(.dimmed):hover { border-color: var(--b2); }
+.dual-col-hdr {
+  font-size: .78rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: .7px; color: var(--col-blue); padding-bottom: .5rem;
+  border-bottom: 1.5px solid var(--b1);
 }
-.step-item.focusable:not(.dimmed) .step-num { background: var(--col-blue); border-color: var(--col-blue); color: #fff; }
-.step-title { font-size: .92rem; font-weight: 700; color: var(--text); margin-bottom: 2px; }
-.step-desc { font-size: .77rem; color: var(--muted); line-height: 1.4; }
-.step-connector { color: var(--b2); font-size: 1.1rem; padding: .1rem 0; }
+.dual-col .bullet-list { max-width: 100%; }
+
 
 /* ================================================================
    DATA TABLE (RN-F vs RN-I architectural difference matrix)
@@ -365,7 +376,8 @@ body {
 .pt-legacy { fill: #ddd6fe; stroke: var(--col-purple); }
 .pt-link { stroke: var(--b2); stroke-width: 1.8; fill: none; }
 .pt-link-lbl { font-family: 'JetBrains Mono', monospace; font-size: 8px; fill: var(--dim); font-weight: 600; text-anchor: middle; }
-.pt-group.dimmed { opacity: .28; filter: grayscale(60%); }
+.pt-group.dimmed { opacity: .35; }
+.pt-group.lit    { filter: drop-shadow(0 0 6px rgba(37,99,235,0.65)) brightness(1.08); }
 .pt-group { transition: opacity .25s, filter .25s; }
 
 /* ================================================================
@@ -381,7 +393,8 @@ body {
 .br-box-sub { font-family: 'JetBrains Mono', monospace; font-size: 7.8px; fill: var(--muted); text-anchor: middle; dominant-baseline: middle; }
 .br-arrow { stroke: var(--b2); stroke-width: 1.8; fill: none; marker-end: url(#pcie-arrowhead); }
 .br-sig { stroke: var(--col-blue); stroke-width: 1.6; stroke-dasharray: 4 3; fill: none; }
-.br-group.dimmed { opacity: .28; filter: grayscale(60%); }
+.br-group.dimmed { opacity: .35; }
+.br-group.lit    { filter: drop-shadow(0 0 6px rgba(37,99,235,0.65)) brightness(1.08); }
 .br-group { transition: opacity .25s, filter .25s; }
 
 /* ================================================================

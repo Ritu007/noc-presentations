@@ -200,6 +200,8 @@ body {
 .flow-switch-item.fs-cyan   { --dot: var(--col-cyan); }
 .flow-switch-item.fs-purple { --dot: var(--col-purple); }
 .flow-switch-item.fs-orange { --dot: var(--col-orange); }
+.flow-switch-item.fs-teal   { --dot: var(--col-teal); }
+.flow-switch-item.fs-pink   { --dot: var(--col-pink); }
 
 .nav-item {
   display: flex; align-items: center; gap: .6rem;

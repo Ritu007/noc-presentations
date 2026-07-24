@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RN-I Bridge — Animated Walkthrough</title>
+  <meta name="description" content="Animated walkthrough of a PCIe TLP crossing the RN-I bridge: the inbound request path into a CHI REQ flit, and the outbound response path back to a PCIe completion TLP.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Page-specific additions only — style.css itself is never modified. */
+    #stage-nav { overflow-y: auto; }
+
+    #network-view { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+    #bridge-walk-svg { width: 100%; max-width: 920px; height: auto; }
+
+    .br-box.act { fill: rgba(37,99,235,.12); stroke: var(--col-blue); stroke-width: 2.2; filter: drop-shadow(0 0 8px rgba(37,99,235,.35)); }
+    .br-box.act .br-box-title { fill: var(--col-blue); }
+    .br-box.act-chi { fill: rgba(124,58,237,.12); stroke: var(--col-purple); stroke-width: 2.2; filter: drop-shadow(0 0 8px rgba(124,58,237,.35)); }
+    .br-box.act-chi .br-box-title { fill: var(--col-purple); }
+    .br-ext.act { stroke-width: 2.6; filter: drop-shadow(0 0 10px rgba(37,99,235,.35)); }
+
+    .br-sig { opacity: .18; transition: opacity .3s; }
+    .br-sig.active { opacity: 1; animation: pcie-sig-flow .8s linear infinite; }
+    @keyframes pcie-sig-flow { to { stroke-dashoffset: -14; } }
+    .br-sig-lbl { font-family: 'Inter', sans-serif; font-size: 9px; font-weight: 700; fill: var(--col-blue); text-anchor: middle; opacity: 0; transition: opacity .3s; }
+    .br-sig-lbl.active { opacity: 1; }
+
+    .pcie-token { opacity: 0; transition: transform .55s ease-out, opacity .3s; }
+    .pcie-token.show { opacity: 1; }
+    .pcie-token-bg { fill: var(--col-blue); stroke: #1d4ed8; }
+    .pcie-token.is-chi .pcie-token-bg { fill: var(--col-purple); stroke: #6d28d9; }
+    .pcie-token-txt { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; fill: #fff; text-anchor: middle; dominant-baseline: middle; }
+
+    /* Timeline flow (right-panel clickable step list) */
+    .flow-timeline { display: flex; flex-direction: column; gap: .5rem; margin-top: .35rem; }
+    .flow-step {
+      display: flex; align-items: flex-start; gap: .6rem;
+      background: var(--s1); border: 1px solid var(--b1);
+      border-radius: var(--rs); padding: .55rem .7rem;
+      cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+      transition: transform .18s, border-color .18s, background .18s;
+    }
+    .flow-step:hover { border-color: var(--b2); background: var(--s2); transform: translateX(2px); }
+    .flow-step.active { background: rgba(37,99,235,.06); border-color: rgba(37,99,235,.4); box-shadow: 0 0 12px rgba(37,99,235,.12); }
+    .flow-num {
+      width: 22px; height: 22px; border-radius: 50%;
+      font-size: .66rem; font-weight: 800; font-family: 'JetBrains Mono', monospace;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; border: 1.5px solid; margin-top: 1px;
+    }
+    .flow-content { flex: 1; min-width: 0; }
+    .flow-title { font-size: .76rem; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════
+     HEADER
+══════════════════════════════════════════════════════════════ -->
+<header id="app-header">
+  <div class="brand">
+    <div class="brand-icon">⇄</div>
+    <h1>RN-I Bridge — Animated Walkthrough</h1>
+    <span class="chi-badge">TLP ↔ CHI Flit</span>
+  </div>
+  <div class="hdr-center" id="hdr-stage-info">
+    Step <span id="hdr-num">1</span> of <span id="hdr-total">9</span>
+    &nbsp;·&nbsp;
+    <span id="hdr-name">TLP Injection</span>
+  </div>
+  <div class="phase-pill" id="phase-pill">
+    <span class="phase-dot"></span>
+    <span id="phase-text">Phase 1 · Inbound</span>
+  </div>
+</header>
+
+<!-- ══════════════════════════════════════════════════════════════
+     LEFT NAVIGATOR
+══════════════════════════════════════════════════════════════ -->
+<nav id="stage-nav" aria-label="RN-I bridge walkthrough steps">
+  <a href="index.html" class="back-menu-link">← Back to Main Menu</a>
+
+  <div class="nav-group-label">Bridge Crossing Steps</div>
+
+  <button class="nav-item active" id="nav-0" onclick="App.goToStep(0)">
+    <div class="nav-status-icon" id="nav-st-0"></div>
+    <div class="nav-text"><div class="nav-num">1</div><div class="nav-name">TLP Injection</div></div>
+    <div class="nav-color-dot" style="background:var(--col-green)"></div>
+  </button>
+  <button class="nav-item" id="nav-1" onclick="App.goToStep(1)">
+    <div class="nav-status-icon" id="nav-st-1"></div>
+    <div class="nav-text"><div class="nav-num">2</div><div class="nav-name">Capture &amp; Buffer</div></div>
+    <div class="nav-color-dot" style="background:var(--col-blue)"></div>
+  </button>
+  <button class="nav-item" id="nav-2" onclick="App.goToStep(2)">
+    <div class="nav-status-icon" id="nav-st-2"></div>
+    <div class="nav-text"><div class="nav-num">3</div><div class="nav-name">Protocol Conversion</div></div>
+    <div class="nav-color-dot" style="background:var(--col-blue)"></div>
+  </button>
+  <button class="nav-item" id="nav-3" onclick="App.goToStep(3)">
+    <div class="nav-status-icon" id="nav-st-3"></div>
+    <div class="nav-text"><div class="nav-num">4</div><div class="nav-name">State Logging</div></div>
+    <div class="nav-color-dot" style="background:var(--col-cyan)"></div>
+  </button>
+  <button class="nav-item" id="nav-4" onclick="App.goToStep(4)">
+    <div class="nav-status-icon" id="nav-st-4"></div>
+    <div class="nav-text"><div class="nav-num">5–6</div><div class="nav-name">Packetize &amp; Inject</div></div>
+    <div class="nav-color-dot" style="background:var(--col-purple)"></div>
+  </button>
+  <button class="nav-item" id="nav-5" onclick="App.goToStep(5)">
+    <div class="nav-status-icon" id="nav-st-5"></div>
+    <div class="nav-text"><div class="nav-num">7</div><div class="nav-name">Response Capture</div></div>
+    <div class="nav-color-dot" style="background:var(--col-purple)"></div>
+  </button>
+  <button class="nav-item" id="nav-6" onclick="App.goToStep(6)">
+    <div class="nav-status-icon" id="nav-st-6"></div>
+    <div class="nav-text"><div class="nav-num">8</div><div class="nav-name">State Match &amp; Free</div></div>
+    <div class="nav-color-dot" style="background:var(--col-cyan)"></div>
+  </button>
+  <button class="nav-item" id="nav-7" onclick="App.goToStep(7)">
+    <div class="nav-status-icon" id="nav-st-7"></div>
+    <div class="nav-text"><div class="nav-num">9</div><div class="nav-name">TLP Synthesis</div></div>
+    <div class="nav-color-dot" style="background:var(--col-blue)"></div>
+  </button>
+  <button class="nav-item" id="nav-8" onclick="App.goToStep(8)">
+    <div class="nav-status-icon" id="nav-st-8"></div>
+    <div class="nav-text"><div class="nav-num">10–11</div><div class="nav-name">Serialize &amp; Return</div></div>
+    <div class="nav-color-dot" style="background:var(--col-green)"></div>
+  </button>
+
+  <div class="nav-kbd-hint">
+    <span class="kbd">←</span><span class="kbd">→</span> navigate &nbsp;·&nbsp;
+    <span class="kbd">Space</span> play
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════════
+     MAIN CANVAS
+══════════════════════════════════════════════════════════════ -->
+<main id="main-canvas">
+  <div id="network-view">
+    <svg id="bridge-walk-svg" viewBox="0 0 900 460" xmlns="http://www.w3.org/2000/svg" aria-label="RN-I bridge animated crossing">
+      <defs>
+        <marker id="arrowhead" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="var(--b2)"/></marker>
+      </defs>
+
+      <rect x="195" y="20" width="510" height="410" rx="14" class="br-outer"/>
+      <text x="450" y="40" class="br-outer-lbl">RN-I (Request Node – I/O) Bridge</text>
+
+      <g id="box-ext"><rect x="20" y="150" width="140" height="160" rx="10" class="br-ext"/><text x="90" y="222" class="br-ext-lbl">External<tspan x="90" dy="14">PCIe Device</tspan></text></g>
+      <g id="box-mesh"><rect x="740" y="150" width="140" height="160" rx="10" class="br-ext" style="fill:#fef2f2;stroke:#b91c1c"/><text x="810" y="222" class="br-ext-lbl" style="fill:#7f1d1d">Local Mesh<tspan x="810" dy="14">Router</tspan></text></g>
+
+      <g id="box-rx"><rect x="225" y="70" width="140" height="50" rx="8" class="br-box"/><text x="295" y="90" class="br-box-title">PCIe RX Port</text><text x="295" y="104" class="br-box-sub">TLP Capture &amp; Buffer</text></g>
+      <g id="box-req"><rect x="400" y="70" width="150" height="50" rx="8" class="br-box"/><text x="475" y="90" class="br-box-title">Request Processing</text><text x="475" y="104" class="br-box-sub">Decode + Translate Addr</text></g>
+      <g id="box-chitx"><rect x="585" y="70" width="105" height="50" rx="8" class="br-box"/><text x="637" y="90" class="br-box-title">CHI TX I/F</text><text x="637" y="104" class="br-box-sub">Flit Packetizer</text></g>
+
+      <g id="box-ibt"><rect x="400" y="150" width="150" height="44" rx="8" class="br-box" style="fill:#eff6ff"/><text x="475" y="168" class="br-box-title">Inbound Tracker</text><text x="475" y="182" class="br-box-sub">Allocate ID &amp; Log</text></g>
+      <g id="box-obt"><rect x="400" y="222" width="150" height="44" rx="8" class="br-box" style="fill:#eff6ff"/><text x="475" y="240" class="br-box-title">Outbound Tracker</text><text x="475" y="254" class="br-box-sub">Match ID &amp; Free</text></g>
+
+      <g id="box-resp"><rect x="400" y="296" width="150" height="50" rx="8" class="br-box"/><text x="475" y="316" class="br-box-title">Response Processing</text><text x="475" y="330" class="br-box-sub">Match ID &amp; Synthesize</text></g>
+      <g id="box-chirx"><rect x="585" y="296" width="105" height="50" rx="8" class="br-box"/><text x="637" y="316" class="br-box-title">CHI RX I/F</text><text x="637" y="330" class="br-box-sub">Depacketizer</text></g>
+      <g id="box-tx"><rect x="225" y="296" width="140" height="50" rx="8" class="br-box"/><text x="295" y="316" class="br-box-title">PCIe TX Port</text><text x="295" y="330" class="br-box-sub">Completion TLP Gen</text></g>
+
+      <path d="M160,225 L225,95" class="br-arrow"/>
+      <path d="M365,95 L400,95" class="br-arrow"/>
+      <path d="M550,95 L585,95" class="br-arrow"/>
+      <path d="M690,95 L740,200" class="br-arrow"/>
+      <path d="M585,321 L550,321" class="br-arrow"/>
+      <path d="M400,321 L365,321" class="br-arrow"/>
+      <path d="M225,321 L160,250" class="br-arrow"/>
+      <path d="M740,255 L690,321" class="br-arrow"/>
+
+      <path id="sig-alloc" d="M475,120 L475,150" class="br-sig"/>
+      <text id="sig-alloc-lbl" x="500" y="138" class="br-sig-lbl">Allocate</text>
+      <path id="sig-sync" d="M475,194 L475,222" class="br-sig"/>
+      <text id="sig-sync-lbl" x="530" y="210" class="br-sig-lbl">Sync Queue State</text>
+      <path id="sig-free" d="M475,266 L475,296" class="br-sig"/>
+      <text id="sig-free-lbl" x="512" y="283" class="br-sig-lbl">Lookup &amp; Free</text>
+
+      <!-- Traveling token -->
+      <g id="pcie-token" class="pcie-token" transform="translate(55,219)">
+        <rect width="70" height="22" rx="6" class="pcie-token-bg"/>
+        <text id="pcie-token-label" x="35" y="12" class="pcie-token-txt">TLP</text>
+      </g>
+    </svg>
+  </div>
+</main>
+
+<!-- ══════════════════════════════════════════════════════════════
+     NOW BAND
+══════════════════════════════════════════════════════════════ -->
+<div id="now-band">
+  <div id="band-body"><!-- populated by JS --></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     DETAILS PANEL (RIGHT)
+══════════════════════════════════════════════════════════════ -->
+<aside id="details-panel">
+  <div id="details-body"><!-- populated by JS --></div>
+</aside>
+
+<!-- ══════════════════════════════════════════════════════════════
+     CONTROL BAR
+══════════════════════════════════════════════════════════════ -->
+<footer id="control-bar">
+  <div class="prog-row">
+    <div class="prog-pips" id="prog-pips"><!-- populated by JS --></div>
+    <div class="prog-lbl" id="prog-lbl">
+      Step <span id="prog-num">1</span> of 9 &nbsp;·&nbsp;
+      <span id="prog-name">TLP Injection</span>
+    </div>
+  </div>
+  <div class="ctrl-btns">
+    <button class="ctrl-btn reset-btn"  id="btn-reset" onclick="App.reset()">↺ Reset</button>
+    <button class="ctrl-btn prev-btn"   id="btn-prev"  onclick="App.prev()" disabled>⬅ Prev</button>
+    <button class="ctrl-btn play-btn"   id="btn-play"  onclick="App.togglePlay()">▶ Play</button>
+    <button class="ctrl-btn next-btn"   id="btn-next"  onclick="App.next()">Next ➔</button>
+  </div>
+</footer>
+
+<script>
+/* ================================================================
+   RN-I BRIDGE ANIMATED WALKTHROUGH — self-contained page script.
+   Does not read or modify app.js / index.html / style.css.
+   Content sourced from "Copy of 07072026 (2).pptx", slides 4-5
+   (Phase 1 Execution Sequence steps 1-6, Phase 2 steps 7-11).
+================================================================ */
+
+const BOX_POS = {
+  ext:   { id: "box-ext",   cx: 90,  cy: 230, cls: "br-ext"  },
+  rx:    { id: "box-rx",    cx: 295, cy: 95,  cls: "br-box"  },
+  req:   { id: "box-req",   cx: 475, cy: 95,  cls: "br-box"  },
+  chitx: { id: "box-chitx", cx: 637, cy: 95,  cls: "br-box"  },
+  ibt:   { id: "box-ibt",   cx: 475, cy: 172, cls: "br-box"  },
+  obt:   { id: "box-obt",   cx: 475, cy: 244, cls: "br-box"  },
+  resp:  { id: "box-resp",  cx: 475, cy: 321, cls: "br-box"  },
+  chirx: { id: "box-chirx", cx: 637, cy: 321, cls: "br-box"  },
+  tx:    { id: "box-tx",    cx: 295, cy: 321, cls: "br-box"  },
+  mesh:  { id: "box-mesh",  cx: 810, cy: 230, cls: "br-ext"  }
+};
+
+const STEPS = [
+  {
+    name: "TLP Injection", hex: "#16a34a",
+    overview: "The external PCIe device initiates a transaction over the physical PCIe RX Link — the very first hop into the RN-I bridge.",
+    summary: [
+      { lbl: "PPTX Step", val: "1" }, { lbl: "Actor", val: "External PCIe Device" },
+      { lbl: "Direction", val: "Inbound (Request)" }, { lbl: "Carries", val: "Raw TLP over PCIe RX Link" }
+    ],
+    boxAct: ["ext"], tokenTo: "ext", tokenKind: "pcie", tokenLabel: "TLP"
+  },
+  {
+    name: "Capture & Buffer", hex: "#2563eb",
+    overview: "PCIe RX Port: validates CRC/errors and queues the TLP to absorb clock-domain mismatches between the PCIe link and the bridge.",
+    summary: [
+      { lbl: "PPTX Step", val: "2" }, { lbl: "Stage", val: "PCIe RX Port" },
+      { lbl: "Checks", val: "CRC / Error Validation" }, { lbl: "Purpose", val: "Absorb clock-domain mismatch" }
+    ],
+    boxAct: ["rx"], tokenTo: "rx", tokenKind: "pcie", tokenLabel: "TLP"
+  },
+  {
+    name: "Protocol Conversion & Address Mapping", hex: "#2563eb",
+    overview: "Request Processing decodes the TLP header (strips framing, parses command & payload) and maps the PCIe address to a system physical address.",
+    summary: [
+      { lbl: "PPTX Step", val: "3" }, { lbl: "Stage", val: "Request Processing" },
+      { lbl: "Decode", val: "Strip framing, parse command" }, { lbl: "Translate", val: "PCIe addr → Physical addr" }
+    ],
+    boxAct: ["req"], tokenTo: "req", tokenKind: "pcie", tokenLabel: "TLP"
+  },
+  {
+    name: "State Logging", hex: "#0284c7",
+    overview: "Inbound Tracker Allocation: assigns a unique internal Transaction ID and queues the transaction details, so the eventual response can be matched back to this request.",
+    summary: [
+      { lbl: "PPTX Step", val: "4" }, { lbl: "Stage", val: "Inbound Tracker" },
+      { lbl: "Assigns", val: "Internal Transaction ID" }, { lbl: "Signal", val: "Allocate" }
+    ],
+    boxAct: ["req", "ibt"], sigAct: ["sig-alloc"], tokenTo: "req", tokenKind: "pcie", tokenLabel: "TLP"
+  },
+  {
+    name: "Packetization & Network Injection", hex: "#7c3aed",
+    overview: "The transaction is packetized into CHI REQ/DAT flits by the CHI TX Interface, then injected into the Local Mesh Router node — the TLP has become a CHI flit.",
+    summary: [
+      { lbl: "PPTX Steps", val: "5 & 6" }, { lbl: "Stage", val: "CHI TX I/F → Mesh Router" },
+      { lbl: "Produces", val: "CHI REQ / DAT Flits" }, { lbl: "Destination", val: "Local Mesh Router" }
+    ],
+    boxAct: ["chitx", "mesh"], tokenTo: "mesh", tokenKind: "chi", tokenLabel: "REQ"
+  },
+  {
+    name: "Response Capture", hex: "#7c3aed",
+    overview: "CHI RX Interface: the Local Mesh Router delivers response flits back to the bridge, where they are depacketized (RSP/DAT).",
+    summary: [
+      { lbl: "PPTX Step", val: "7" }, { lbl: "Stage", val: "CHI RX Interface" },
+      { lbl: "Receives", val: "CHI RSP / DAT Flits" }, { lbl: "Action", val: "Depacketize" }
+    ],
+    boxAct: ["mesh", "chirx"], tokenTo: "chirx", tokenKind: "chi", tokenLabel: "RSP"
+  },
+  {
+    name: "State Match & Free", hex: "#0284c7",
+    overview: "Outbound Tracker performs a Lookup & Free using the synced queue — matches the incoming transaction ID (synced against the Inbound Tracker) and frees the tracker slot.",
+    summary: [
+      { lbl: "PPTX Step", val: "8" }, { lbl: "Stage", val: "Outbound Tracker" },
+      { lbl: "Action", val: "Lookup &amp; Free" }, { lbl: "Signal", val: "Sync Queue State" }
+    ],
+    boxAct: ["chirx", "obt", "ibt"], sigAct: ["sig-sync"], tokenTo: "obt", tokenKind: "chi", tokenLabel: "RSP"
+  },
+  {
+    name: "TLP Synthesis", hex: "#2563eb",
+    overview: "Response Processing combines the retrieved PCIe metadata with the incoming payload data to synthesize a standard PCIe message block — the flit becomes a TLP again.",
+    summary: [
+      { lbl: "PPTX Step", val: "9" }, { lbl: "Stage", val: "Response Processing" },
+      { lbl: "Combines", val: "PCIe metadata + payload" }, { lbl: "Signal", val: "Lookup & Free" }
+    ],
+    boxAct: ["obt", "resp"], sigAct: ["sig-free"], tokenTo: "resp", tokenKind: "pcie", tokenLabel: "TLP"
+  },
+  {
+    name: "Serialization & Completion Return", hex: "#16a34a",
+    overview: "PCIe TX Port appends headers, sequence numbers, and LCRC; the PCIe TX Link serializes the Completion TLP back to the target PCIe device — the round trip is complete.",
+    summary: [
+      { lbl: "PPTX Steps", val: "10 & 11" }, { lbl: "Stage", val: "PCIe TX Port → Device" },
+      { lbl: "Appends", val: "Headers, Seq #, LCRC" }, { lbl: "Delivers", val: "Completion TLP" }
+    ],
+    boxAct: ["resp", "tx", "ext"], tokenTo: "ext", tokenKind: "pcie", tokenLabel: "TLP"
+  }
+];
+
+/* Neighbors in the master presentation sequence — this page is the
+   true terminal page of the pcie-presentation deck. */
+const PREV_DECK_URL = "index.html?end=1";
+const NEXT_DECK_URL = "../index.html";
+
+let _step = 0;
+let _playing = false;
+let _timer = null;
+
+function _el(id) { return document.getElementById(id); }
+
+function resetCanvas() {
+  Object.values(BOX_POS).forEach(b => _el(b.id).querySelector("rect").classList.remove("act", "act-chi"));
+  ["sig-alloc", "sig-sync", "sig-free"].forEach(id => {
+    _el(id).classList.remove("active");
+    _el(id + "-lbl").classList.remove("active");
+  });
+}
+
+function applyStep(idx) {
+  resetCanvas();
+  const s = STEPS[idx];
+
+  s.boxAct.forEach(key => {
+    const box = BOX_POS[key];
+    _el(box.id).querySelector("rect").classList.add(s.tokenKind === "chi" ? "act-chi" : "act");
+  });
+
+  (s.sigAct || []).forEach(id => {
+    _el(id).classList.add("active");
+    _el(id + "-lbl").classList.add("active");
+  });
+
+  const token = _el("pcie-token");
+  token.classList.toggle("is-chi", s.tokenKind === "chi");
+  _el("pcie-token-label").textContent = s.tokenLabel;
+
+  const dest = BOX_POS[s.tokenTo];
+
+  if (idx === 0) {
+    token.style.transition = "none";
+    token.setAttribute("transform", `translate(${dest.cx - 35},${dest.cy - 11})`);
+    token.classList.add("show");
+    void token.offsetWidth;
+    token.style.transition = "";
+  } else {
+    token.classList.add("show");
+    token.setAttribute("transform", `translate(${dest.cx - 35},${dest.cy - 11})`);
+  }
+}
+
+const DetailsPanel = {
+  renderBand(idx) {
+    const s = STEPS[idx];
+    _el("band-body").style.borderLeftColor = s.hex;
+    return `<div class="band-title">${s.name}</div><div class="band-desc">${s.overview}</div>`;
+  },
+  renderPanel(idx) {
+    const s = STEPS[idx];
+    return `
+      <div class="det-sec">
+        <div class="det-lbl">Bridge Crossing Steps (Click to Jump)</div>
+        <div class="flow-timeline">
+          ${STEPS.map((step, i) => {
+            const isAct = (i === idx);
+            return `
+              <div class="flow-step${isAct ? ' active' : ''}" onclick="App.goToStep(${i})">
+                <div class="flow-num" style="background:${isAct ? step.hex : step.hex + '18'};color:${isAct ? '#ffffff' : step.hex};border-color:${step.hex}">${i + 1}</div>
+                <div class="flow-content">
+                  <div class="flow-title" style="color:${isAct ? step.hex : 'var(--text)'}">${step.name}</div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+      <div class="det-sec">
+        <div class="det-lbl">Summary</div>
+        <div class="summary-grid">
+          ${s.summary.map(item => `
+            <div class="sum-card">
+              <div class="sum-lbl">${item.lbl}</div>
+              <div class="sum-val" style="color:${s.hex}">${item.val}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+};
+
+const App = {
+  goToStep(idx) {
+    if (idx < 0 || idx >= STEPS.length) return;
+    _step = idx;
+    this._render();
+  },
+
+  next() { if (_step < STEPS.length - 1) { _step++; this._render(); } else { window.location.href = NEXT_DECK_URL; } },
+  prev() { if (_step > 0) { _step--; this._render(); } else { window.location.href = PREV_DECK_URL; } },
+
+  reset() { this._stopPlay(); _step = 0; this._render(); },
+
+  togglePlay() { _playing ? this._stopPlay() : this._startPlay(); },
+
+  _startPlay() {
+    _playing = true;
+    const btn = _el("btn-play");
+    btn.classList.add("playing"); btn.textContent = "⏸ Pause";
+    this._tick();
+  },
+  _tick() {
+    if (!_playing) return;
+    if (_step < STEPS.length - 1) {
+      _step++;
+      this._render();
+      _timer = setTimeout(() => this._tick(), 2200);
+    } else {
+      this._stopPlay();
+    }
+  },
+  _stopPlay() {
+    _playing = false; clearTimeout(_timer);
+    const btn = _el("btn-play");
+    btn.classList.remove("playing"); btn.textContent = "▶ Play";
+  },
+
+  _render() {
+    const s = STEPS[_step];
+
+    _el("hdr-num").textContent = _step + 1;
+    _el("hdr-total").textContent = STEPS.length;
+    _el("hdr-name").textContent = s.name;
+    _el("prog-num").textContent = _step + 1;
+    _el("prog-name").textContent = s.name;
+    _el("phase-text").textContent = (_step <= 4) ? "Phase 1 · Inbound" : "Phase 2 · Outbound";
+
+    for (let i = 0; i < STEPS.length; i++) {
+      const p = _el(`pip-${i}`);
+      if (p) p.className = "pip" + (i < _step ? " done" : i === _step ? " cur" : "");
+      const ni = _el(`nav-${i}`);
+      if (ni) { ni.classList.remove("active", "done"); if (i < _step) ni.classList.add("done"); if (i === _step) ni.classList.add("active"); }
+    }
+
+    _el("btn-prev").disabled = false;
+    _el("btn-next").disabled = false;
+    _el("btn-next").textContent = (_step === STEPS.length - 1) ? "Next Deck ➔" : "Next ➔";
+
+    applyStep(_step);
+
+    const band = _el("band-body");
+    const body = _el("details-body");
+    band.classList.add("fading");
+    body.classList.add("fading");
+    setTimeout(() => {
+      band.innerHTML = DetailsPanel.renderBand(_step);
+      body.innerHTML = DetailsPanel.renderPanel(_step);
+      band.classList.remove("fading");
+      body.classList.remove("fading");
+    }, 150);
+  },
+
+  init() {
+    const pips = _el("prog-pips");
+    pips.innerHTML = "";
+    for (let i = 0; i < STEPS.length; i++) {
+      const d = document.createElement("div");
+      d.className = "pip"; d.id = `pip-${i}`;
+      d.onclick = () => App.goToStep(i);
+      pips.appendChild(d);
+    }
+
+    document.addEventListener("keydown", e => {
+      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+      if (e.key === "ArrowRight" || e.key === "ArrowDown") { e.preventDefault(); App.next(); }
+      else if (e.key === "ArrowLeft" || e.key === "ArrowUp") { e.preventDefault(); App.prev(); }
+      else if (e.key === " ") { e.preventDefault(); App.togglePlay(); }
+      else if (e.key === "r" || e.key === "R") App.reset();
+    });
+
+    this._render();
+  }
+};
+
+document.addEventListener("DOMContentLoaded", () => {
+  App.init();
+  const params = new URLSearchParams(location.search);
+  if (params.get("end") === "1") App.goToStep(STEPS.length - 1);
+  else {
+    const step = params.get("step");
+    if (step !== null) App.goToStep(parseInt(step, 10));
+  }
+});
+</script>
+</body>
+</html>
