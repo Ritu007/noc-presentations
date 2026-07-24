@@ -195,7 +195,7 @@ const STEPS = [
 
 /* Neighbors in the master presentation sequence */
 const PREV_DECK_URL = "../index.html?end=1";
-const NEXT_DECK_URL = "../presentation/index.html";
+const NEXT_DECK_URL = "router-3d-explorer.html";
 
 /* Application State */
 const App = {

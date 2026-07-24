@@ -1,1123 +1,1507 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NoC Simulator — Hardware Architecture &amp; Router Design Foundations</title>
-<meta name="description" content="Interactive walkthrough of the CHI-based NoC Simulator Hardware Architecture, 6-Port Configurable Router, Buffer Sizing, 5-Stage Data Path, and Allocators.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NoC Simulator — Hardware Architecture &amp; Router Design Foundations</title>
+  <meta name="description"
+    content="Interactive walkthrough of the CHI-based NoC Simulator Hardware Architecture, 6-Port Configurable Router, Buffer Sizing, 5-Stage Data Path, and Allocators.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-<!-- ══════════════════════════════════════════════════════════════
+  <!-- ══════════════════════════════════════════════════════════════
      LANDING VIEW (Title Slide Modal)
 ══════════════════════════════════════════════════════════════ -->
-<div id="landing-view">
-  <a class="landing-toc-link" href="../index.html?end=1">← Table of Contents</a>
-  <div class="landing-inner">
-    <div class="landing-title-block">
-      <div class="landing-title">Hardware Architecture &amp; Router Design</div>
-      <div class="landing-subtitle">C-DAC Network-on-Chip (NoC) Simulator</div>
-    </div>
-    <div class="landing-continue-row">
-      <button class="landing-start-btn" onclick="Landing.enter(0)">Start Presentation →</button>
-    </div>
-    <div class="landing-list">
-      <div class="landing-card" onclick="Landing.enter(0)">
-        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-purple), var(--col-blue))">⬡</div>
-        <div class="landing-card-text">
-          <div class="landing-card-name">01. Development Roadmap &amp; CHI Nodes</div>
-          <div class="landing-card-desc">Exploring ARM CHI protocol nodes (RN-F, HN-F, SN-F) and the 4-stage mesh integration roadmap.</div>
-        </div>
-        <div class="landing-card-arrow">→</div>
+  <div id="landing-view">
+    <a class="landing-toc-link" href="../index.html?end=1">← Table of Contents</a>
+    <div class="landing-inner">
+      <div class="landing-title-block">
+        <div class="landing-title">Hardware Architecture &amp; Router Design</div>
+        <div class="landing-subtitle">C-DAC Network-on-Chip (NoC) Simulator</div>
       </div>
-      <div class="landing-card" onclick="Landing.enter(1)">
-        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-blue), var(--col-cyan))">❖</div>
-        <div class="landing-card-text">
-          <div class="landing-card-name">02. 6-Port Configurable Router Architecture</div>
-          <div class="landing-card-desc">Interactive port topology (North, South, East, West, Local0, Local1) with Directional vs. Local mode toggles.</div>
-        </div>
-        <div class="landing-card-arrow">→</div>
+      <div class="landing-continue-row">
+        <button class="landing-start-btn" onclick="Landing.enter(0)">Start Presentation →</button>
       </div>
-      <div class="landing-card" onclick="Landing.enter(2)">
-        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-purple), var(--col-pink))">▤</div>
-        <div class="landing-card-text">
-          <div class="landing-card-name">03. CHI Channel Buffers &amp; Credit Flow</div>
-          <div class="landing-card-desc">Independent buffers for REQ (162b), DAT (756b), SNP (126b), RSP (73b), credit flow control, and VC depth slider.</div>
+      <div class="landing-list">
+        <div class="landing-card" onclick="Landing.enter(0)">
+          <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-purple), var(--col-blue))">
+            ⬡</div>
+          <div class="landing-card-text">
+            <div class="landing-card-name">01. Development Roadmap &amp; CHI Nodes</div>
+            <div class="landing-card-desc">Exploring ARM CHI protocol nodes (RN-F, HN-F, SN-F) and the 4-stage mesh
+              integration roadmap.</div>
+          </div>
+          <div class="landing-card-arrow">→</div>
         </div>
-        <div class="landing-card-arrow">→</div>
-      </div>
-      <div class="landing-card" onclick="Landing.enter(3)">
-        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-orange), var(--col-yellow))">⚡</div>
-        <div class="landing-card-text">
-          <div class="landing-card-name">04. Hardware Data Path &amp; 5-Stage Pipeline</div>
-          <div class="landing-card-desc">Cycle-accurate 5-stage pipeline (BW → RC → VA → SA → ST) with control-path credit return feedback.</div>
+        <div class="landing-card" onclick="Landing.enter(1)">
+          <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-blue), var(--col-cyan))">❖
+          </div>
+          <div class="landing-card-text">
+            <div class="landing-card-name">02. 6-Port Configurable Router Architecture</div>
+            <div class="landing-card-desc">Interactive port topology (North, South, East, West, Local0, Local1) with
+              Directional vs. Local mode toggles.</div>
+          </div>
+          <div class="landing-card-arrow">→</div>
         </div>
-        <div class="landing-card-arrow">→</div>
-      </div>
-      <div class="landing-card" onclick="Landing.enter(4)">
-        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-green), var(--col-teal))">⚙</div>
-        <div class="landing-card-text">
-          <div class="landing-card-name">05. Functional Schema &amp; Allocators</div>
-          <div class="landing-card-desc">Detailed hardware functional schema, Round-Robin arbiters, and Dense, Sparse, and Separable allocators.</div>
+        <div class="landing-card" onclick="Landing.enter(2)">
+          <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-purple), var(--col-pink))">
+            ▤</div>
+          <div class="landing-card-text">
+            <div class="landing-card-name">03. CHI Channel Buffers &amp; Credit Flow</div>
+            <div class="landing-card-desc">Independent buffers for REQ (162b), DAT (756b), SNP (126b), RSP (73b), credit
+              flow control, and VC depth slider.</div>
+          </div>
+          <div class="landing-card-arrow">→</div>
         </div>
-        <div class="landing-card-arrow">→</div>
-      </div>
-      <div class="landing-card" onclick="Landing.enter(5)">
-        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-pink), var(--col-purple))">✦</div>
-        <div class="landing-card-text">
-          <div class="landing-card-name">06. Arbiters &amp; Allocators</div>
-          <div class="landing-card-desc">Hierarchical breakdown of Arbiters and Allocators including Round-Robin, Sparse, Dense, and Separable.</div>
+        <div class="landing-card" onclick="Landing.enter(3)">
+          <div class="landing-card-icon"
+            style="background:linear-gradient(135deg, var(--col-orange), var(--col-yellow))">⚡</div>
+          <div class="landing-card-text">
+            <div class="landing-card-name">04. Hardware Data Path &amp; 5-Stage Pipeline</div>
+            <div class="landing-card-desc">Cycle-accurate 5-stage pipeline (BW → RC → VA → SA → ST) with control-path
+              credit return feedback.</div>
+          </div>
+          <div class="landing-card-arrow">→</div>
         </div>
-        <div class="landing-card-arrow">→</div>
-      </div>
+        <div class="landing-card" onclick="Landing.enter(4)">
+          <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-green), var(--col-teal))">⚙
+          </div>
+          <div class="landing-card-text">
+            <div class="landing-card-name">05. Functional Schema &amp; Allocators</div>
+            <div class="landing-card-desc">Detailed hardware functional schema, Round-Robin arbiters, and Dense, Sparse,
+              and Separable allocators.</div>
+          </div>
+          <div class="landing-card-arrow">→</div>
+        </div>
+        <div class="landing-card" onclick="Landing.enter(5)">
+          <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-pink), var(--col-purple))">
+            ✦</div>
+          <div class="landing-card-text">
+            <div class="landing-card-name">06. Arbiters &amp; Allocators</div>
+            <div class="landing-card-desc">Hierarchical breakdown of Arbiters and Allocators including Round-Robin,
+              Sparse, Dense, and Separable.</div>
+          </div>
+          <div class="landing-card-arrow">→</div>
+        </div>
+        <a class="landing-card" href="router-3d-explorer.html">
+          <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-cyan), var(--col-pink))">◈
+          </div>
+          <div class="landing-card-text">
+            <div class="landing-card-name">07. Interactive 3D Router Explorer</div>
+            <div class="landing-card-desc">Free-roam 3D CHI router model — orbit the layered REQ/RSP/DAT/SNP datapath
+              and open live RC/VA/SA/BW/ST deep-dive simulators.</div>
+          </div>
+          <div class="landing-card-arrow">→</div>
+        </a>
 
-      <div class="landing-divider">Other Presentations</div>
-      <a class="landing-card" href="../presentation/index.html">
-        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-cyan), var(--col-blue))">⬡</div>
-        <div class="landing-card-text">
-          <div class="landing-card-name">System Architecture &amp; Execution Flow</div>
-          <div class="landing-card-desc">System architecture, event scheduler, flit lifecycle, router pipeline, and CHI channels.</div>
-        </div>
-        <div class="landing-card-arrow">↗</div>
-      </a>
-      <a class="landing-card" href="../verification-presentation/index.html">
-        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-teal), var(--col-cyan))">✓</div>
-        <div class="landing-card-text">
-          <div class="landing-card-name">Verification &amp; Validation</div>
-          <div class="landing-card-desc">IEEE V&amp;V lifecycle, testing methodology, bug taxonomy, and the practical verification toolchain.</div>
-        </div>
-        <div class="landing-card-arrow">↗</div>
-      </a>
-      <a class="landing-card" href="../sdlc-presentation/index.html">
-        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-orange), var(--col-yellow))">☑</div>
-        <div class="landing-card-text">
-          <div class="landing-card-name">Software Development Lifecycle</div>
-          <div class="landing-card-desc">Requirement gathering &amp; analysis, system design, and development &amp; coding status.</div>
-        </div>
-        <div class="landing-card-arrow">↗</div>
-      </a>
+        <div class="landing-divider">Other Presentations</div>
+        <a class="landing-card" href="../presentation/index.html">
+          <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-cyan), var(--col-blue))">⬡
+          </div>
+          <div class="landing-card-text">
+            <div class="landing-card-name">Software Development Progress</div>
+            <div class="landing-card-desc">System architecture, event scheduler, flit lifecycle, router pipeline, and
+              CHI channels.</div>
+          </div>
+          <div class="landing-card-arrow">↗</div>
+        </a>
+        <a class="landing-card" href="../verification-presentation/index.html">
+          <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-teal), var(--col-cyan))">✓
+          </div>
+          <div class="landing-card-text">
+            <div class="landing-card-name">Verification &amp; Validation</div>
+            <div class="landing-card-desc">IEEE V&amp;V lifecycle, testing methodology, bug taxonomy, and the practical
+              verification toolchain.</div>
+          </div>
+          <div class="landing-card-arrow">↗</div>
+        </a>
+        <a class="landing-card" href="../sdlc-presentation/index.html">
+          <div class="landing-card-icon"
+            style="background:linear-gradient(135deg, var(--col-orange), var(--col-yellow))">☑</div>
+          <div class="landing-card-text">
+            <div class="landing-card-name">Software Development Lifecycle</div>
+            <div class="landing-card-desc">Requirement gathering &amp; analysis, system design, and development &amp;
+              coding status.</div>
+          </div>
+          <div class="landing-card-arrow">↗</div>
+        </a>
+      </div>
     </div>
   </div>
-</div>
 
-<!-- ══════════════════════════════════════════════════════════════
+  <!-- ══════════════════════════════════════════════════════════════
      HEADER BAR
 ══════════════════════════════════════════════════════════════ -->
-<header id="app-header">
-  <div class="brand">
-    <div class="brand-icon">⬡</div>
-    <h1>NoC Simulator — Hardware Architecture &amp; Router Design</h1>
-    <span class="chi-badge">CHI-Based NoC Simulator</span>
-  </div>
-  <div class="hdr-center" id="hdr-stage-info" style="display:none;">
-    <!-- Removed from here as per request -->
-  </div>
-  <div class="phase-pill" id="phase-pill">
-    <span class="phase-dot"></span>
-    <span>Hardware Foundations</span>
-  </div>
-</header>
+  <header id="app-header">
+    <div class="brand">
+      <div class="brand-icon">⬡</div>
+      <h1>NoC Simulator — Hardware Architecture &amp; Router Design</h1>
+      <span class="chi-badge">CHI-Based NoC Simulator</span>
+    </div>
+    <div class="hdr-center" id="hdr-stage-info" style="display:none;">
+      <!-- Removed from here as per request -->
+    </div>
+    <div class="phase-pill" id="phase-pill">
+      <span class="phase-dot"></span>
+      <span>Hardware Foundations</span>
+    </div>
+  </header>
 
-<!-- ══════════════════════════════════════════════════════════════
+  <!-- ══════════════════════════════════════════════════════════════
      LEFT NAVIGATOR
 ══════════════════════════════════════════════════════════════ -->
-<nav id="stage-nav" aria-label="Hardware Presentation Modules">
-  <a href="javascript:void(0)" class="back-menu-link" onclick="Landing.show()">← Back to Main Menu</a>
+  <nav id="stage-nav" aria-label="Hardware Presentation Modules">
+    <a href="javascript:void(0)" class="back-menu-link" onclick="Landing.show()">← Back to Main Menu</a>
 
-  <div class="nav-group-label">Hardware Modules</div>
+    <div class="nav-group-label">Hardware Modules</div>
 
-  <button class="nav-item active" id="nav-0" onclick="App.goToPage(0)">
-    <div class="nav-status-icon" id="nav-st-0"></div>
-    <div class="nav-text"><div class="nav-num">01</div><div class="nav-name">Roadmap &amp; CHI Nodes</div></div>
-    <div class="nav-color-dot" style="background:var(--col-cyan)"></div>
-  </button>
+    <button class="nav-item active" id="nav-0" onclick="App.goToPage(0)">
+      <div class="nav-status-icon" id="nav-st-0"></div>
+      <div class="nav-text">
+        <div class="nav-num">01</div>
+        <div class="nav-name">Roadmap &amp; CHI Nodes</div>
+      </div>
+      <div class="nav-color-dot" style="background:var(--col-cyan)"></div>
+    </button>
 
-  <button class="nav-item" id="nav-1" onclick="App.goToPage(1)">
-    <div class="nav-status-icon" id="nav-st-1"></div>
-    <div class="nav-text"><div class="nav-num">02</div><div class="nav-name">6-Port Configurable Router</div></div>
-    <div class="nav-color-dot" style="background:var(--col-blue)"></div>
-  </button>
+    <button class="nav-item" id="nav-1" onclick="App.goToPage(1)">
+      <div class="nav-status-icon" id="nav-st-1"></div>
+      <div class="nav-text">
+        <div class="nav-num">02</div>
+        <div class="nav-name">6-Port Configurable Router</div>
+      </div>
+      <div class="nav-color-dot" style="background:var(--col-blue)"></div>
+    </button>
 
-  <button class="nav-item" id="nav-2" onclick="App.goToPage(2)">
-    <div class="nav-status-icon" id="nav-st-2"></div>
-    <div class="nav-text"><div class="nav-num">03</div><div class="nav-name">Buffers &amp; Credit Control</div></div>
-    <div class="nav-color-dot" style="background:var(--col-purple)"></div>
-  </button>
+    <button class="nav-item" id="nav-2" onclick="App.goToPage(2)">
+      <div class="nav-status-icon" id="nav-st-2"></div>
+      <div class="nav-text">
+        <div class="nav-num">03</div>
+        <div class="nav-name">Buffers &amp; Credit Control</div>
+      </div>
+      <div class="nav-color-dot" style="background:var(--col-purple)"></div>
+    </button>
 
-  <button class="nav-item" id="nav-3" onclick="App.goToPage(3)">
-    <div class="nav-status-icon" id="nav-st-3"></div>
-    <div class="nav-text"><div class="nav-num">04</div><div class="nav-name">5-Stage Hardware Pipeline</div></div>
-    <div class="nav-color-dot" style="background:var(--col-orange)"></div>
-  </button>
+    <button class="nav-item" id="nav-3" onclick="App.goToPage(3)">
+      <div class="nav-status-icon" id="nav-st-3"></div>
+      <div class="nav-text">
+        <div class="nav-num">04</div>
+        <div class="nav-name">5-Stage Hardware Pipeline</div>
+      </div>
+      <div class="nav-color-dot" style="background:var(--col-orange)"></div>
+    </button>
 
-  <button class="nav-item" id="nav-4" onclick="App.goToPage(4)">
-    <div class="nav-status-icon" id="nav-st-4"></div>
-    <div class="nav-text"><div class="nav-num">05</div><div class="nav-name">Schema &amp; Allocators</div></div>
-    <div class="nav-color-dot" style="background:var(--col-green)"></div>
-  </button>
+    <button class="nav-item" id="nav-4" onclick="App.goToPage(4)">
+      <div class="nav-status-icon" id="nav-st-4"></div>
+      <div class="nav-text">
+        <div class="nav-num">05</div>
+        <div class="nav-name">Schema &amp; Allocators</div>
+      </div>
+      <div class="nav-color-dot" style="background:var(--col-green)"></div>
+    </button>
 
-  <button class="nav-item" id="nav-5" onclick="App.goToPage(5)">
-    <div class="nav-status-icon" id="nav-st-5"></div>
-    <div class="nav-text"><div class="nav-num">06</div><div class="nav-name">Arbiters &amp; Allocators</div></div>
-    <div class="nav-color-dot" style="background:var(--col-pink)"></div>
-  </button>
+    <button class="nav-item" id="nav-5" onclick="App.goToPage(5)">
+      <div class="nav-status-icon" id="nav-st-5"></div>
+      <div class="nav-text">
+        <div class="nav-num">06</div>
+        <div class="nav-name">Arbiters &amp; Allocators</div>
+      </div>
+      <div class="nav-color-dot" style="background:var(--col-pink)"></div>
+    </button>
 
-  <div class="nav-kbd-hint">
-    <span class="kbd">←</span><span class="kbd">→</span> navigate &nbsp;·&nbsp;
-    <span class="kbd">Space</span> play
-  </div>
-</nav>
+    <button class="nav-expand-flow" id="btn-expand-flow" onclick="window.location.href='router-3d-explorer.html'"
+      title="Open the 3D Router Architecture Explorer">
+      <span class="expand-flow-icon">⬡</span>
+      <span class="expand-flow-label">3D Router Explorer</span>
+      <span class="expand-flow-arrow">↗</span>
+    </button>
 
-<!-- ══════════════════════════════════════════════════════════════
+    <div class="nav-kbd-hint">
+      <span class="kbd">←</span><span class="kbd">→</span> navigate &nbsp;·&nbsp;
+      <span class="kbd">Space</span> play
+    </div>
+  </nav>
+
+  <!-- ══════════════════════════════════════════════════════════════
      MAIN CANVAS (Interactive Views)
 ══════════════════════════════════════════════════════════════ -->
-<main id="main-canvas">
-  <div id="canvas-header" class="canvas-header"></div>
+  <main id="main-canvas">
+    <div id="canvas-header" class="canvas-header"></div>
 
-  <!-- ── VIEW 1: ROADMAP & CHI NODES ── -->
-  <div id="view-roadmap" class="canvas-view active">
-    <svg id="slide3-svg" class="hw-svg" viewBox="0 0 1000 520" xmlns="http://www.w3.org/2000/svg">
-      <!-- Outer Frame -->
-      <rect class="box-card active bg-clicker" x="30" y="20" width="940" height="480" rx="14" onclick="App.setSlide3Topic(null)" style="cursor:pointer;"/>
+    <!-- ── VIEW 1: ROADMAP & CHI NODES ── -->
+    <div id="view-roadmap" class="canvas-view active">
+      <svg id="slide3-svg" class="hw-svg" viewBox="0 0 1000 520" xmlns="http://www.w3.org/2000/svg">
+        <!-- Outer Frame -->
+        <rect class="box-card active bg-clicker" x="30" y="20" width="940" height="480" rx="14"
+          onclick="App.setSlide3Topic(null)" style="cursor:pointer;" />
 
-      <!-- Title Header -->
-      <text class="svg-title-txt" x="500" y="55" font-size="16">CHI-Based NoC Simulator Development Approach</text>
-      <text class="svg-sub-txt" x="500" y="76">Progressive 4-Step Modular Engineering &amp; Node Integration</text>
+        <!-- Title Header -->
+        <text class="svg-title-txt" x="500" y="55" font-size="16">CHI-Based NoC Simulator Development Approach</text>
+        <text class="svg-sub-txt" x="500" y="76">Progressive 4-Step Modular Engineering &amp; Node Integration</text>
 
-      <!-- 4 Stepper Cards -->
-      <g transform="translate(60, 110)">
-        <!-- Step 1 -->
-        <rect id="step-card-0" class="box-card active" x="0" y="0" width="190" height="110" rx="10"/>
-        <circle cx="25" cy="25" r="12" fill="var(--col-cyan)"/>
-        <text x="25" y="25" fill="#fff" font-weight="800" font-size="11" text-anchor="middle" dominant-baseline="middle">1</text>
-        <text class="svg-title-txt" x="95" y="48" font-size="12">CHI Exploration</text>
-        <text class="svg-sub-txt" x="95" y="68">&amp; Node Design</text>
-        <text class="svg-sub-txt" x="95" y="85" fill="var(--col-cyan)">Define all Devices</text>
+        <!-- 4 Stepper Cards -->
+        <g transform="translate(60, 110)">
+          <!-- Step 1 -->
+          <rect id="step-card-0" class="box-card active" x="0" y="0" width="190" height="110" rx="10" />
+          <circle cx="25" cy="25" r="12" fill="var(--col-cyan)" />
+          <text x="25" y="25" fill="#fff" font-weight="800" font-size="11" text-anchor="middle"
+            dominant-baseline="middle">1</text>
+          <text class="svg-title-txt" x="95" y="48" font-size="12">CHI Exploration</text>
+          <text class="svg-sub-txt" x="95" y="68">&amp; Node Design</text>
+          <text class="svg-sub-txt" x="95" y="85" fill="var(--col-cyan)">Define all Devices</text>
 
-        <path d="M 200 55 L 220 55" stroke="var(--b2)" stroke-width="2" marker-end="url(#arrow-head)"/>
+          <path d="M 200 55 L 220 55" stroke="var(--b2)" stroke-width="2" marker-end="url(#arrow-head)" />
 
-        <!-- Step 2 -->
-        <rect id="step-card-1" class="box-card" x="230" y="0" width="190" height="110" rx="10"/>
-        <circle cx="255" cy="25" r="12" fill="var(--col-blue)"/>
-        <text x="255" y="25" fill="#fff" font-weight="800" font-size="11" text-anchor="middle" dominant-baseline="middle">2</text>
-        <text class="svg-title-txt" x="325" y="48" font-size="12">Router Development</text>
-        <text class="svg-sub-txt" x="325" y="68">Develop &amp; validate</text>
-        <text class="svg-sub-txt" x="325" y="85" fill="var(--col-blue)">Single R(0,0) Router</text>
+          <!-- Step 2 -->
+          <rect id="step-card-1" class="box-card" x="230" y="0" width="190" height="110" rx="10" />
+          <circle cx="255" cy="25" r="12" fill="var(--col-blue)" />
+          <text x="255" y="25" fill="#fff" font-weight="800" font-size="11" text-anchor="middle"
+            dominant-baseline="middle">2</text>
+          <text class="svg-title-txt" x="325" y="48" font-size="12">Router Development</text>
+          <text class="svg-sub-txt" x="325" y="68">Develop &amp; validate</text>
+          <text class="svg-sub-txt" x="325" y="85" fill="var(--col-blue)">Single Router</text>
 
-        <path d="M 430 55 L 450 55" stroke="var(--b2)" stroke-width="2"/>
+          <path d="M 430 55 L 450 55" stroke="var(--b2)" stroke-width="2" />
 
-        <!-- Step 3 -->
-        <rect id="step-card-2" class="box-card" x="460" y="0" width="190" height="110" rx="10"/>
-        <circle cx="485" cy="25" r="12" fill="var(--col-purple)"/>
-        <text x="485" y="25" fill="#fff" font-weight="800" font-size="11" text-anchor="middle" dominant-baseline="middle">3</text>
-        <text class="svg-title-txt" x="555" y="48" font-size="12">Mesh Formation</text>
-        <text class="svg-sub-txt" x="555" y="68">Form 2x2 Scalable Mesh</text>
-        <text class="svg-sub-txt" x="555" y="85" fill="var(--col-purple)">Interconnect ports</text>
+          <!-- Step 3 -->
+          <rect id="step-card-2" class="box-card" x="460" y="0" width="190" height="110" rx="10" />
+          <circle cx="485" cy="25" r="12" fill="var(--col-purple)" />
+          <text x="485" y="25" fill="#fff" font-weight="800" font-size="11" text-anchor="middle"
+            dominant-baseline="middle">3</text>
+          <text class="svg-title-txt" x="555" y="48" font-size="12">Mesh Formation</text>
+          <text class="svg-sub-txt" x="555" y="68">Form MxN Scalable Mesh</text>
+          <text class="svg-sub-txt" x="555" y="85" fill="var(--col-purple)">Interconnect ports</text>
 
-        <path d="M 660 55 L 680 55" stroke="var(--b2)" stroke-width="2"/>
+          <path d="M 660 55 L 680 55" stroke="var(--b2)" stroke-width="2" />
 
-        <!-- Step 4 -->
-        <rect id="step-card-3" class="box-card" x="690" y="0" width="190" height="110" rx="10"/>
-        <circle cx="715" cy="25" r="12" fill="var(--col-green)"/>
-        <text x="715" y="25" fill="#fff" font-weight="800" font-size="11" text-anchor="middle" dominant-baseline="middle">4</text>
-        <text class="svg-title-txt" x="785" y="48" font-size="12">Node Integration</text>
-        <text class="svg-sub-txt" x="785" y="68">Plug RN-F, HN-F, SN-F</text>
-        <text class="svg-sub-txt" x="785" y="85" fill="var(--col-green)">Full Cache Coherence</text>
-      </g>
-
-      <!-- Visualizer Area -->
-      <g transform="translate(100, 250)">
-        <rect class="box-card" x="0" y="0" width="800" height="230" rx="12" fill="var(--s2)"/>
-        
-        <!-- Mesh Links -->
-        <g id="rm-mesh-links" class="rm-group">
-           <line x1="330" y1="75" x2="470" y2="75" stroke="var(--col-blue)" stroke-width="4"/> <!-- R00 to R01 -->
-           <line x1="330" y1="175" x2="470" y2="175" stroke="var(--col-blue)" stroke-width="4"/> <!-- R10 to R11 -->
-           <line x1="295" y1="110" x2="295" y2="140" stroke="var(--col-blue)" stroke-width="4"/> <!-- R00 to R10 -->
-           <line x1="505" y1="110" x2="505" y2="140" stroke="var(--col-blue)" stroke-width="4"/> <!-- R01 to R11 -->
+          <!-- Step 4 -->
+          <rect id="step-card-3" class="box-card" x="690" y="0" width="190" height="110" rx="10" />
+          <circle cx="715" cy="25" r="12" fill="var(--col-green)" />
+          <text x="715" y="25" fill="#fff" font-weight="800" font-size="11" text-anchor="middle"
+            dominant-baseline="middle">4</text>
+          <text class="svg-title-txt" x="785" y="48" font-size="12">Node Integration</text>
+          <text class="svg-sub-txt" x="785" y="68">Plug RN-F, HN-F, SN-F</text>
+          <text class="svg-sub-txt" x="785" y="85" fill="var(--col-green)">Full Cache Coherence</text>
         </g>
 
-        <!-- Node Links -->
-        <g id="rm-node-links" class="rm-group">
-           <line x1="220" y1="75" x2="260" y2="75" stroke="var(--col-cyan)" stroke-width="3" stroke-dasharray="4 2"/> <!-- RN-F1 to R00 -->
-           <line x1="540" y1="75" x2="580" y2="75" stroke="var(--col-cyan)" stroke-width="3" stroke-dasharray="4 2"/> <!-- RN-F2 to R01 -->
-           <line x1="220" y1="175" x2="260" y2="175" stroke="var(--col-green)" stroke-width="3" stroke-dasharray="4 2"/> <!-- SN-F3 to R10 -->
-           <line x1="540" y1="175" x2="580" y2="175" stroke="var(--col-orange)" stroke-width="3" stroke-dasharray="4 2"/> <!-- HN-F2 to R11 -->
-        </g>
+        <!-- Visualizer Area -->
+        <g transform="translate(100, 250)">
+          <rect class="box-card" x="0" y="0" width="800" height="230" rx="12" fill="var(--s2)" />
 
-        <!-- Routers (excluding R00) -->
-        <g id="rm-mesh-nodes" class="rm-group">
-           <rect x="470" y="45" width="70" height="60" rx="6" fill="var(--s1)" stroke="var(--col-purple)" stroke-width="2"/>
-           <text x="505" y="79" fill="var(--text)" font-size="12" text-anchor="middle" font-weight="600">R(0,1)</text>
-           
-           <rect x="260" y="145" width="70" height="60" rx="6" fill="var(--s1)" stroke="var(--col-purple)" stroke-width="2"/>
-           <text x="295" y="179" fill="var(--text)" font-size="12" text-anchor="middle" font-weight="600">R(1,0)</text>
+          <!-- Mesh Links -->
+          <g id="rm-mesh-links" class="rm-group">
+            <line x1="330" y1="75" x2="470" y2="75" stroke="var(--col-blue)" stroke-width="4" /> <!-- R00 to R01 -->
+            <line x1="330" y1="175" x2="470" y2="175" stroke="var(--col-blue)" stroke-width="4" /> <!-- R10 to R11 -->
+            <line x1="295" y1="110" x2="295" y2="140" stroke="var(--col-blue)" stroke-width="4" /> <!-- R00 to R10 -->
+            <line x1="505" y1="110" x2="505" y2="140" stroke="var(--col-blue)" stroke-width="4" /> <!-- R01 to R11 -->
+          </g>
 
-           <rect x="470" y="145" width="70" height="60" rx="6" fill="var(--s1)" stroke="var(--col-purple)" stroke-width="2"/>
-           <text x="505" y="179" fill="var(--text)" font-size="12" text-anchor="middle" font-weight="600">R(1,1)</text>
-        </g>
+          <!-- Node Links -->
+          <g id="rm-node-links" class="rm-group">
+            <line x1="220" y1="75" x2="260" y2="75" stroke="var(--col-cyan)" stroke-width="3" stroke-dasharray="4 2" />
+            <!-- RN-F1 to R00 -->
+            <line x1="540" y1="75" x2="580" y2="75" stroke="var(--col-cyan)" stroke-width="3" stroke-dasharray="4 2" />
+            <!-- RN-F2 to R01 -->
+            <line x1="220" y1="175" x2="260" y2="175" stroke="var(--col-green)" stroke-width="3"
+              stroke-dasharray="4 2" /> <!-- SN-F3 to R10 -->
+            <line x1="540" y1="175" x2="580" y2="175" stroke="var(--col-orange)" stroke-width="3"
+              stroke-dasharray="4 2" /> <!-- HN-F2 to R11 -->
+          </g>
 
-        <!-- R00 -->
-        <g id="rm-r00" class="rm-group">
-           <rect x="260" y="45" width="70" height="60" rx="6" fill="var(--s1)" stroke="var(--col-purple)" stroke-width="3"/>
-           <text x="295" y="79" fill="var(--text)" font-size="12" text-anchor="middle" font-weight="800">R(0,0)</text>
-        </g>
+          <!-- Routers (excluding R00) -->
+          <g id="rm-mesh-nodes" class="rm-group">
+            <rect x="470" y="45" width="70" height="60" rx="6" fill="var(--s1)" stroke="var(--col-purple)"
+              stroke-width="2" />
+            <text x="505" y="79" fill="var(--text)" font-size="12" text-anchor="middle" font-weight="600">R(0,1)</text>
 
-        <!-- Devices -->
-        <g id="rm-devices" class="rm-group">
-           <!-- RN-F1 + PE1 -->
-           <g transform="translate(30, 50)">
-             <rect x="0" y="0" width="90" height="50" rx="4" fill="var(--s1)" stroke="var(--col-cyan)" stroke-width="2"/>
-             <text x="45" y="15" fill="var(--col-cyan)" font-size="9" text-anchor="middle" font-weight="600">Proc. Element 1</text>
-             <rect x="20" y="25" width="50" height="18" rx="2" fill="rgba(236,72,153,0.15)"/>
-             <text x="45" y="38" fill="var(--col-pink)" font-size="9" text-anchor="middle" font-weight="600">L1/L2</text>
-             
-             <rect x="100" y="0" width="90" height="50" rx="4" fill="var(--s1)" stroke="var(--col-pink)" stroke-width="2"/>
-             <text x="145" y="15" fill="var(--col-pink)" font-size="10" text-anchor="middle" font-weight="600">RN-F1</text>
-             <rect x="120" y="25" width="50" height="18" rx="2" fill="rgba(234,179,8,0.15)"/>
-             <text x="145" y="38" fill="var(--col-yellow)" font-size="9" text-anchor="middle" font-weight="600">SAM</text>
-           </g>
+            <rect x="260" y="145" width="70" height="60" rx="6" fill="var(--s1)" stroke="var(--col-purple)"
+              stroke-width="2" />
+            <text x="295" y="179" fill="var(--text)" font-size="12" text-anchor="middle" font-weight="600">R(1,0)</text>
 
-           <!-- RN-F2 + PE2 -->
-           <g transform="translate(580, 50)">
-             <rect x="0" y="0" width="90" height="50" rx="4" fill="var(--s1)" stroke="var(--col-pink)" stroke-width="2"/>
-             <text x="45" y="15" fill="var(--col-pink)" font-size="10" text-anchor="middle" font-weight="600">RN-F2</text>
-             <rect x="20" y="25" width="50" height="18" rx="2" fill="rgba(234,179,8,0.15)"/>
-             <text x="45" y="38" fill="var(--col-yellow)" font-size="9" text-anchor="middle" font-weight="600">SAM</text>
-             
-             <rect x="100" y="0" width="90" height="50" rx="4" fill="var(--s1)" stroke="var(--col-cyan)" stroke-width="2"/>
-             <text x="145" y="15" fill="var(--col-cyan)" font-size="9" text-anchor="middle" font-weight="600">Proc. Element 2</text>
-             <rect x="120" y="25" width="50" height="18" rx="2" fill="rgba(236,72,153,0.15)"/>
-             <text x="145" y="38" fill="var(--col-pink)" font-size="9" text-anchor="middle" font-weight="600">L1/L2</text>
-           </g>
+            <rect x="470" y="145" width="70" height="60" rx="6" fill="var(--s1)" stroke="var(--col-purple)"
+              stroke-width="2" />
+            <text x="505" y="179" fill="var(--text)" font-size="12" text-anchor="middle" font-weight="600">R(1,1)</text>
+          </g>
 
-           <!-- SN-F3 + Main Mem -->
-           <g transform="translate(30, 150)">
-             <rect x="0" y="0" width="90" height="50" rx="4" fill="var(--s1)" stroke="var(--col-green)" stroke-width="2"/>
-             <text x="45" y="29" fill="var(--col-green)" font-size="10" text-anchor="middle" font-weight="600">Main Memory</text>
-             
-             <rect x="100" y="0" width="90" height="50" rx="4" fill="var(--s1)" stroke="var(--col-blue)" stroke-width="2"/>
-             <text x="145" y="29" fill="var(--col-blue)" font-size="10" text-anchor="middle" font-weight="600">SN-F3</text>
-           </g>
+          <!-- R00 -->
+          <g id="rm-r00" class="rm-group">
+            <rect x="260" y="45" width="70" height="60" rx="6" fill="var(--s1)" stroke="var(--col-purple)"
+              stroke-width="3" />
+            <text x="295" y="79" fill="var(--text)" font-size="12" text-anchor="middle" font-weight="800">R(0,0)</text>
+          </g>
 
-           <!-- HN-F2 -->
-           <g transform="translate(580, 150)">
-             <rect x="0" y="0" width="120" height="50" rx="4" fill="var(--s1)" stroke="var(--col-orange)" stroke-width="2"/>
-             <text x="60" y="15" fill="var(--col-orange)" font-size="10" text-anchor="middle" font-weight="600">HN-F2</text>
-             
-             <rect x="10" y="25" width="45" height="18" rx="2" fill="rgba(234,179,8,0.15)"/>
-             <text x="32" y="38" fill="var(--col-yellow)" font-size="9" text-anchor="middle" font-weight="600">SAM</text>
+          <!-- Devices -->
+          <g id="rm-devices" class="rm-group">
+            <!-- RN-F1 + PE1 -->
+            <g transform="translate(30, 50)">
+              <rect x="0" y="0" width="90" height="50" rx="4" fill="var(--s1)" stroke="var(--col-cyan)"
+                stroke-width="2" />
+              <text x="45" y="15" fill="var(--col-cyan)" font-size="9" text-anchor="middle" font-weight="600">Proc.
+                Element 1</text>
+              <rect x="20" y="25" width="50" height="18" rx="2" fill="rgba(236,72,153,0.15)" />
+              <text x="45" y="38" fill="var(--col-pink)" font-size="9" text-anchor="middle"
+                font-weight="600">L1/L2</text>
 
-             <rect x="65" y="25" width="45" height="18" rx="2" fill="rgba(249,115,22,0.15)"/>
-             <text x="87" y="38" fill="var(--col-orange)" font-size="9" text-anchor="middle" font-weight="600">SLC | SF</text>
-           </g>
-        </g>
-      </g>
-    </svg>
-  </div>
+              <rect x="100" y="0" width="90" height="50" rx="4" fill="var(--s1)" stroke="var(--col-pink)"
+                stroke-width="2" />
+              <text x="145" y="15" fill="var(--col-pink)" font-size="10" text-anchor="middle"
+                font-weight="600">RN-F1</text>
+              <rect x="120" y="25" width="50" height="18" rx="2" fill="rgba(234,179,8,0.15)" />
+              <text x="145" y="38" fill="var(--col-yellow)" font-size="9" text-anchor="middle"
+                font-weight="600">SAM</text>
+            </g>
 
-        <!-- ── VIEW 2: 6-PORT CONFIGURABLE ROUTER ── -->
-  <div id="view-router-ports" class="canvas-view">
-    <svg id="slide3-svg" class="hw-svg" viewBox="0 0 1000 520" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <marker id="arr-solid" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
-          <path d="M 0 0 L 8 4 L 0 8 Z" fill="var(--text)"/>
-        </marker>
-        <marker id="arr-dotted" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
-          <path d="M 0 0 L 8 4 L 0 8 Z" fill="var(--text)"/>
-        </marker>
-        
-        <g id="local-link-bundle" stroke="var(--text)" stroke-width="1.5">
-           <!-- Flit Out (Solid Up) -->
-           <line x1="-15" y1="0" x2="-15" y2="-55" marker-end="url(#arr-solid)"/>
-           <line x1="-20" y1="-25" x2="-10" y2="-35"/>
-           <!-- Flit In (Solid Down) -->
-           <line x1="-5" y1="-55" x2="-5" y2="0" marker-end="url(#arr-solid)"/>
-           <line x1="-10" y1="-25" x2="0" y2="-35"/>
-           <!-- Cred Out (Dotted Up) -->
-           <line x1="5" y1="0" x2="5" y2="-55" stroke-dasharray="3 3" marker-end="url(#arr-dotted)"/>
-           <line x1="0" y1="-25" x2="10" y2="-35"/>
-           <!-- Cred In (Dotted Down) -->
-           <line x1="15" y1="-55" x2="15" y2="0" stroke-dasharray="3 3" marker-end="url(#arr-dotted)"/>
-           <line x1="10" y1="-25" x2="20" y2="-35"/>
-        </g>
+            <!-- RN-F2 + PE2 -->
+            <g transform="translate(580, 50)">
+              <rect x="0" y="0" width="90" height="50" rx="4" fill="var(--s1)" stroke="var(--col-pink)"
+                stroke-width="2" />
+              <text x="45" y="15" fill="var(--col-pink)" font-size="10" text-anchor="middle"
+                font-weight="600">RN-F2</text>
+              <rect x="20" y="25" width="50" height="18" rx="2" fill="rgba(234,179,8,0.15)" />
+              <text x="45" y="38" fill="var(--col-yellow)" font-size="9" text-anchor="middle"
+                font-weight="600">SAM</text>
 
-        <g id="local-box-green">
-          <rect x="-50" y="-25" width="100" height="50" fill="rgba(34,197,94,0.15)" stroke="var(--col-green)" stroke-width="1.5"/>
-        </g>
-        <g id="local-box-blue">
-          <rect x="-50" y="-25" width="100" height="50" fill="rgba(59,130,246,0.15)" stroke="var(--col-blue)" stroke-width="1.5"/>
-        </g>
-        <g id="local-box-yellow">
-          <rect x="-50" y="-25" width="100" height="50" fill="rgba(234,179,8,0.15)" stroke="var(--col-yellow)" stroke-width="1.5"/>
-        </g>
-        <g id="local-box-purple">
-          <rect x="-50" y="-25" width="100" height="50" fill="rgba(168,85,247,0.15)" stroke="var(--col-purple)" stroke-width="1.5"/>
-        </g>
+              <rect x="100" y="0" width="90" height="50" rx="4" fill="var(--s1)" stroke="var(--col-cyan)"
+                stroke-width="2" />
+              <text x="145" y="15" fill="var(--col-cyan)" font-size="9" text-anchor="middle" font-weight="600">Proc.
+                Element 2</text>
+              <rect x="120" y="25" width="50" height="18" rx="2" fill="rgba(236,72,153,0.15)" />
+              <text x="145" y="38" fill="var(--col-pink)" font-size="9" text-anchor="middle"
+                font-weight="600">L1/L2</text>
+            </g>
 
-        <!-- Reusable Center Router -->
-        <g id="center-router">
-          <rect x="340" y="150" width="260" height="220" fill="rgba(248,113,113,0.15)" stroke="var(--col-red)" stroke-width="2"/>
-          <text x="470" y="265" font-size="20" fill="var(--text)" font-weight="800" text-anchor="middle">Router</text>
-        </g>
-        
-        <!-- Directional Nodes -->
-        <g id="node-north">
-          <rect x="390" y="40" width="160" height="50" fill="rgba(248,113,113,0.15)" stroke="var(--col-red)" stroke-width="1.5"/>
-          <text x="470" y="70" font-size="14" fill="var(--text)" font-weight="600" text-anchor="middle">North Router</text>
-        </g>
-        <g id="node-south">
-          <rect x="390" y="430" width="160" height="50" fill="rgba(248,113,113,0.15)" stroke="var(--col-red)" stroke-width="1.5"/>
-          <text x="470" y="460" font-size="14" fill="var(--text)" font-weight="600" text-anchor="middle">South Router</text>
-        </g>
-        <g id="node-east">
-          <rect x="660" y="190" width="90" height="140" fill="rgba(248,113,113,0.15)" stroke="var(--col-red)" stroke-width="1.5"/>
-          <text x="705" y="255" font-size="14" fill="var(--text)" font-weight="600" text-anchor="middle">East</text>
-          <text x="705" y="275" font-size="14" fill="var(--text)" font-weight="600" text-anchor="middle">Router</text>
-        </g>
-        <g id="node-west">
-          <rect x="190" y="190" width="90" height="140" fill="rgba(248,113,113,0.15)" stroke="var(--col-red)" stroke-width="1.5"/>
-          <text x="235" y="255" font-size="14" fill="var(--text)" font-weight="600" text-anchor="middle">West</text>
-          <text x="235" y="275" font-size="14" fill="var(--text)" font-weight="600" text-anchor="middle">Router</text>
-        </g>
-        
-        <!-- Local Nodes -->
-        <g id="node-local-tr">
-          <g transform="translate(580, 170) rotate(45)"><use href="#local-link-bundle"/></g>
-          <g transform="translate(640, 110) rotate(-45)">
-            <use href="#local-box-green"/>
-            <text x="0" y="5" font-size="13" fill="var(--text)" font-weight="600" text-anchor="middle">Local0</text>
+            <!-- SN-F3 + Main Mem -->
+            <g transform="translate(30, 150)">
+              <rect x="0" y="0" width="90" height="50" rx="4" fill="var(--s1)" stroke="var(--col-green)"
+                stroke-width="2" />
+              <text x="45" y="29" fill="var(--col-green)" font-size="10" text-anchor="middle" font-weight="600">Main
+                Memory</text>
+
+              <rect x="100" y="0" width="90" height="50" rx="4" fill="var(--s1)" stroke="var(--col-blue)"
+                stroke-width="2" />
+              <text x="145" y="29" fill="var(--col-blue)" font-size="10" text-anchor="middle"
+                font-weight="600">SN-F3</text>
+            </g>
+
+            <!-- HN-F2 -->
+            <g transform="translate(580, 150)">
+              <rect x="0" y="0" width="120" height="50" rx="4" fill="var(--s1)" stroke="var(--col-orange)"
+                stroke-width="2" />
+              <text x="60" y="15" fill="var(--col-orange)" font-size="10" text-anchor="middle"
+                font-weight="600">HN-F2</text>
+
+              <rect x="10" y="25" width="45" height="18" rx="2" fill="rgba(234,179,8,0.15)" />
+              <text x="32" y="38" fill="var(--col-yellow)" font-size="9" text-anchor="middle"
+                font-weight="600">SAM</text>
+
+              <rect x="65" y="25" width="45" height="18" rx="2" fill="rgba(249,115,22,0.15)" />
+              <text x="87" y="38" fill="var(--col-orange)" font-size="9" text-anchor="middle" font-weight="600">SLC |
+                SF</text>
+            </g>
           </g>
         </g>
-        <g id="node-local-bl">
-          <g transform="translate(360, 350) rotate(-135)"><use href="#local-link-bundle"/></g>
-          <g transform="translate(300, 410) rotate(-45)">
-            <use href="#local-box-blue"/>
-            <text x="0" y="5" font-size="13" fill="var(--text)" font-weight="600" text-anchor="middle">Local1</text>
+      </svg>
+    </div>
+
+    <!-- ── VIEW 2: 6-PORT CONFIGURABLE ROUTER ── -->
+    <div id="view-router-ports" class="canvas-view">
+      <svg id="slide3-svg" class="hw-svg" viewBox="0 0 1000 520" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arr-solid" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+            <path d="M 0 0 L 8 4 L 0 8 Z" fill="var(--text)" />
+          </marker>
+          <marker id="arr-dotted" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+            <path d="M 0 0 L 8 4 L 0 8 Z" fill="var(--text)" />
+          </marker>
+
+          <g id="local-link-bundle" stroke="var(--text)" stroke-width="1.5">
+            <!-- Slot 1: Solid Up -->
+            <line x1="-15" y1="0" x2="-15" y2="-55" marker-end="url(#arr-solid)" />
+            <line x1="-20" y1="-25" x2="-10" y2="-35" />
+            <!-- Slot 2: Dotted Down -->
+            <line x1="-5" y1="-55" x2="-5" y2="0" stroke-dasharray="3 3" marker-end="url(#arr-dotted)" />
+            <line x1="-10" y1="-25" x2="0" y2="-35" />
+            <!-- Slot 3: Solid Down -->
+            <line x1="5" y1="-55" x2="5" y2="0" marker-end="url(#arr-solid)" />
+            <line x1="0" y1="-25" x2="10" y2="-35" />
+            <!-- Slot 4: Dotted Up -->
+            <line x1="15" y1="0" x2="15" y2="-55" stroke-dasharray="3 3" marker-end="url(#arr-dotted)" />
+            <line x1="10" y1="-25" x2="20" y2="-35" />
+          </g>
+
+          <g id="local-box-green">
+            <rect x="-50" y="-25" width="100" height="50" fill="rgba(34,197,94,0.15)" stroke="var(--col-green)"
+              stroke-width="1.5" />
+          </g>
+          <g id="local-box-blue">
+            <rect x="-50" y="-25" width="100" height="50" fill="rgba(59,130,246,0.15)" stroke="var(--col-blue)"
+              stroke-width="1.5" />
+          </g>
+          <g id="local-box-yellow">
+            <rect x="-50" y="-25" width="100" height="50" fill="rgba(234,179,8,0.15)" stroke="var(--col-yellow)"
+              stroke-width="1.5" />
+          </g>
+          <g id="local-box-purple">
+            <rect x="-50" y="-25" width="100" height="50" fill="rgba(168,85,247,0.15)" stroke="var(--col-purple)"
+              stroke-width="1.5" />
+          </g>
+
+          <!-- Reusable Center Router -->
+          <g id="center-router">
+            <rect x="340" y="150" width="260" height="220" fill="rgba(248,113,113,0.15)" stroke="var(--col-red)"
+              stroke-width="2" />
+            <text x="470" y="265" font-size="20" fill="var(--text)" font-weight="800" text-anchor="middle">Router</text>
+          </g>
+
+          <!-- Directional Nodes -->
+          <g id="node-north">
+            <rect x="390" y="40" width="160" height="50" fill="rgba(248,113,113,0.15)" stroke="var(--col-red)"
+              stroke-width="1.5" />
+            <text x="470" y="70" font-size="14" fill="var(--text)" font-weight="600" text-anchor="middle">North
+              Router</text>
+          </g>
+          <g id="node-south">
+            <rect x="390" y="430" width="160" height="50" fill="rgba(248,113,113,0.15)" stroke="var(--col-red)"
+              stroke-width="1.5" />
+            <text x="470" y="460" font-size="14" fill="var(--text)" font-weight="600" text-anchor="middle">South
+              Router</text>
+          </g>
+          <g id="node-east">
+            <rect x="660" y="190" width="90" height="140" fill="rgba(248,113,113,0.15)" stroke="var(--col-red)"
+              stroke-width="1.5" />
+            <text x="705" y="255" font-size="14" fill="var(--text)" font-weight="600" text-anchor="middle">East</text>
+            <text x="705" y="275" font-size="14" fill="var(--text)" font-weight="600" text-anchor="middle">Router</text>
+          </g>
+          <g id="node-west">
+            <rect x="190" y="190" width="90" height="140" fill="rgba(248,113,113,0.15)" stroke="var(--col-red)"
+              stroke-width="1.5" />
+            <text x="235" y="255" font-size="14" fill="var(--text)" font-weight="600" text-anchor="middle">West</text>
+            <text x="235" y="275" font-size="14" fill="var(--text)" font-weight="600" text-anchor="middle">Router</text>
+          </g>
+
+          <!-- Local Nodes -->
+          <g id="node-local-tr">
+            <g transform="translate(580, 170) rotate(45)">
+              <use href="#local-link-bundle" />
+            </g>
+            <g transform="translate(640, 110) rotate(-45)">
+              <use href="#local-box-green" />
+              <text x="0" y="5" font-size="13" fill="var(--text)" font-weight="600" text-anchor="middle">Local0</text>
+            </g>
+          </g>
+          <g id="node-local-bl">
+            <g transform="translate(360, 350) rotate(-135)">
+              <use href="#local-link-bundle" />
+            </g>
+            <g transform="translate(300, 410) rotate(-45)">
+              <use href="#local-box-blue" />
+              <text x="0" y="5" font-size="13" fill="var(--text)" font-weight="600" text-anchor="middle">Local1</text>
+            </g>
+          </g>
+          <g id="node-local-tl">
+            <g transform="translate(360, 170) rotate(-45)">
+              <use href="#local-link-bundle" />
+            </g>
+            <g transform="translate(300, 110) rotate(45)">
+              <use href="#local-box-yellow" />
+              <text x="0" y="5" font-size="13" fill="var(--text)" font-weight="600" text-anchor="middle">Local2</text>
+            </g>
+          </g>
+          <g id="node-local-br">
+            <g transform="translate(580, 350) rotate(135)">
+              <use href="#local-link-bundle" />
+            </g>
+            <g transform="translate(640, 410) rotate(45)">
+              <use href="#local-box-purple" />
+              <text x="0" y="5" font-size="13" fill="var(--text)" font-weight="600" text-anchor="middle">Local3</text>
+            </g>
+          </g>
+
+          <!-- Connections (Links) -->
+          <g id="links-north" stroke="var(--text)" stroke-width="1.5">
+            <line x1="430" y1="95" x2="430" y2="145" marker-end="url(#arr-solid)" />
+            <line x1="435" y1="115" x2="425" y2="125" />
+            <line x1="460" y1="145" x2="460" y2="95" stroke-dasharray="3 3" marker-end="url(#arr-dotted)" />
+            <line x1="465" y1="115" x2="455" y2="125" />
+            <line x1="480" y1="145" x2="480" y2="95" marker-end="url(#arr-solid)" />
+            <line x1="485" y1="115" x2="475" y2="125" />
+            <line x1="510" y1="95" x2="510" y2="145" stroke-dasharray="3 3" marker-end="url(#arr-dotted)" />
+            <line x1="515" y1="115" x2="505" y2="125" />
+          </g>
+          <g id="links-south" stroke="var(--text)" stroke-width="1.5">
+            <line x1="430" y1="375" x2="430" y2="425" marker-end="url(#arr-solid)" />
+            <line x1="435" y1="395" x2="425" y2="405" />
+            <line x1="460" y1="425" x2="460" y2="375" stroke-dasharray="3 3" marker-end="url(#arr-dotted)" />
+            <line x1="465" y1="395" x2="455" y2="405" />
+            <line x1="480" y1="425" x2="480" y2="375" marker-end="url(#arr-solid)" />
+            <line x1="485" y1="395" x2="475" y2="405" />
+            <line x1="510" y1="375" x2="510" y2="425" stroke-dasharray="3 3" marker-end="url(#arr-dotted)" />
+            <line x1="515" y1="395" x2="505" y2="405" />
+          </g>
+          <g id="links-east" stroke="var(--text)" stroke-width="1.5">
+            <line x1="605" y1="210" x2="655" y2="210" marker-end="url(#arr-solid)" />
+            <line x1="635" y1="205" x2="625" y2="215" />
+            <line x1="655" y1="240" x2="605" y2="240" stroke-dasharray="3 3" marker-end="url(#arr-dotted)" />
+            <line x1="635" y1="235" x2="625" y2="245" />
+            <line x1="655" y1="270" x2="605" y2="270" marker-end="url(#arr-solid)" />
+            <line x1="635" y1="265" x2="625" y2="275" />
+            <line x1="605" y1="300" x2="655" y2="300" stroke-dasharray="3 3" marker-end="url(#arr-dotted)" />
+            <line x1="635" y1="295" x2="625" y2="305" />
+          </g>
+          <g id="links-west" stroke="var(--text)" stroke-width="1.5">
+            <line x1="285" y1="210" x2="335" y2="210" marker-end="url(#arr-solid)" />
+            <line x1="315" y1="205" x2="305" y2="215" />
+            <line x1="335" y1="240" x2="285" y2="240" stroke-dasharray="3 3" marker-end="url(#arr-dotted)" />
+            <line x1="315" y1="235" x2="305" y2="245" />
+            <line x1="335" y1="270" x2="285" y2="270" marker-end="url(#arr-solid)" />
+            <line x1="315" y1="265" x2="305" y2="275" />
+            <line x1="285" y1="300" x2="335" y2="300" stroke-dasharray="3 3" marker-end="url(#arr-dotted)" />
+            <line x1="315" y1="295" x2="305" y2="305" />
+          </g>
+        </defs>
+
+        <rect class="box-card active bg-clicker" x="30" y="20" width="940" height="480" rx="14"
+          onclick="App.setSlide3Topic(null)" style="cursor:pointer;" />
+
+        <!-- Legend (Top Right) -->
+        <g transform="translate(700, 40)">
+          <text x="0" y="0" font-size="12" fill="var(--text)">FlitChannel(REQ, DAT, RSP, SNP)</text>
+          <line x1="10" y1="20" x2="100" y2="20" stroke="var(--text)" stroke-width="2" marker-end="url(#arr-solid)" />
+          <line x1="65" y1="10" x2="45" y2="30" stroke="var(--text)" stroke-width="1.5" />
+          <text x="50" y="41" font-size="12" fill="var(--text)" font-weight="bold">4</text>
+
+          <text x="0" y="70" font-size="12" fill="var(--text)">CreditChannel(REQ, DAT, RSP, SNP)</text>
+          <line x1="10" y1="90" x2="100" y2="90" stroke="var(--text)" stroke-width="2" stroke-dasharray="3 3"
+            marker-end="url(#arr-dotted)" />
+          <line x1="65" y1="80" x2="45" y2="100" stroke="var(--text)" stroke-width="1.5" />
+          <text x="50" y="111" font-size="12" fill="var(--text)" font-weight="bold">4</text>
+        </g>
+
+        <!-- Middle Layout (Default) -->
+        <g id="layout-middle" style="display:block;">
+          <text class="svg-title-txt" x="470" y="55" font-size="16" text-anchor="middle">Middle Router (2 Local, 4
+            Directional)</text>
+          <g transform="translate(470, 275) scale(0.82) translate(-470, -260)">
+            <use href="#center-router" />
+            <use href="#node-north" />
+            <use href="#links-north" />
+            <use href="#node-south" />
+            <use href="#links-south" />
+            <use href="#node-east" />
+            <use href="#links-east" />
+            <use href="#node-west" />
+            <use href="#links-west" />
+            <use href="#node-local-tr" />
+            <use href="#node-local-bl" />
           </g>
         </g>
-        <g id="node-local-tl">
-          <g transform="translate(360, 170) rotate(-45)"><use href="#local-link-bundle"/></g>
-          <g transform="translate(300, 110) rotate(45)">
-            <use href="#local-box-yellow"/>
-            <text x="0" y="5" font-size="13" fill="var(--text)" font-weight="600" text-anchor="middle">Local2</text>
+
+        <!-- Edge Layout (Left Edge) -->
+        <g id="layout-edge" style="display:none;">
+          <text class="svg-title-txt" x="470" y="55" font-size="16" text-anchor="middle">Left Edge Router (3 Local, 3
+            Directional)</text>
+          <g transform="translate(470, 275) scale(0.82) translate(-470, -260)">
+            <use href="#center-router" />
+            <use href="#node-north" />
+            <use href="#links-north" />
+            <use href="#node-south" />
+            <use href="#links-south" />
+            <use href="#node-east" />
+            <use href="#links-east" />
+            <use href="#node-local-tr" />
+            <use href="#node-local-bl" />
+            <use href="#node-local-tl" />
           </g>
         </g>
-        <g id="node-local-br">
-          <g transform="translate(580, 350) rotate(135)"><use href="#local-link-bundle"/></g>
-          <g transform="translate(640, 410) rotate(45)">
-            <use href="#local-box-purple"/>
-            <text x="0" y="5" font-size="13" fill="var(--text)" font-weight="600" text-anchor="middle">Local3</text>
+
+        <!-- Corner Layout (Top-Left) -->
+        <g id="layout-corner" style="display:none;">
+          <text class="svg-title-txt" x="470" y="55" font-size="16" text-anchor="middle">Top-Left Corner Router (4
+            Local, 2 Directional)</text>
+          <g transform="translate(470, 275) scale(0.82) translate(-470, -260)">
+            <use href="#center-router" />
+            <use href="#node-south" />
+            <use href="#links-south" />
+            <use href="#node-east" />
+            <use href="#links-east" />
+            <use href="#node-local-tr" />
+            <use href="#node-local-bl" />
+            <use href="#node-local-tl" />
+            <use href="#node-local-br" />
+          </g>
+        </g>
+      </svg>
+    </div>
+
+    <!-- ── VIEW 3: BUFFERS & CREDIT FLOW CONTROL ── -->
+    <div id="view-buffers" class="canvas-view">
+      <svg id="slide3-svg" class="hw-svg" viewBox="0 0 1000 520" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arr-solid" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+            <path d="M 0 0 L 8 4 L 0 8 Z" fill="var(--text)" />
+          </marker>
+          <marker id="arr-dotted" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+            <path d="M 0 0 L 8 4 L 0 8 Z" fill="var(--text)" />
+          </marker>
+          <marker id="arr-cyan" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+            <path d="M 0 0 L 8 4 L 0 8 Z" fill="var(--col-cyan)" />
+          </marker>
+          <marker id="arr-blue" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+            <path d="M 0 0 L 8 4 L 0 8 Z" fill="var(--col-blue)" />
+          </marker>
+          <marker id="arr-pink" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+            <path d="M 0 0 L 8 4 L 0 8 Z" fill="var(--col-pink)" />
+          </marker>
+          <marker id="arr-green" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+            <path d="M 0 0 L 8 4 L 0 8 Z" fill="var(--col-green)" />
+          </marker>
+        </defs>
+
+        <rect class="box-card active bg-clicker" x="30" y="20" width="940" height="480" rx="14"
+          onclick="App.setSlide3Topic(null)" style="cursor:pointer;" />
+
+        <text class="svg-title-txt" x="500" y="55" font-size="16" pointer-events="none">Single-Port Buffer Organization
+          &amp; CHI Channel Sizing</text>
+        <text class="svg-sub-txt" x="500" y="76" pointer-events="none">Dedicated Virtual Channels &amp; Credit-Based
+          Flow Control Sizing</text>
+
+        <g transform="translate(350, 110)" pointer-events="none">
+          <!-- Vertical Port Interface Line -->
+          <line x1="-30" y1="-10" x2="-30" y2="380" stroke="var(--text)" stroke-width="2" />
+
+          <!-- ================= REQ Channel ================= -->
+          <g transform="translate(0, 0)">
+            <!-- Incoming/Outgoing Links -->
+            <text class="sg-flit-link" x="-40" y="22" font-size="12" fill="var(--text)" text-anchor="end"
+              font-weight="600">162 bits</text>
+            <line class="sg-flit-link" x1="-120" y1="27" x2="-35" y2="27" stroke="var(--text)" stroke-width="1.5"
+              marker-end="url(#arr-solid)" />
+
+            <text class="sg-credit-line" x="-46" y="40" font-size="12" fill="var(--text)" text-anchor="end"
+              font-weight="600">n-bits</text>
+            <line class="sg-credit-line" x1="-35" y1="42" x2="-120" y2="42" stroke="var(--text)" stroke-dasharray="4 3"
+              stroke-width="1.5" marker-end="url(#arr-dotted)" />
+
+            <line class="sg-flit-link" x1="-35" y1="62" x2="-120" y2="62" stroke="var(--text)" stroke-width="1.5"
+              marker-end="url(#arr-solid)" />
+            <line class="sg-credit-line" x1="-120" y1="77" x2="-35" y2="77" stroke="var(--text)" stroke-dasharray="4 3"
+              stroke-width="1.5" marker-end="url(#arr-dotted)" />
+
+            <!-- Width Indicator -->
+            <line class="sg-flit-link" x1="0" y1="-8" x2="200" y2="-8" stroke="var(--col-cyan)" stroke-width="1.5"
+              marker-start="url(#arr-cyan)" marker-end="url(#arr-cyan)" />
+            <rect class="sg-flit-link" x="65" y="-18" width="70" height="20" fill="var(--s2)" />
+            <text class="sg-flit-link" x="100" y="-4" font-size="13" fill="var(--col-cyan)" text-anchor="middle"
+              font-weight="700">162 bits</text>
+
+            <!-- VC Block -->
+            <rect class="sg-vc-block" x="0" y="0" width="200" height="85" fill="rgba(6,182,212,0.15)"
+              stroke="var(--col-cyan)" stroke-width="2" />
+            <line class="sg-vc-block" x1="0" y1="21.25" x2="200" y2="21.25" stroke="var(--col-cyan)" stroke-width="1" />
+            <line class="sg-vc-block" x1="0" y1="42.5" x2="200" y2="42.5" stroke="var(--col-cyan)" stroke-width="1" />
+            <line class="sg-vc-block" x1="0" y1="63.75" x2="200" y2="63.75" stroke="var(--col-cyan)" stroke-width="1" />
+            <line class="sg-vc-block" x1="100" y1="46" x2="100" y2="60" stroke="var(--col-cyan)" stroke-width="2"
+              stroke-dasharray="3 3" />
+
+            <!-- VC Labels -->
+            <text class="sg-vc-block" x="210" y="15" font-size="12" fill="var(--text)" font-weight="700"
+              dominant-baseline="middle">VC1</text>
+            <text class="sg-vc-block" x="210" y="37" font-size="12" fill="var(--text)" font-weight="700"
+              dominant-baseline="middle">VC2</text>
+            <text class="sg-vc-block" x="210" y="78" font-size="12" fill="var(--text)" font-weight="700"
+              dominant-baseline="middle">VCn</text>
+
+            <!-- Channel Label -->
+            <text x="260" y="42.5" font-size="20" fill="var(--col-cyan)" font-weight="800"
+              dominant-baseline="middle">REQ</text>
+          </g>
+
+          <!-- ================= DAT Channel ================= -->
+          <g transform="translate(0, 100)">
+            <!-- Incoming/Outgoing Links -->
+            <text class="sg-flit-link" x="-40" y="22" font-size="12" fill="var(--text)" text-anchor="end"
+              font-weight="600">756 bits</text>
+            <line class="sg-flit-link" x1="-120" y1="27" x2="-35" y2="27" stroke="var(--text)" stroke-width="1.5"
+              marker-end="url(#arr-solid)" />
+
+            <text class="sg-credit-line" x="-46" y="40" font-size="12" fill="var(--text)" text-anchor="end"
+              font-weight="600">n-bits</text>
+            <line class="sg-credit-line" x1="-35" y1="42" x2="-120" y2="42" stroke="var(--text)" stroke-dasharray="4 3"
+              stroke-width="1.5" marker-end="url(#arr-dotted)" />
+
+            <line class="sg-flit-link" x1="-35" y1="62" x2="-120" y2="62" stroke="var(--text)" stroke-width="1.5"
+              marker-end="url(#arr-solid)" />
+            <line class="sg-credit-line" x1="-120" y1="77" x2="-35" y2="77" stroke="var(--text)" stroke-dasharray="4 3"
+              stroke-width="1.5" marker-end="url(#arr-dotted)" />
+
+            <!-- Width Indicator -->
+            <line class="sg-flit-link" x1="0" y1="-8" x2="200" y2="-8" stroke="var(--col-blue)" stroke-width="1.5"
+              marker-start="url(#arr-blue)" marker-end="url(#arr-blue)" />
+            <rect class="sg-flit-link" x="65" y="-18" width="70" height="20" fill="var(--s2)" />
+            <text class="sg-flit-link" x="100" y="-4" font-size="13" fill="var(--col-blue)" text-anchor="middle"
+              font-weight="700">756 bits</text>
+
+            <!-- VC Block -->
+            <rect class="sg-vc-block" x="0" y="0" width="200" height="85" fill="rgba(59,130,246,0.15)"
+              stroke="var(--col-blue)" stroke-width="2" />
+            <line class="sg-vc-block" x1="0" y1="21.25" x2="200" y2="21.25" stroke="var(--col-blue)" stroke-width="1" />
+            <line class="sg-vc-block" x1="0" y1="42.5" x2="200" y2="42.5" stroke="var(--col-blue)" stroke-width="1" />
+            <line class="sg-vc-block" x1="0" y1="63.75" x2="200" y2="63.75" stroke="var(--col-blue)" stroke-width="1" />
+            <line class="sg-vc-block" x1="100" y1="46" x2="100" y2="60" stroke="var(--col-blue)" stroke-width="2"
+              stroke-dasharray="3 3" />
+
+            <!-- VC Labels -->
+            <text class="sg-vc-block" x="210" y="15" font-size="12" fill="var(--text)" font-weight="700"
+              dominant-baseline="middle">VC1</text>
+            <text class="sg-vc-block" x="210" y="37" font-size="12" fill="var(--text)" font-weight="700"
+              dominant-baseline="middle">VC2</text>
+            <text class="sg-vc-block" x="210" y="78" font-size="12" fill="var(--text)" font-weight="700"
+              dominant-baseline="middle">VCn</text>
+
+            <!-- Channel Label -->
+            <text x="260" y="42.5" font-size="20" fill="var(--col-blue)" font-weight="800"
+              dominant-baseline="middle">DAT</text>
+          </g>
+
+          <!-- ================= SNP Channel ================= -->
+          <g transform="translate(0, 200)">
+            <!-- Incoming/Outgoing Links -->
+            <text class="sg-flit-link" x="-40" y="22" font-size="12" fill="var(--text)" text-anchor="end"
+              font-weight="600">126 bits</text>
+            <line class="sg-flit-link" x1="-120" y1="27" x2="-35" y2="27" stroke="var(--text)" stroke-width="1.5"
+              marker-end="url(#arr-solid)" />
+
+            <text class="sg-credit-line" x="-46" y="40" font-size="12" fill="var(--text)" text-anchor="end"
+              font-weight="600">n-bits</text>
+            <line class="sg-credit-line" x1="-35" y1="42" x2="-120" y2="42" stroke="var(--text)" stroke-dasharray="4 3"
+              stroke-width="1.5" marker-end="url(#arr-dotted)" />
+
+            <line class="sg-flit-link" x1="-35" y1="62" x2="-120" y2="62" stroke="var(--text)" stroke-width="1.5"
+              marker-end="url(#arr-solid)" />
+            <line class="sg-credit-line" x1="-120" y1="77" x2="-35" y2="77" stroke="var(--text)" stroke-dasharray="4 3"
+              stroke-width="1.5" marker-end="url(#arr-dotted)" />
+
+            <!-- Width Indicator -->
+            <line class="sg-flit-link" x1="0" y1="-8" x2="200" y2="-8" stroke="var(--col-pink)" stroke-width="1.5"
+              marker-start="url(#arr-pink)" marker-end="url(#arr-pink)" />
+            <rect class="sg-flit-link" x="65" y="-18" width="70" height="20" fill="var(--s2)" />
+            <text class="sg-flit-link" x="100" y="-4" font-size="13" fill="var(--col-pink)" text-anchor="middle"
+              font-weight="700">126 bits</text>
+
+            <!-- VC Block -->
+            <rect class="sg-vc-block" x="0" y="0" width="200" height="85" fill="rgba(236,72,153,0.15)"
+              stroke="var(--col-pink)" stroke-width="2" />
+            <line class="sg-vc-block" x1="0" y1="21.25" x2="200" y2="21.25" stroke="var(--col-pink)" stroke-width="1" />
+            <line class="sg-vc-block" x1="0" y1="42.5" x2="200" y2="42.5" stroke="var(--col-pink)" stroke-width="1" />
+            <line class="sg-vc-block" x1="0" y1="63.75" x2="200" y2="63.75" stroke="var(--col-pink)" stroke-width="1" />
+            <line class="sg-vc-block" x1="100" y1="46" x2="100" y2="60" stroke="var(--col-pink)" stroke-width="2"
+              stroke-dasharray="3 3" />
+
+            <!-- VC Labels -->
+            <text class="sg-vc-block" x="210" y="15" font-size="12" fill="var(--text)" font-weight="700"
+              dominant-baseline="middle">VC1</text>
+            <text class="sg-vc-block" x="210" y="37" font-size="12" fill="var(--text)" font-weight="700"
+              dominant-baseline="middle">VC2</text>
+            <text class="sg-vc-block" x="210" y="78" font-size="12" fill="var(--text)" font-weight="700"
+              dominant-baseline="middle">VCn</text>
+
+            <!-- Channel Label -->
+            <text x="260" y="42.5" font-size="20" fill="var(--col-pink)" font-weight="800"
+              dominant-baseline="middle">SNP</text>
+          </g>
+
+          <!-- ================= RSP Channel ================= -->
+          <g transform="translate(0, 300)">
+            <!-- Incoming/Outgoing Links -->
+            <text class="sg-flit-link" x="-40" y="22" font-size="12" fill="var(--text)" text-anchor="end"
+              font-weight="600">73 bits</text>
+            <line class="sg-flit-link" x1="-120" y1="27" x2="-35" y2="27" stroke="var(--text)" stroke-width="1.5"
+              marker-end="url(#arr-solid)" />
+
+            <text class="sg-credit-line" x="-46" y="40" font-size="12" fill="var(--text)" text-anchor="end"
+              font-weight="600">n-bits</text>
+            <line class="sg-credit-line" x1="-35" y1="42" x2="-120" y2="42" stroke="var(--text)" stroke-dasharray="4 3"
+              stroke-width="1.5" marker-end="url(#arr-dotted)" />
+
+            <line class="sg-flit-link" x1="-35" y1="62" x2="-120" y2="62" stroke="var(--text)" stroke-width="1.5"
+              marker-end="url(#arr-solid)" />
+            <line class="sg-credit-line" x1="-120" y1="77" x2="-35" y2="77" stroke="var(--text)" stroke-dasharray="4 3"
+              stroke-width="1.5" marker-end="url(#arr-dotted)" />
+
+            <!-- Width Indicator -->
+            <line class="sg-flit-link" x1="0" y1="-8" x2="200" y2="-8" stroke="var(--col-green)" stroke-width="1.5"
+              marker-start="url(#arr-green)" marker-end="url(#arr-green)" />
+            <rect class="sg-flit-link" x="65" y="-18" width="70" height="20" fill="var(--s2)" />
+            <text class="sg-flit-link" x="100" y="-4" font-size="13" fill="var(--col-green)" text-anchor="middle"
+              font-weight="700">73 bits</text>
+
+            <!-- VC Block -->
+            <rect class="sg-vc-block" x="0" y="0" width="200" height="85" fill="rgba(34,197,94,0.15)"
+              stroke="var(--col-green)" stroke-width="2" />
+            <line class="sg-vc-block" x1="0" y1="21.25" x2="200" y2="21.25" stroke="var(--col-green)"
+              stroke-width="1" />
+            <line class="sg-vc-block" x1="0" y1="42.5" x2="200" y2="42.5" stroke="var(--col-green)" stroke-width="1" />
+            <line class="sg-vc-block" x1="0" y1="63.75" x2="200" y2="63.75" stroke="var(--col-green)"
+              stroke-width="1" />
+            <line class="sg-vc-block" x1="100" y1="46" x2="100" y2="60" stroke="var(--col-green)" stroke-width="2"
+              stroke-dasharray="3 3" />
+
+            <!-- VC Labels -->
+            <text class="sg-vc-block" x="210" y="15" font-size="12" fill="var(--text)" font-weight="700"
+              dominant-baseline="middle">VC1</text>
+            <text class="sg-vc-block" x="210" y="37" font-size="12" fill="var(--text)" font-weight="700"
+              dominant-baseline="middle">VC2</text>
+            <text class="sg-vc-block" x="210" y="78" font-size="12" fill="var(--text)" font-weight="700"
+              dominant-baseline="middle">VCn</text>
+
+            <!-- Channel Label -->
+            <text x="260" y="42.5" font-size="20" fill="var(--col-green)" font-weight="800"
+              dominant-baseline="middle">RSP</text>
+          </g>
+        </g>
+      </svg>
+    </div>
+
+    <!-- ── VIEW 4: HARDWARE DATA PATH & PIPELINE ── -->
+    <div id="view-datapath" class="canvas-view">
+      <svg id="slide4-svg" class="hw-svg" viewBox="0 0 1000 520" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arr-black" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+            <path d="M 0 0 L 8 4 L 0 8 Z" fill="var(--text)" />
+          </marker>
+        </defs>
+
+        <rect class="box-card active bg-clicker" x="30" y="20" width="940" height="480" rx="14"
+          onclick="App.setSlide4Topic(null)" style="cursor:pointer;" />
+
+        <!-- Column Headers -->
+        <text x="370" y="55" font-size="14" font-weight="800" fill="var(--text)" text-anchor="middle"
+          pointer-events="none">DATA PATH</text>
+        <text x="730" y="55" font-size="14" font-weight="800" fill="var(--text)" text-anchor="middle"
+          pointer-events="none">CONTROL PATH</text>
+
+        <!-- DATA PATH COLUMN -->
+        <g transform="translate(220, 75)" pointer-events="none">
+          <!-- 0 Input Link -->
+          <g class="sg4-dp-links sg4-fc">
+            <rect x="0" y="0" width="300" height="32" rx="6" fill="rgba(37,99,235,0.15)" stroke="var(--col-blue)"
+              stroke-width="2" />
+            <text x="150" y="16" font-size="12" font-weight="700" fill="var(--text)" text-anchor="middle"
+              dominant-baseline="middle">Input Link (Flit width + ctrl)</text>
+            <line x1="150" y1="32" x2="150" y2="45" stroke="var(--text)" stroke-width="1.5"
+              marker-end="url(#arr-black)" />
+          </g>
+
+          <!-- 1 Input Interface -->
+          <g class="sg4-dp-input sg4-fc" transform="translate(0, 45)">
+            <rect x="0" y="0" width="300" height="32" rx="6" fill="var(--s2)" stroke="var(--b2)" stroke-width="2" />
+            <text x="150" y="16" font-size="12" font-weight="700" fill="var(--text)" text-anchor="middle"
+              dominant-baseline="middle">Input Interface</text>
+            <line x1="150" y1="32" x2="150" y2="45" stroke="var(--text)" stroke-width="1.5"
+              marker-end="url(#arr-black)" />
+          </g>
+
+          <!-- 2 Buffer Write (BW) -->
+          <g class="sg4-dp-pipe sg4-dp-input sg4-fc" transform="translate(0, 90)">
+            <rect x="0" y="0" width="300" height="32" rx="6" fill="rgba(34,197,94,0.15)" stroke="var(--col-green)"
+              stroke-width="2" />
+            <text x="150" y="16" font-size="12" font-weight="700" fill="var(--text)" text-anchor="middle"
+              dominant-baseline="middle">Buffer Write (BW)</text>
+            <text x="-10" y="18" font-size="10" font-weight="700" fill="#991b1b" text-anchor="end">Incoming FLIT (REQ,
+              DAT, SNP</text>
+            <text x="-10" y="30" font-size="10" font-weight="700" fill="#991b1b" text-anchor="end">and RSP) enters input
+              VC</text>
+            <line x1="150" y1="32" x2="150" y2="45" stroke="var(--text)" stroke-width="1.5"
+              marker-end="url(#arr-black)" />
+          </g>
+
+          <!-- 3 Route Computation (RC) -->
+          <g class="sg4-dp-pipe sg4-fc" transform="translate(0, 135)">
+            <rect x="0" y="0" width="300" height="32" rx="6" fill="rgba(234,88,12,0.15)" stroke="var(--col-orange)"
+              stroke-width="2" />
+            <text x="150" y="16" font-size="12" font-weight="700" fill="var(--text)" text-anchor="middle"
+              dominant-baseline="middle">Route Computation (RC) - XY Routing</text>
+            <text x="-10" y="22" font-size="10" font-weight="700" fill="#991b1b" text-anchor="end">FLIT selects output
+              port</text>
+            <line x1="150" y1="32" x2="150" y2="45" stroke="var(--text)" stroke-width="1.5"
+              marker-end="url(#arr-black)" />
+          </g>
+
+          <!-- 4 VC Allocation (VA) -->
+          <g class="sg4-dp-pipe sg4-fc" transform="translate(0, 180)">
+            <rect x="0" y="0" width="300" height="32" rx="6" fill="rgba(37,99,235,0.15)" stroke="var(--col-blue)"
+              stroke-width="2" />
+            <text x="150" y="16" font-size="12" font-weight="700" fill="var(--text)" text-anchor="middle"
+              dominant-baseline="middle">VC Allocation (VA)</text>
+            <text x="-10" y="18" font-size="10" font-weight="700" fill="#991b1b" text-anchor="end">FLIT reserves
+              downstream</text>
+            <text x="-10" y="30" font-size="10" font-weight="700" fill="#991b1b" text-anchor="end">VC</text>
+            <line x1="150" y1="32" x2="150" y2="45" stroke="var(--text)" stroke-width="1.5"
+              marker-end="url(#arr-black)" />
+          </g>
+
+          <!-- 5 Switch Allocation (SA) -->
+          <g class="sg4-dp-pipe sg4-fc" transform="translate(0, 225)">
+            <rect x="0" y="0" width="300" height="32" rx="6" fill="var(--s2)" stroke="var(--b2)" stroke-width="2" />
+            <text x="150" y="16" font-size="12" font-weight="700" fill="var(--text)" text-anchor="middle"
+              dominant-baseline="middle">Switch Allocation (SA)</text>
+            <text x="-10" y="18" font-size="10" font-weight="700" fill="#991b1b" text-anchor="end">Eligible FLITs
+              compete for</text>
+            <text x="-10" y="30" font-size="10" font-weight="700" fill="#991b1b" text-anchor="end">Crossbar</text>
+            <line x1="150" y1="32" x2="150" y2="45" stroke="var(--text)" stroke-width="1.5"
+              marker-end="url(#arr-black)" />
+          </g>
+
+          <!-- 6 6x6 Crossbar -->
+          <g class="sg4-dp-pipe sg4-fc" transform="translate(0, 270)">
+            <rect x="0" y="0" width="300" height="32" rx="6" fill="rgba(34,197,94,0.15)" stroke="var(--col-green)"
+              stroke-width="2" />
+            <text x="150" y="16" font-size="12" font-weight="700" fill="var(--text)" text-anchor="middle"
+              dominant-baseline="middle">6x6 Crossbar (Flit width)</text>
+            <text x="-10" y="18" font-size="10" font-weight="700" fill="#991b1b" text-anchor="end">Winning FLITs cross
+              to</text>
+            <text x="-10" y="30" font-size="10" font-weight="700" fill="#991b1b" text-anchor="end">output link</text>
+            <line x1="150" y1="32" x2="150" y2="45" stroke="var(--text)" stroke-width="1.5"
+              marker-end="url(#arr-black)" />
+          </g>
+
+          <!-- 7 Output Registers -->
+          <g class="sg4-dp-pipe sg4-fc" transform="translate(0, 315)">
+            <rect x="0" y="0" width="300" height="32" rx="6" fill="rgba(37,99,235,0.15)" stroke="var(--col-blue)"
+              stroke-width="2" />
+            <text x="150" y="16" font-size="12" font-weight="700" fill="var(--text)" text-anchor="middle"
+              dominant-baseline="middle">Output Registers</text>
+            <line x1="150" y1="32" x2="150" y2="45" stroke="var(--text)" stroke-width="1.5"
+              marker-end="url(#arr-black)" />
+          </g>
+
+          <!-- 8 Output links -->
+          <g class="sg4-dp-links sg4-fc" transform="translate(0, 360)">
+            <rect x="0" y="0" width="300" height="32" rx="6" fill="rgba(34,197,94,0.15)" stroke="var(--col-green)"
+              stroke-width="2" />
+            <text x="150" y="16" font-size="12" font-weight="700" fill="var(--text)" text-anchor="middle"
+              dominant-baseline="middle">Output links (Flit width + ctrl)</text>
           </g>
         </g>
 
-        <!-- Connections (Links) -->
-        <g id="links-north" stroke="var(--text)" stroke-width="1.5">
-           <line x1="430" y1="95" x2="430" y2="145" marker-end="url(#arr-solid)"/> <line x1="435" y1="115" x2="425" y2="125"/>
-           <line x1="460" y1="145" x2="460" y2="95" marker-end="url(#arr-solid)"/> <line x1="465" y1="115" x2="455" y2="125"/>
-           <line x1="480" y1="95" x2="480" y2="145" stroke-dasharray="3 3" marker-end="url(#arr-dotted)"/> <line x1="485" y1="115" x2="475" y2="125"/>
-           <line x1="510" y1="145" x2="510" y2="95" stroke-dasharray="3 3" marker-end="url(#arr-dotted)"/> <line x1="515" y1="115" x2="505" y2="125"/>
-        </g>
-        <g id="links-south" stroke="var(--text)" stroke-width="1.5">
-           <line x1="430" y1="375" x2="430" y2="425" marker-end="url(#arr-solid)"/> <line x1="435" y1="395" x2="425" y2="405"/>
-           <line x1="460" y1="425" x2="460" y2="375" marker-end="url(#arr-solid)"/> <line x1="465" y1="395" x2="455" y2="405"/>
-           <line x1="480" y1="375" x2="480" y2="425" stroke-dasharray="3 3" marker-end="url(#arr-dotted)"/> <line x1="485" y1="395" x2="475" y2="405"/>
-           <line x1="510" y1="425" x2="510" y2="375" stroke-dasharray="3 3" marker-end="url(#arr-dotted)"/> <line x1="515" y1="395" x2="505" y2="405"/>
-        </g>
-        <g id="links-east" stroke="var(--text)" stroke-width="1.5">
-           <line x1="605" y1="210" x2="655" y2="210" marker-end="url(#arr-solid)"/> <line x1="635" y1="205" x2="625" y2="215"/>
-           <line x1="655" y1="240" x2="605" y2="240" marker-end="url(#arr-solid)"/> <line x1="635" y1="235" x2="625" y2="245"/>
-           <line x1="605" y1="270" x2="655" y2="270" stroke-dasharray="3 3" marker-end="url(#arr-dotted)"/> <line x1="635" y1="265" x2="625" y2="275"/>
-           <line x1="655" y1="300" x2="605" y2="300" stroke-dasharray="3 3" marker-end="url(#arr-dotted)"/> <line x1="635" y1="295" x2="625" y2="305"/>
-        </g>
-        <g id="links-west" stroke="var(--text)" stroke-width="1.5">
-           <line x1="285" y1="210" x2="335" y2="210" marker-end="url(#arr-solid)"/> <line x1="315" y1="205" x2="305" y2="215"/>
-           <line x1="335" y1="240" x2="285" y2="240" marker-end="url(#arr-solid)"/> <line x1="315" y1="235" x2="305" y2="245"/>
-           <line x1="285" y1="270" x2="335" y2="270" stroke-dasharray="3 3" marker-end="url(#arr-dotted)"/> <line x1="315" y1="265" x2="305" y2="275"/>
-           <line x1="335" y1="300" x2="285" y2="300" stroke-dasharray="3 3" marker-end="url(#arr-dotted)"/> <line x1="315" y1="295" x2="305" y2="305"/>
-        </g>
-      </defs>
+        <!-- CONTROL PATH COLUMN -->
+        <g transform="translate(580, 75)" pointer-events="none">
 
-      <rect class="box-card active bg-clicker" x="30" y="20" width="940" height="480" rx="14" onclick="App.setSlide3Topic(null)" style="cursor:pointer;"/>
+          <!-- 0 Credits -->
+          <g class="sg4-cp-col sg4-fc">
+            <rect x="0" y="0" width="300" height="32" rx="6" fill="rgba(234,88,12,0.15)" stroke="var(--col-orange)"
+              stroke-width="2" />
+            <text x="150" y="16" font-size="12" font-weight="700" fill="var(--text)" text-anchor="middle"
+              dominant-baseline="middle">Credits (Per output VC)</text>
+            <line x1="150" y1="32" x2="150" y2="45" stroke="var(--text)" stroke-width="1.5"
+              marker-end="url(#arr-black)" />
+          </g>
 
-      <!-- Legend (Top Right) -->
-      <g transform="translate(700, 40)">
-         <text x="0" y="0" font-size="12" fill="var(--text)">FlitChannel(REQ, DAT, RSP, SNP)</text>
-         <line x1="10" y1="20" x2="100" y2="20" stroke="var(--text)" stroke-width="2" marker-end="url(#arr-solid)"/>
-         <line x1="65" y1="10" x2="45" y2="30" stroke="var(--text)" stroke-width="1.5"/>
-         <text x="50" y="41" font-size="12" fill="var(--text)" font-weight="bold">4</text>
-         
-         <text x="0" y="70" font-size="12" fill="var(--text)">CreditChannel(REQ, DAT, RSP, SNP)</text>
-         <line x1="10" y1="90" x2="100" y2="90" stroke="var(--text)" stroke-width="2" stroke-dasharray="3 3" marker-end="url(#arr-dotted)"/>
-         <line x1="65" y1="80" x2="45" y2="100" stroke="var(--text)" stroke-width="1.5"/>
-         <text x="50" y="111" font-size="12" fill="var(--text)" font-weight="bold">4</text>
-      </g>
+          <!-- 1 VC status -->
+          <g class="sg4-cp-col sg4-fc" transform="translate(0, 45)">
+            <rect x="0" y="0" width="300" height="32" rx="6" fill="rgba(37,99,235,0.15)" stroke="var(--col-blue)"
+              stroke-width="2" />
+            <text x="150" y="16" font-size="12" font-weight="700" fill="var(--text)" text-anchor="middle"
+              dominant-baseline="middle">VC status (Idle/Active)</text>
+            <line x1="150" y1="32" x2="150" y2="45" stroke="var(--text)" stroke-width="1.5"
+              marker-end="url(#arr-black)" />
+          </g>
 
-      <!-- Middle Layout (Default) -->
-      <g id="layout-middle" style="display:block;">
-        <text class="svg-title-txt" x="470" y="55" font-size="16" text-anchor="middle">Middle Router (2 Local, 4 Directional)</text>
-        <g transform="translate(470, 275) scale(0.82) translate(-470, -260)">
-          <use href="#center-router"/>
-          <use href="#node-north"/> <use href="#links-north"/>
-          <use href="#node-south"/> <use href="#links-south"/>
-          <use href="#node-east"/> <use href="#links-east"/>
-          <use href="#node-west"/> <use href="#links-west"/>
-          <use href="#node-local-tr"/>
-          <use href="#node-local-bl"/>
+          <!-- 2 Route Computation -->
+          <g class="sg4-cp-col sg4-fc" transform="translate(0, 90)">
+            <rect x="0" y="0" width="300" height="32" rx="6" fill="var(--s2)" stroke="var(--b2)" stroke-width="2" />
+            <text x="150" y="16" font-size="12" font-weight="700" fill="var(--text)" text-anchor="middle"
+              dominant-baseline="middle">Route Computation - R</text>
+            <line x1="150" y1="32" x2="150" y2="45" stroke="var(--text)" stroke-width="1.5"
+              marker-end="url(#arr-black)" />
+          </g>
+
+          <!-- 3 VC allocation - O -->
+          <g class="sg4-cp-col sg4-fc" transform="translate(0, 135)">
+            <rect x="0" y="0" width="300" height="32" rx="6" fill="rgba(34,197,94,0.15)" stroke="var(--col-green)"
+              stroke-width="2" />
+            <text x="150" y="16" font-size="12" font-weight="700" fill="var(--text)" text-anchor="middle"
+              dominant-baseline="middle">VC allocation - O</text>
+            <line x1="150" y1="32" x2="150" y2="45" stroke="var(--text)" stroke-width="1.5"
+              marker-end="url(#arr-black)" />
+          </g>
+
+          <!-- 4 Switch allocation - G -->
+          <g class="sg4-cp-col sg4-fc" transform="translate(0, 180)">
+            <rect x="0" y="0" width="300" height="32" rx="6" fill="rgba(37,99,235,0.15)" stroke="var(--col-blue)"
+              stroke-width="2" />
+            <text x="150" y="16" font-size="12" font-weight="700" fill="var(--text)" text-anchor="middle"
+              dominant-baseline="middle">Switch allocation - G</text>
+            <line x1="150" y1="32" x2="150" y2="45" stroke="var(--text)" stroke-width="1.5"
+              marker-end="url(#arr-black)" />
+          </g>
+
+          <!-- 5 Crossbar Select -->
+          <g class="sg4-cp-col sg4-fc" transform="translate(0, 225)">
+            <rect x="0" y="0" width="300" height="32" rx="6" fill="var(--s2)" stroke="var(--b2)" stroke-width="2" />
+            <text x="150" y="16" font-size="12" font-weight="700" fill="var(--text)" text-anchor="middle"
+              dominant-baseline="middle">Crossbar Select [3b] x 6</text>
+            <line x1="150" y1="32" x2="150" y2="45" stroke="var(--text)" stroke-width="1.5"
+              marker-end="url(#arr-black)" />
+          </g>
+
+          <!-- 6 Credit Generation -->
+          <g class="sg4-cp-col sg4-fc" transform="translate(0, 270)">
+            <rect x="0" y="0" width="300" height="32" rx="6" fill="rgba(234,88,12,0.15)" stroke="var(--col-orange)"
+              stroke-width="2" />
+            <text x="150" y="16" font-size="12" font-weight="700" fill="var(--text)" text-anchor="middle"
+              dominant-baseline="middle">Credit Generation - upstream router</text>
+          </g>
         </g>
-      </g>
+      </svg>
+    </div>
 
-      <!-- Edge Layout (Left Edge) -->
-      <g id="layout-edge" style="display:none;">
-        <text class="svg-title-txt" x="470" y="55" font-size="16" text-anchor="middle">Left Edge Router (3 Local, 3 Directional)</text>
-        <g transform="translate(470, 275) scale(0.82) translate(-470, -260)">
-          <use href="#center-router"/>
-          <use href="#node-north"/> <use href="#links-north"/>
-          <use href="#node-south"/> <use href="#links-south"/>
-          <use href="#node-east"/> <use href="#links-east"/>
-          <use href="#node-local-tr"/>
-          <use href="#node-local-bl"/>
-          <use href="#node-local-tl"/>
+    <!-- ── VIEW 5: FUNCTIONAL SCHEMA & ALLOCATORS ── -->
+    <div id="view-allocators" class="canvas-view">
+      <svg id="slide5-svg" class="hw-svg" viewBox="0 0 1000 520" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arr-slide5" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto-start-reverse">
+            <path d="M 0 0 L 6 3 L 0 6 Z" fill="var(--text)" />
+          </marker>
+          <marker id="arr-st" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+            <path d="M 0 0 L 6 3 L 0 6 Z" fill="rgba(236,72,153,0.8)" />
+          </marker>
+          <marker id="arr-purple" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+            <path d="M 0 0 L 6 3 L 0 6 Z" fill="var(--col-purple)" />
+          </marker>
+        </defs>
+        <rect class="box-card active bg-clicker" x="10" y="10" width="980" height="500" rx="14"
+          onclick="App.setSlide5Topic(null)" style="cursor:pointer;" />
+        <g class="sg5-item sg5-input-port" transform="translate(60, 20)">
+          <rect x="0" y="0" width="70" height="460" fill="rgba(56,189,248,0.15)" stroke="var(--col-blue)"
+            stroke-width="2" />
+          <text x="35" y="18" font-size="11" font-weight="800" fill="var(--text)" text-anchor="middle">INPUT</text>
+          <text x="35" y="30" font-size="11" font-weight="800" fill="var(--text)" text-anchor="middle">PORT</text>
+          <rect x="0" y="40" width="70" height="100" fill="transparent" stroke="var(--col-blue)" />
+          <text x="55" y="90" font-size="10" font-weight="700" fill="var(--text)" text-anchor="middle"
+            transform="rotate(-90 55 90)">REQ</text>
+          <g font-size="9" fill="var(--text)">
+            <text x="25" y="58">E</text>
+            <line x1="-20" y1="55" x2="15" y2="55" stroke="var(--text)" marker-end="url(#arr-slide5)" />
+            <line x1="10" y1="48" x2="40" y2="48" stroke="var(--col-blue)" stroke-width="0.5" />
+            <text x="25" y="73">W</text>
+            <line x1="-20" y1="70" x2="15" y2="70" stroke="var(--text)" marker-end="url(#arr-slide5)" />
+            <line x1="10" y1="63" x2="40" y2="63" stroke="var(--col-blue)" stroke-width="0.5" />
+            <text x="25" y="88">N</text>
+            <line x1="-20" y1="85" x2="15" y2="85" stroke="var(--text)" marker-end="url(#arr-slide5)" />
+            <line x1="10" y1="78" x2="40" y2="78" stroke="var(--col-blue)" stroke-width="0.5" />
+            <text x="25" y="103">S</text>
+            <line x1="-20" y1="100" x2="15" y2="100" stroke="var(--text)" marker-end="url(#arr-slide5)" />
+            <line x1="10" y1="93" x2="40" y2="93" stroke="var(--col-blue)" stroke-width="0.5" />
+            <text x="25" y="118">L0</text>
+            <line x1="-20" y1="115" x2="15" y2="115" stroke="var(--text)" marker-end="url(#arr-slide5)" />
+            <line x1="10" y1="108" x2="40" y2="108" stroke="var(--col-blue)" stroke-width="0.5" />
+            <text x="25" y="133">L1</text>
+            <line x1="-20" y1="130" x2="15" y2="130" stroke="var(--text)" marker-end="url(#arr-slide5)" />
+            <line x1="10" y1="123" x2="40" y2="123" stroke="var(--col-blue)" stroke-width="0.5" />
+          </g>
+          <rect x="0" y="145" width="70" height="100" fill="transparent" stroke="var(--col-blue)" />
+          <text x="55" y="195" font-size="10" font-weight="700" fill="var(--text)" text-anchor="middle"
+            transform="rotate(-90 55 195)">DAT</text>
+          <g font-size="9" fill="var(--text)">
+            <text x="25" y="163">E</text>
+            <line x1="-20" y1="160" x2="15" y2="160" stroke="var(--text)" marker-end="url(#arr-slide5)" />
+            <line x1="10" y1="153" x2="40" y2="153" stroke="var(--col-blue)" stroke-width="0.5" />
+            <text x="25" y="178">W</text>
+            <line x1="-20" y1="175" x2="15" y2="175" stroke="var(--text)" marker-end="url(#arr-slide5)" />
+            <line x1="10" y1="168" x2="40" y2="168" stroke="var(--col-blue)" stroke-width="0.5" />
+            <text x="25" y="193">N</text>
+            <line x1="-20" y1="190" x2="15" y2="190" stroke="var(--text)" marker-end="url(#arr-slide5)" />
+            <line x1="10" y1="183" x2="40" y2="183" stroke="var(--col-blue)" stroke-width="0.5" />
+            <text x="25" y="208">S</text>
+            <line x1="-20" y1="205" x2="15" y2="205" stroke="var(--text)" marker-end="url(#arr-slide5)" />
+            <line x1="10" y1="198" x2="40" y2="198" stroke="var(--col-blue)" stroke-width="0.5" />
+            <text x="25" y="223">L0</text>
+            <line x1="-20" y1="220" x2="15" y2="220" stroke="var(--text)" marker-end="url(#arr-slide5)" />
+            <line x1="10" y1="213" x2="40" y2="213" stroke="var(--col-blue)" stroke-width="0.5" />
+            <text x="25" y="238">L1</text>
+            <line x1="-20" y1="235" x2="15" y2="235" stroke="var(--text)" marker-end="url(#arr-slide5)" />
+            <line x1="10" y1="228" x2="40" y2="228" stroke="var(--col-blue)" stroke-width="0.5" />
+          </g>
+          <rect x="0" y="250" width="70" height="100" fill="transparent" stroke="var(--col-blue)" />
+          <text x="55" y="300" font-size="10" font-weight="700" fill="var(--text)" text-anchor="middle"
+            transform="rotate(-90 55 300)">SNP</text>
+          <g font-size="9" fill="var(--text)">
+            <text x="25" y="268">E</text>
+            <line x1="-20" y1="265" x2="15" y2="265" stroke="var(--text)" marker-end="url(#arr-slide5)" />
+            <line x1="10" y1="258" x2="40" y2="258" stroke="var(--col-blue)" stroke-width="0.5" />
+            <text x="25" y="283">W</text>
+            <line x1="-20" y1="280" x2="15" y2="280" stroke="var(--text)" marker-end="url(#arr-slide5)" />
+            <line x1="10" y1="273" x2="40" y2="273" stroke="var(--col-blue)" stroke-width="0.5" />
+            <text x="25" y="298">N</text>
+            <line x1="-20" y1="295" x2="15" y2="295" stroke="var(--text)" marker-end="url(#arr-slide5)" />
+            <line x1="10" y1="288" x2="40" y2="288" stroke="var(--col-blue)" stroke-width="0.5" />
+            <text x="25" y="313">S</text>
+            <line x1="-20" y1="310" x2="15" y2="310" stroke="var(--text)" marker-end="url(#arr-slide5)" />
+            <line x1="10" y1="303" x2="40" y2="303" stroke="var(--col-blue)" stroke-width="0.5" />
+            <text x="25" y="328">L0</text>
+            <line x1="-20" y1="325" x2="15" y2="325" stroke="var(--text)" marker-end="url(#arr-slide5)" />
+            <line x1="10" y1="318" x2="40" y2="318" stroke="var(--col-blue)" stroke-width="0.5" />
+            <text x="25" y="343">L1</text>
+            <line x1="-20" y1="340" x2="15" y2="340" stroke="var(--text)" marker-end="url(#arr-slide5)" />
+            <line x1="10" y1="333" x2="40" y2="333" stroke="var(--col-blue)" stroke-width="0.5" />
+          </g>
+          <rect x="0" y="355" width="70" height="100" fill="transparent" stroke="var(--col-blue)" />
+          <text x="55" y="405" font-size="10" font-weight="700" fill="var(--text)" text-anchor="middle"
+            transform="rotate(-90 55 405)">RSP</text>
+          <g font-size="9" fill="var(--text)">
+            <text x="25" y="373">E</text>
+            <line x1="-20" y1="370" x2="15" y2="370" stroke="var(--text)" marker-end="url(#arr-slide5)" />
+            <line x1="10" y1="363" x2="40" y2="363" stroke="var(--col-blue)" stroke-width="0.5" />
+            <text x="25" y="388">W</text>
+            <line x1="-20" y1="385" x2="15" y2="385" stroke="var(--text)" marker-end="url(#arr-slide5)" />
+            <line x1="10" y1="378" x2="40" y2="378" stroke="var(--col-blue)" stroke-width="0.5" />
+            <text x="25" y="403">N</text>
+            <line x1="-20" y1="400" x2="15" y2="400" stroke="var(--text)" marker-end="url(#arr-slide5)" />
+            <line x1="10" y1="393" x2="40" y2="393" stroke="var(--col-blue)" stroke-width="0.5" />
+            <text x="25" y="418">S</text>
+            <line x1="-20" y1="415" x2="15" y2="415" stroke="var(--text)" marker-end="url(#arr-slide5)" />
+            <line x1="10" y1="408" x2="40" y2="408" stroke="var(--col-blue)" stroke-width="0.5" />
+            <text x="25" y="433">L0</text>
+            <line x1="-20" y1="430" x2="15" y2="430" stroke="var(--text)" marker-end="url(#arr-slide5)" />
+            <line x1="10" y1="423" x2="40" y2="423" stroke="var(--col-blue)" stroke-width="0.5" />
+            <text x="25" y="448">L1</text>
+            <line x1="-20" y1="445" x2="15" y2="445" stroke="var(--text)" marker-end="url(#arr-slide5)" />
+            <line x1="10" y1="438" x2="40" y2="438" stroke="var(--col-blue)" stroke-width="0.5" />
+          </g>
         </g>
-      </g>
-
-      <!-- Corner Layout (Top-Left) -->
-      <g id="layout-corner" style="display:none;">
-        <text class="svg-title-txt" x="470" y="55" font-size="16" text-anchor="middle">Top-Left Corner Router (4 Local, 2 Directional)</text>
-        <g transform="translate(470, 275) scale(0.82) translate(-470, -260)">
-          <use href="#center-router"/>
-          <use href="#node-south"/> <use href="#links-south"/>
-          <use href="#node-east"/> <use href="#links-east"/>
-          <use href="#node-local-tr"/>
-          <use href="#node-local-bl"/>
-          <use href="#node-local-tl"/>
-          <use href="#node-local-br"/>
+        <path class="sg5-item sg5-input-port sg5-bw" d="M 130 265 L 190 150" stroke="var(--text)" stroke-width="1"
+          stroke-dasharray="4 2" />
+        <path class="sg5-item sg5-input-port sg5-bw" d="M 130 375 L 190 410" stroke="var(--text)" stroke-width="1"
+          stroke-dasharray="4 2" />
+        <g class="sg5-item sg5-vc-state" transform="translate(170, 20)">
+          <rect x="0" y="0" width="140" height="80" fill="rgba(168,85,247,0.15)" stroke="var(--col-purple)"
+            stroke-width="2" />
+          <text x="70" y="35" font-size="10" font-weight="800" fill="var(--text)" text-anchor="middle">VC STATE
+            MACHINE</text>
+          <text x="70" y="50" font-size="10" font-weight="800" fill="var(--text)" text-anchor="middle">and</text>
+          <text x="70" y="65" font-size="10" font-weight="800" fill="var(--text)" text-anchor="middle">CONTROL
+            UNIT</text>
         </g>
-      </g>
-    </svg>
-  </div>
-
-  <!-- ── VIEW 3: BUFFERS & CREDIT FLOW CONTROL ── -->
-  <div id="view-buffers" class="canvas-view">
-    <svg id="slide3-svg" class="hw-svg" viewBox="0 0 1000 520" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <marker id="arr-solid" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
-          <path d="M 0 0 L 8 4 L 0 8 Z" fill="var(--text)"/>
-        </marker>
-        <marker id="arr-dotted" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
-          <path d="M 0 0 L 8 4 L 0 8 Z" fill="var(--text)"/>
-        </marker>
-        <marker id="arr-cyan" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M 0 0 L 8 4 L 0 8 Z" fill="var(--col-cyan)"/></marker>
-        <marker id="arr-blue" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M 0 0 L 8 4 L 0 8 Z" fill="var(--col-blue)"/></marker>
-        <marker id="arr-pink" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M 0 0 L 8 4 L 0 8 Z" fill="var(--col-pink)"/></marker>
-        <marker id="arr-green" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M 0 0 L 8 4 L 0 8 Z" fill="var(--col-green)"/></marker>
-      </defs>
-
-      <rect class="box-card active bg-clicker" x="30" y="20" width="940" height="480" rx="14" onclick="App.setSlide3Topic(null)" style="cursor:pointer;"/>
-
-      <text class="svg-title-txt" x="500" y="55" font-size="16" pointer-events="none">Single-Port Buffer Organization &amp; CHI Channel Sizing</text>
-      <text class="svg-sub-txt" x="500" y="76" pointer-events="none">Dedicated Virtual Channels &amp; Credit-Based Flow Control Sizing</text>
-
-      <g transform="translate(350, 110)" pointer-events="none">
-        <!-- Vertical Port Interface Line -->
-        <line x1="-30" y1="-10" x2="-30" y2="380" stroke="var(--text)" stroke-width="2"/>
-
-        <!-- ================= REQ Channel ================= -->
-        <g transform="translate(0, 0)">
-          <!-- Incoming/Outgoing Links -->
-          <text class="sg-flit-link" x="-40" y="22" font-size="12" fill="var(--text)" text-anchor="end" font-weight="600">162 bits</text>
-          <line class="sg-flit-link" x1="-120" y1="27" x2="-35" y2="27" stroke="var(--text)" stroke-width="1.5" marker-end="url(#arr-solid)"/>
-          
-          <text class="sg-credit-line" x="-40" y="47" font-size="12" fill="var(--text)" text-anchor="end" font-weight="600">n-bits</text>
-          <line class="sg-credit-line" x1="-35" y1="42" x2="-120" y2="42" stroke="var(--text)" stroke-dasharray="4 3" stroke-width="1.5" marker-end="url(#arr-dotted)"/>
-          
-          <line class="sg-flit-link" x1="-35" y1="62" x2="-120" y2="62" stroke="var(--text)" stroke-width="1.5" marker-end="url(#arr-solid)"/>
-          <line class="sg-credit-line" x1="-120" y1="77" x2="-35" y2="77" stroke="var(--text)" stroke-dasharray="4 3" stroke-width="1.5" marker-end="url(#arr-dotted)"/>
-
-          <!-- Width Indicator -->
-          <line class="sg-flit-link" x1="0" y1="-8" x2="200" y2="-8" stroke="var(--col-cyan)" stroke-width="1.5" marker-start="url(#arr-cyan)" marker-end="url(#arr-cyan)"/>
-          <rect class="sg-flit-link" x="65" y="-18" width="70" height="20" fill="var(--s2)"/>
-          <text class="sg-flit-link" x="100" y="-4" font-size="13" fill="var(--col-cyan)" text-anchor="middle" font-weight="700">162 bits</text>
-
-          <!-- VC Block -->
-          <rect class="sg-vc-block" x="0" y="0" width="200" height="85" fill="rgba(6,182,212,0.15)" stroke="var(--col-cyan)" stroke-width="2"/>
-          <line class="sg-vc-block" x1="0" y1="21.25" x2="200" y2="21.25" stroke="var(--col-cyan)" stroke-width="1"/>
-          <line class="sg-vc-block" x1="0" y1="42.5" x2="200" y2="42.5" stroke="var(--col-cyan)" stroke-width="1"/>
-          <line class="sg-vc-block" x1="0" y1="63.75" x2="200" y2="63.75" stroke="var(--col-cyan)" stroke-width="1"/>
-          <line class="sg-vc-block" x1="100" y1="46" x2="100" y2="60" stroke="var(--col-cyan)" stroke-width="2" stroke-dasharray="3 3"/>
-
-          <!-- VC Labels -->
-          <text class="sg-vc-block" x="210" y="15" font-size="12" fill="var(--text)" font-weight="700" dominant-baseline="middle">VC1</text>
-          <text class="sg-vc-block" x="210" y="37" font-size="12" fill="var(--text)" font-weight="700" dominant-baseline="middle">VC2</text>
-          <text class="sg-vc-block" x="210" y="78" font-size="12" fill="var(--text)" font-weight="700" dominant-baseline="middle">VCn</text>
-
-          <!-- Channel Label -->
-          <text x="260" y="42.5" font-size="20" fill="var(--col-cyan)" font-weight="800" dominant-baseline="middle">REQ</text>
+        <g class="sg5-item sg5-bw" transform="translate(190, 150)">
+          <rect x="0" y="0" width="100" height="260" fill="rgba(236,72,153,0.15)" stroke="rgba(236,72,153,0.8)"
+            stroke-width="2" />
+          <text x="50" y="20" font-size="10" font-weight="800" fill="var(--text)" text-anchor="middle">BUFFER
+            WRITE</text>
+          <text x="50" y="35" font-size="10" font-weight="800" fill="var(--text)" text-anchor="middle">(BW)</text>
+          <text x="85" y="65" font-size="10" font-weight="800" fill="var(--text)">E</text>
+          <rect x="10" y="40" width="60" height="12" fill="transparent" stroke="var(--b2)" />
+          <text x="40" y="49" font-size="8" fill="var(--text)" text-anchor="middle">VC0</text>
+          <rect x="10" y="52" width="60" height="12" fill="transparent" stroke="var(--b2)" />
+          <text x="40" y="61" font-size="8" fill="var(--text)" text-anchor="middle">VC1</text>
+          <rect x="10" y="64" width="60" height="12" fill="transparent" stroke="var(--b2)" />
+          <text x="40" y="73" font-size="8" fill="var(--text)" text-anchor="middle">VC2</text>
+          <rect x="10" y="76" width="60" height="12" fill="transparent" stroke="var(--b2)" />
+          <text x="40" y="85" font-size="8" fill="var(--text)" text-anchor="middle">VC3</text>
+          <text x="85" y="135" font-size="10" font-weight="800" fill="var(--text)">W</text>
+          <rect x="10" y="110" width="60" height="12" fill="transparent" stroke="var(--b2)" />
+          <text x="40" y="119" font-size="8" fill="var(--text)" text-anchor="middle">VC0</text>
+          <rect x="10" y="122" width="60" height="12" fill="transparent" stroke="var(--b2)" />
+          <text x="40" y="131" font-size="8" fill="var(--text)" text-anchor="middle">VC1</text>
+          <rect x="10" y="134" width="60" height="12" fill="transparent" stroke="var(--b2)" />
+          <text x="40" y="143" font-size="8" fill="var(--text)" text-anchor="middle">VC2</text>
+          <rect x="10" y="146" width="60" height="12" fill="transparent" stroke="var(--b2)" />
+          <text x="40" y="155" font-size="8" fill="var(--text)" text-anchor="middle">VC3</text>
+          <text x="85" y="220" font-size="10" font-weight="800" fill="var(--text)">L1</text>
+          <rect x="10" y="195" width="60" height="12" fill="transparent" stroke="var(--b2)" />
+          <text x="40" y="204" font-size="8" fill="var(--text)" text-anchor="middle">VC0</text>
+          <rect x="10" y="207" width="60" height="12" fill="transparent" stroke="var(--b2)" />
+          <text x="40" y="216" font-size="8" fill="var(--text)" text-anchor="middle">VC1</text>
+          <rect x="10" y="219" width="60" height="12" fill="transparent" stroke="var(--b2)" />
+          <text x="40" y="228" font-size="8" fill="var(--text)" text-anchor="middle">VC2</text>
+          <rect x="10" y="231" width="60" height="12" fill="transparent" stroke="var(--b2)" />
+          <text x="40" y="240" font-size="8" fill="var(--text)" text-anchor="middle">VC3</text>
+          <line x1="40" y1="170" x2="40" y2="185" stroke="var(--text)" stroke-dasharray="2 2" />
         </g>
-
-        <!-- ================= DAT Channel ================= -->
-        <g transform="translate(0, 100)">
-          <!-- Incoming/Outgoing Links -->
-          <text class="sg-flit-link" x="-40" y="22" font-size="12" fill="var(--text)" text-anchor="end" font-weight="600">756 bits</text>
-          <line class="sg-flit-link" x1="-120" y1="27" x2="-35" y2="27" stroke="var(--text)" stroke-width="1.5" marker-end="url(#arr-solid)"/>
-          
-          <text class="sg-credit-line" x="-40" y="47" font-size="12" fill="var(--text)" text-anchor="end" font-weight="600">n-bits</text>
-          <line class="sg-credit-line" x1="-35" y1="42" x2="-120" y2="42" stroke="var(--text)" stroke-dasharray="4 3" stroke-width="1.5" marker-end="url(#arr-dotted)"/>
-          
-          <line class="sg-flit-link" x1="-35" y1="62" x2="-120" y2="62" stroke="var(--text)" stroke-width="1.5" marker-end="url(#arr-solid)"/>
-          <line class="sg-credit-line" x1="-120" y1="77" x2="-35" y2="77" stroke="var(--text)" stroke-dasharray="4 3" stroke-width="1.5" marker-end="url(#arr-dotted)"/>
-
-          <!-- Width Indicator -->
-          <line class="sg-flit-link" x1="0" y1="-8" x2="200" y2="-8" stroke="var(--col-blue)" stroke-width="1.5" marker-start="url(#arr-blue)" marker-end="url(#arr-blue)"/>
-          <rect class="sg-flit-link" x="65" y="-18" width="70" height="20" fill="var(--s2)"/>
-          <text class="sg-flit-link" x="100" y="-4" font-size="13" fill="var(--col-blue)" text-anchor="middle" font-weight="700">756 bits</text>
-
-          <!-- VC Block -->
-          <rect class="sg-vc-block" x="0" y="0" width="200" height="85" fill="rgba(59,130,246,0.15)" stroke="var(--col-blue)" stroke-width="2"/>
-          <line class="sg-vc-block" x1="0" y1="21.25" x2="200" y2="21.25" stroke="var(--col-blue)" stroke-width="1"/>
-          <line class="sg-vc-block" x1="0" y1="42.5" x2="200" y2="42.5" stroke="var(--col-blue)" stroke-width="1"/>
-          <line class="sg-vc-block" x1="0" y1="63.75" x2="200" y2="63.75" stroke="var(--col-blue)" stroke-width="1"/>
-          <line class="sg-vc-block" x1="100" y1="46" x2="100" y2="60" stroke="var(--col-blue)" stroke-width="2" stroke-dasharray="3 3"/>
-
-          <!-- VC Labels -->
-          <text class="sg-vc-block" x="210" y="15" font-size="12" fill="var(--text)" font-weight="700" dominant-baseline="middle">VC1</text>
-          <text class="sg-vc-block" x="210" y="37" font-size="12" fill="var(--text)" font-weight="700" dominant-baseline="middle">VC2</text>
-          <text class="sg-vc-block" x="210" y="78" font-size="12" fill="var(--text)" font-weight="700" dominant-baseline="middle">VCn</text>
-
-          <!-- Channel Label -->
-          <text x="260" y="42.5" font-size="20" fill="var(--col-blue)" font-weight="800" dominant-baseline="middle">DAT</text>
+        <g class="sg5-item sg5-flow-ctrl" transform="translate(350, 410)">
+          <rect x="0" y="0" width="160" height="90" fill="rgba(99,102,241,0.15)" stroke="var(--col-blue)"
+            stroke-width="2" />
+          <text x="80" y="15" font-size="10" font-weight="800" fill="var(--text)" text-anchor="middle">FLOW CONTROL
+            UNIT</text>
+          <rect x="25" y="25" width="80" height="40" fill="var(--s1)" stroke="var(--b1)" />
+          <text x="65" y="35" font-size="7" font-weight="700" fill="var(--text)" text-anchor="middle">CREDIT
+            MANAGER</text>
+          <text x="65" y="47" font-size="7" font-weight="700" fill="var(--text)" text-anchor="middle">CREDIT</text>
+          <text x="65" y="55" font-size="7" font-weight="700" fill="var(--text)" text-anchor="middle">COUNTER</text>
+          <circle cx="120" cy="45" r="7" fill="transparent" stroke="var(--text)" />
+          <text x="120" y="48" font-size="10" text-anchor="middle">-</text>
+          <text x="120" y="30" font-size="6" text-anchor="middle">DECREMENT</text>
+          <circle cx="65" cy="75" r="7" fill="transparent" stroke="var(--text)" />
+          <text x="65" y="78" font-size="10" text-anchor="middle">+</text>
+          <text x="65" y="87" font-size="6" text-anchor="middle">INCREMENT</text>
         </g>
-
-        <!-- ================= SNP Channel ================= -->
-        <g transform="translate(0, 200)">
-          <!-- Incoming/Outgoing Links -->
-          <text class="sg-flit-link" x="-40" y="22" font-size="12" fill="var(--text)" text-anchor="end" font-weight="600">126 bits</text>
-          <line class="sg-flit-link" x1="-120" y1="27" x2="-35" y2="27" stroke="var(--text)" stroke-width="1.5" marker-end="url(#arr-solid)"/>
-          
-          <text class="sg-credit-line" x="-40" y="47" font-size="12" fill="var(--text)" text-anchor="end" font-weight="600">n-bits</text>
-          <line class="sg-credit-line" x1="-35" y1="42" x2="-120" y2="42" stroke="var(--text)" stroke-dasharray="4 3" stroke-width="1.5" marker-end="url(#arr-dotted)"/>
-          
-          <line class="sg-flit-link" x1="-35" y1="62" x2="-120" y2="62" stroke="var(--text)" stroke-width="1.5" marker-end="url(#arr-solid)"/>
-          <line class="sg-credit-line" x1="-120" y1="77" x2="-35" y2="77" stroke="var(--text)" stroke-dasharray="4 3" stroke-width="1.5" marker-end="url(#arr-dotted)"/>
-
-          <!-- Width Indicator -->
-          <line class="sg-flit-link" x1="0" y1="-8" x2="200" y2="-8" stroke="var(--col-pink)" stroke-width="1.5" marker-start="url(#arr-pink)" marker-end="url(#arr-pink)"/>
-          <rect class="sg-flit-link" x="65" y="-18" width="70" height="20" fill="var(--s2)"/>
-          <text class="sg-flit-link" x="100" y="-4" font-size="13" fill="var(--col-pink)" text-anchor="middle" font-weight="700">126 bits</text>
-
-          <!-- VC Block -->
-          <rect class="sg-vc-block" x="0" y="0" width="200" height="85" fill="rgba(236,72,153,0.15)" stroke="var(--col-pink)" stroke-width="2"/>
-          <line class="sg-vc-block" x1="0" y1="21.25" x2="200" y2="21.25" stroke="var(--col-pink)" stroke-width="1"/>
-          <line class="sg-vc-block" x1="0" y1="42.5" x2="200" y2="42.5" stroke="var(--col-pink)" stroke-width="1"/>
-          <line class="sg-vc-block" x1="0" y1="63.75" x2="200" y2="63.75" stroke="var(--col-pink)" stroke-width="1"/>
-          <line class="sg-vc-block" x1="100" y1="46" x2="100" y2="60" stroke="var(--col-pink)" stroke-width="2" stroke-dasharray="3 3"/>
-
-          <!-- VC Labels -->
-          <text class="sg-vc-block" x="210" y="15" font-size="12" fill="var(--text)" font-weight="700" dominant-baseline="middle">VC1</text>
-          <text class="sg-vc-block" x="210" y="37" font-size="12" fill="var(--text)" font-weight="700" dominant-baseline="middle">VC2</text>
-          <text class="sg-vc-block" x="210" y="78" font-size="12" fill="var(--text)" font-weight="700" dominant-baseline="middle">VCn</text>
-
-          <!-- Channel Label -->
-          <text x="260" y="42.5" font-size="20" fill="var(--col-pink)" font-weight="800" dominant-baseline="middle">SNP</text>
+        <g transform="translate(370, 40)">
+          <g class="sg5-item sg5-rc" transform="translate(0, 10)">
+            <rect x="-20" y="20" width="130" height="110" fill="rgba(236,72,153,0.05)" stroke="rgba(236,72,153,0.4)"
+              stroke-width="2" />
+            <rect x="-16" y="16" width="130" height="110" fill="rgba(236,72,153,0.05)" stroke="rgba(236,72,153,0.4)"
+              stroke-width="2" />
+            <rect x="-12" y="12" width="130" height="110" fill="rgba(236,72,153,0.05)" stroke="rgba(236,72,153,0.4)"
+              stroke-width="2" />
+            <rect x="-8" y="8" width="130" height="110" fill="rgba(236,72,153,0.05)" stroke="rgba(236,72,153,0.4)"
+              stroke-width="2" />
+            <rect x="-4" y="4" width="130" height="110" fill="rgba(236,72,153,0.05)" stroke="rgba(236,72,153,0.4)"
+              stroke-width="2" />
+            <rect x="0" y="0" width="130" height="110" fill="rgba(236,72,153,0.15)" stroke="rgba(236,72,153,0.8)"
+              stroke-width="2" />
+            <text x="65" y="15" font-size="9" font-weight="800" fill="var(--text)" text-anchor="middle">ROUTE
+              COMPUTATION</text>
+            <text x="65" y="27" font-size="9" font-weight="800" fill="var(--text)" text-anchor="middle">(RC)</text>
+            <rect x="20" y="40" width="90" height="60" fill="var(--s1)" stroke="rgba(236,72,153,0.8)" />
+            <text x="65" y="50" font-size="8" font-weight="800" fill="var(--text)" text-anchor="middle">XY
+              ROUTING</text>
+            <text x="33" y="70" font-size="6" font-weight="700" fill="var(--text)" text-anchor="middle"
+              transform="rotate(-90 33 70)">CURR LOC</text>
+            <text x="97" y="70" font-size="6" font-weight="700" fill="var(--text)" text-anchor="middle"
+              transform="rotate(-90 97 70)">DEST LOC</text>
+            <g class="rc-compass" stroke="var(--col-blue)" fill="var(--col-blue)">
+              <line x1="65" y1="61" x2="65" y2="71" stroke-width="1" />
+              <line x1="60" y1="66" x2="70" y2="66" stroke-width="1" />
+              <text x="65" y="59" font-size="6" font-weight="800" text-anchor="middle" stroke="none">N</text>
+              <text x="65" y="76" font-size="6" font-weight="800" text-anchor="middle" stroke="none">S</text>
+              <text x="72" y="69" font-size="6" font-weight="800" text-anchor="start" stroke="none">E</text>
+              <text x="58" y="69" font-size="6" font-weight="800" text-anchor="end" stroke="none">W</text>
+            </g>
+            <text x="65" y="85" font-size="7" font-weight="700" fill="var(--text)" text-anchor="middle">X COMPARE</text>
+            <text x="65" y="95" font-size="7" font-weight="700" fill="var(--text)" text-anchor="middle">Y COMPARE</text>
+          </g>
+          <g class="sg5-item sg5-va" transform="translate(130, 10)">
+            <rect x="0" y="0" width="110" height="110" fill="rgba(236,72,153,0.15)" stroke="rgba(236,72,153,0.8)"
+              stroke-width="2" />
+            <text x="55" y="15" font-size="9" font-weight="800" fill="var(--text)" text-anchor="middle">VC
+              ALLOCATOR</text>
+            <text x="55" y="27" font-size="9" font-weight="800" fill="var(--text)" text-anchor="middle">(VA)</text>
+            <rect x="15" y="40" width="30" height="25" fill="var(--s1)" stroke="var(--b1)" />
+            <text x="30" y="52" font-size="7" font-weight="700" fill="var(--text)" text-anchor="middle">VCs</text>
+            <text x="30" y="60" font-size="7" font-weight="700" fill="var(--text)" text-anchor="middle">REQ</text>
+            <rect x="10" y="75" width="45" height="25" fill="var(--s1)" stroke="var(--b1)" />
+            <text x="32" y="85" font-size="6" fill="var(--text)" text-anchor="middle">SEPARABLE</text>
+            <text x="32" y="93" font-size="6" fill="var(--text)" text-anchor="middle">ALLOCATOR</text>
+            <rect x="70" y="75" width="35" height="25" fill="var(--s1)" stroke="var(--b1)" />
+            <text x="87" y="85" font-size="6" fill="var(--text)" text-anchor="middle">GRANT</text>
+            <text x="87" y="93" font-size="6" fill="var(--text)" text-anchor="middle">SIGNALS</text>
+            <line x1="55" y1="87" x2="65" y2="87" stroke="var(--text)" marker-end="url(#arr-slide5)" />
+            <line x1="30" y1="65" x2="30" y2="72" stroke="var(--text)" marker-end="url(#arr-slide5)" />
+          </g>
+          <g class="sg5-item sg5-sa" transform="translate(240, 10)">
+            <rect x="0" y="0" width="110" height="110" fill="rgba(236,72,153,0.15)" stroke="rgba(236,72,153,0.8)"
+              stroke-width="2" />
+            <text x="55" y="15" font-size="9" font-weight="800" fill="var(--text)" text-anchor="middle">SWITCH
+              ALLOCATION</text>
+            <text x="55" y="27" font-size="9" font-weight="800" fill="var(--text)" text-anchor="middle">(SA)</text>
+            <rect x="15" y="40" width="30" height="25" fill="var(--s1)" stroke="var(--b1)" />
+            <text x="30" y="52" font-size="7" font-weight="700" fill="var(--text)" text-anchor="middle">PORTs</text>
+            <text x="30" y="60" font-size="7" font-weight="700" fill="var(--text)" text-anchor="middle">REQ</text>
+            <rect x="10" y="75" width="45" height="25" fill="var(--s1)" stroke="var(--b1)" />
+            <text x="32" y="85" font-size="6" fill="var(--text)" text-anchor="middle">SEPARABLE</text>
+            <text x="32" y="93" font-size="6" fill="var(--text)" text-anchor="middle">ALLOCATOR</text>
+            <rect x="70" y="75" width="35" height="25" fill="var(--s1)" stroke="var(--b1)" />
+            <text x="87" y="85" font-size="6" fill="var(--text)" text-anchor="middle">GRANT</text>
+            <text x="87" y="93" font-size="6" fill="var(--text)" text-anchor="middle">SIGNALS</text>
+            <line x1="55" y1="87" x2="65" y2="87" stroke="var(--text)" marker-end="url(#arr-slide5)" />
+            <line x1="30" y1="65" x2="30" y2="72" stroke="var(--text)" marker-end="url(#arr-slide5)" />
+          </g>
         </g>
-
-        <!-- ================= RSP Channel ================= -->
-        <g transform="translate(0, 300)">
-          <!-- Incoming/Outgoing Links -->
-          <text class="sg-flit-link" x="-40" y="22" font-size="12" fill="var(--text)" text-anchor="end" font-weight="600">73 bits</text>
-          <line class="sg-flit-link" x1="-120" y1="27" x2="-35" y2="27" stroke="var(--text)" stroke-width="1.5" marker-end="url(#arr-solid)"/>
-          
-          <text class="sg-credit-line" x="-40" y="47" font-size="12" fill="var(--text)" text-anchor="end" font-weight="600">n-bits</text>
-          <line class="sg-credit-line" x1="-35" y1="42" x2="-120" y2="42" stroke="var(--text)" stroke-dasharray="4 3" stroke-width="1.5" marker-end="url(#arr-dotted)"/>
-          
-          <line class="sg-flit-link" x1="-35" y1="62" x2="-120" y2="62" stroke="var(--text)" stroke-width="1.5" marker-end="url(#arr-solid)"/>
-          <line class="sg-credit-line" x1="-120" y1="77" x2="-35" y2="77" stroke="var(--text)" stroke-dasharray="4 3" stroke-width="1.5" marker-end="url(#arr-dotted)"/>
-
-          <!-- Width Indicator -->
-          <line class="sg-flit-link" x1="0" y1="-8" x2="200" y2="-8" stroke="var(--col-green)" stroke-width="1.5" marker-start="url(#arr-green)" marker-end="url(#arr-green)"/>
-          <rect class="sg-flit-link" x="65" y="-18" width="70" height="20" fill="var(--s2)"/>
-          <text class="sg-flit-link" x="100" y="-4" font-size="13" fill="var(--col-green)" text-anchor="middle" font-weight="700">73 bits</text>
-
-          <!-- VC Block -->
-          <rect class="sg-vc-block" x="0" y="0" width="200" height="85" fill="rgba(34,197,94,0.15)" stroke="var(--col-green)" stroke-width="2"/>
-          <line class="sg-vc-block" x1="0" y1="21.25" x2="200" y2="21.25" stroke="var(--col-green)" stroke-width="1"/>
-          <line class="sg-vc-block" x1="0" y1="42.5" x2="200" y2="42.5" stroke="var(--col-green)" stroke-width="1"/>
-          <line class="sg-vc-block" x1="0" y1="63.75" x2="200" y2="63.75" stroke="var(--col-green)" stroke-width="1"/>
-          <line class="sg-vc-block" x1="100" y1="46" x2="100" y2="60" stroke="var(--col-green)" stroke-width="2" stroke-dasharray="3 3"/>
-
-          <!-- VC Labels -->
-          <text class="sg-vc-block" x="210" y="15" font-size="12" fill="var(--text)" font-weight="700" dominant-baseline="middle">VC1</text>
-          <text class="sg-vc-block" x="210" y="37" font-size="12" fill="var(--text)" font-weight="700" dominant-baseline="middle">VC2</text>
-          <text class="sg-vc-block" x="210" y="78" font-size="12" fill="var(--text)" font-weight="700" dominant-baseline="middle">VCn</text>
-
-          <!-- Channel Label -->
-          <text x="260" y="42.5" font-size="20" fill="var(--col-green)" font-weight="800" dominant-baseline="middle">RSP</text>
+        <g class="sg5-item sg5-st-box" transform="translate(630, 180)">
+          <rect x="0" y="0" width="160" height="230" fill="rgba(236,72,153,0.15)" stroke="rgba(236,72,153,0.8)"
+            stroke-width="2" />
+          <text x="80" y="20" font-size="10" font-weight="800" fill="var(--text)" text-anchor="middle">SWITCH
+            TRAVERSAL</text>
+          <text x="80" y="35" font-size="10" font-weight="800" fill="var(--text)" text-anchor="middle">(ST)</text>
+          <line x1="30" y1="60" x2="60" y2="60" stroke="var(--text)" />
+          <line x1="130" y1="60" x2="100" y2="60" stroke="var(--text)" />
+          <line x1="30" y1="180" x2="60" y2="180" stroke="var(--text)" />
+          <line x1="130" y1="180" x2="100" y2="180" stroke="var(--text)" />
+          <line x1="60" y1="60" x2="100" y2="180" stroke="var(--text)" />
+          <line x1="60" y1="180" x2="100" y2="60" stroke="var(--text)" />
+          <text x="45" y="115" font-size="12" font-weight="700" fill="var(--col-purple)"
+            text-anchor="middle">INPUT</text>
+          <text x="45" y="130" font-size="12" font-weight="700" fill="var(--col-purple)"
+            text-anchor="middle">PORT</text>
+          <text x="115" y="115" font-size="12" font-weight="700" fill="var(--col-purple)"
+            text-anchor="middle">OUTPUT</text>
+          <text x="115" y="130" font-size="12" font-weight="700" fill="var(--col-purple)"
+            text-anchor="middle">PORT</text>
+          <text x="80" y="210" font-size="10" font-weight="800" fill="var(--text)" text-anchor="middle">CROSSBAR</text>
+          <text x="80" y="222" font-size="9" font-weight="800" fill="var(--text)" text-anchor="middle">6x6</text>
         </g>
-      </g>
-    </svg>
-  </div>
-
-  <!-- ── VIEW 4: HARDWARE DATA PATH & PIPELINE ── -->
-  <div id="view-datapath" class="canvas-view">
-    <svg id="slide4-svg" class="hw-svg" viewBox="0 0 1000 520" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <marker id="arr-black" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M 0 0 L 8 4 L 0 8 Z" fill="var(--text)"/></marker>
-      </defs>
-      
-      <rect class="box-card active bg-clicker" x="30" y="20" width="940" height="480" rx="14" onclick="App.setSlide4Topic(null)" style="cursor:pointer;"/>
-
-      <!-- Column Headers -->
-      <text x="370" y="55" font-size="14" font-weight="800" fill="var(--text)" text-anchor="middle" pointer-events="none">DATA PATH</text>
-      <text x="730" y="55" font-size="14" font-weight="800" fill="var(--text)" text-anchor="middle" pointer-events="none">CONTROL PATH</text>
-      
-      <!-- DATA PATH COLUMN -->
-      <g transform="translate(220, 75)" pointer-events="none">
-        <!-- 0 Input Link -->
-        <g class="sg4-dp-links sg4-fc">
-          <rect x="0" y="0" width="300" height="32" rx="6" fill="rgba(37,99,235,0.15)" stroke="var(--col-blue)" stroke-width="2"/>
-          <text x="150" y="16" font-size="12" font-weight="700" fill="var(--text)" text-anchor="middle" dominant-baseline="middle">Input Link (Flit width + ctrl)</text>
-          <line x1="150" y1="32" x2="150" y2="45" stroke="var(--text)" stroke-width="1.5" marker-end="url(#arr-black)"/>
+        <g class="sg5-item sg5-st-links-in">
+          <text x="450" y="200" font-size="10" font-weight="800" fill="var(--text)" text-anchor="middle">FLIT DATA (126
+            bits) AFTER</text>
+          <text x="450" y="215" font-size="10" font-weight="800" fill="var(--text)" text-anchor="middle">ST READ</text>
+          <path d="M 290 220 L 610 220 L 610 215 L 625 225 L 610 235 L 610 230 L 290 230 Z" fill="rgba(236,72,153,0.3)"
+            stroke="rgba(236,72,153,0.8)" stroke-width="1.5" />
+          <path d="M 290 290 L 610 290 L 610 285 L 625 295 L 610 305 L 610 300 L 290 300 Z" fill="rgba(236,72,153,0.3)"
+            stroke="rgba(236,72,153,0.8)" stroke-width="1.5" />
+          <path d="M 290 380 L 610 380 L 610 375 L 625 385 L 610 395 L 610 390 L 290 390 Z" fill="rgba(236,72,153,0.3)"
+            stroke="rgba(236,72,153,0.8)" stroke-width="1.5" />
+          <line x1="450" y1="315" x2="450" y2="350" stroke="var(--text)" stroke-dasharray="2 2" />
         </g>
-        
-        <!-- 1 Input Interface -->
-        <g class="sg4-dp-input sg4-fc" transform="translate(0, 45)">
-          <rect x="0" y="0" width="300" height="32" rx="6" fill="var(--s2)" stroke="var(--b2)" stroke-width="2"/>
-          <text x="150" y="16" font-size="12" font-weight="700" fill="var(--text)" text-anchor="middle" dominant-baseline="middle">Input Interface</text>
-          <line x1="150" y1="32" x2="150" y2="45" stroke="var(--text)" stroke-width="1.5" marker-end="url(#arr-black)"/>
+        <g class="sg5-item sg5-st-links-out">
+          <line x1="790" y1="200" x2="850" y2="200" stroke="var(--text)" stroke-width="1.5"
+            marker-end="url(#arr-slide5)" />
+          <text x="860" y="204" font-size="11" font-weight="700" fill="var(--text)">E</text>
+          <line x1="790" y1="240" x2="850" y2="240" stroke="var(--text)" stroke-width="1.5"
+            marker-end="url(#arr-slide5)" />
+          <text x="860" y="244" font-size="11" font-weight="700" fill="var(--text)">W</text>
+          <line x1="790" y1="280" x2="850" y2="280" stroke="var(--text)" stroke-width="1.5"
+            marker-end="url(#arr-slide5)" />
+          <text x="860" y="284" font-size="11" font-weight="700" fill="var(--text)">N</text>
+          <line x1="790" y1="320" x2="850" y2="320" stroke="var(--text)" stroke-width="1.5"
+            marker-end="url(#arr-slide5)" />
+          <text x="860" y="324" font-size="11" font-weight="700" fill="var(--text)">S</text>
+          <line x1="790" y1="360" x2="850" y2="360" stroke="var(--text)" stroke-width="1.5"
+            marker-end="url(#arr-slide5)" />
+          <text x="860" y="364" font-size="11" font-weight="700" fill="var(--text)">L0</text>
+          <line x1="790" y1="400" x2="850" y2="400" stroke="var(--text)" stroke-width="1.5"
+            marker-end="url(#arr-slide5)" />
+          <text x="860" y="404" font-size="11" font-weight="700" fill="var(--text)">L1</text>
         </g>
-        
-        <!-- 2 Buffer Write (BW) -->
-        <g class="sg4-dp-pipe sg4-dp-input sg4-fc" transform="translate(0, 90)">
-          <rect x="0" y="0" width="300" height="32" rx="6" fill="rgba(34,197,94,0.15)" stroke="var(--col-green)" stroke-width="2"/>
-          <text x="150" y="16" font-size="12" font-weight="700" fill="var(--text)" text-anchor="middle" dominant-baseline="middle">Buffer Write (BW)</text>
-          <text x="-10" y="18" font-size="10" font-weight="700" fill="#991b1b" text-anchor="end">Incoming FLIT (REQ, DAT, SNP</text>
-          <text x="-10" y="30" font-size="10" font-weight="700" fill="#991b1b" text-anchor="end">and RSP) enters input VC</text>
-          <line x1="150" y1="32" x2="150" y2="45" stroke="var(--text)" stroke-width="1.5" marker-end="url(#arr-black)"/>
-        </g>
-        
-        <!-- 3 Route Computation (RC) -->
-        <g class="sg4-dp-pipe sg4-fc" transform="translate(0, 135)">
-          <rect x="0" y="0" width="300" height="32" rx="6" fill="rgba(234,88,12,0.15)" stroke="var(--col-orange)" stroke-width="2"/>
-          <text x="150" y="16" font-size="12" font-weight="700" fill="var(--text)" text-anchor="middle" dominant-baseline="middle">Route Computation (RC) - XY Routing</text>
-          <text x="-10" y="22" font-size="10" font-weight="700" fill="#991b1b" text-anchor="end">FLIT selects output port</text>
-          <line x1="150" y1="32" x2="150" y2="45" stroke="var(--text)" stroke-width="1.5" marker-end="url(#arr-black)"/>
-        </g>
-        
-        <!-- 4 VC Allocation (VA) -->
-        <g class="sg4-dp-pipe sg4-fc" transform="translate(0, 180)">
-          <rect x="0" y="0" width="300" height="32" rx="6" fill="rgba(37,99,235,0.15)" stroke="var(--col-blue)" stroke-width="2"/>
-          <text x="150" y="16" font-size="12" font-weight="700" fill="var(--text)" text-anchor="middle" dominant-baseline="middle">VC Allocation (VA)</text>
-          <text x="-10" y="18" font-size="10" font-weight="700" fill="#991b1b" text-anchor="end">FLIT reserves downstream</text>
-          <text x="-10" y="30" font-size="10" font-weight="700" fill="#991b1b" text-anchor="end">VC</text>
-          <line x1="150" y1="32" x2="150" y2="45" stroke="var(--text)" stroke-width="1.5" marker-end="url(#arr-black)"/>
-        </g>
-        
-        <!-- 5 Switch Allocation (SA) -->
-        <g class="sg4-dp-pipe sg4-fc" transform="translate(0, 225)">
-          <rect x="0" y="0" width="300" height="32" rx="6" fill="var(--s2)" stroke="var(--b2)" stroke-width="2"/>
-          <text x="150" y="16" font-size="12" font-weight="700" fill="var(--text)" text-anchor="middle" dominant-baseline="middle">Switch Allocation (SA)</text>
-          <text x="-10" y="18" font-size="10" font-weight="700" fill="#991b1b" text-anchor="end">Eligible FLITs compete for</text>
-          <text x="-10" y="30" font-size="10" font-weight="700" fill="#991b1b" text-anchor="end">Crossbar</text>
-          <line x1="150" y1="32" x2="150" y2="45" stroke="var(--text)" stroke-width="1.5" marker-end="url(#arr-black)"/>
-        </g>
-        
-        <!-- 6 6x6 Crossbar -->
-        <g class="sg4-dp-pipe sg4-fc" transform="translate(0, 270)">
-          <rect x="0" y="0" width="300" height="32" rx="6" fill="rgba(34,197,94,0.15)" stroke="var(--col-green)" stroke-width="2"/>
-          <text x="150" y="16" font-size="12" font-weight="700" fill="var(--text)" text-anchor="middle" dominant-baseline="middle">6x6 Crossbar (Flit width)</text>
-          <text x="-10" y="18" font-size="10" font-weight="700" fill="#991b1b" text-anchor="end">Winning FLITs cross to</text>
-          <text x="-10" y="30" font-size="10" font-weight="700" fill="#991b1b" text-anchor="end">output link</text>
-          <line x1="150" y1="32" x2="150" y2="45" stroke="var(--text)" stroke-width="1.5" marker-end="url(#arr-black)"/>
-        </g>
-        
-        <!-- 7 Output Registers -->
-        <g class="sg4-dp-pipe sg4-fc" transform="translate(0, 315)">
-          <rect x="0" y="0" width="300" height="32" rx="6" fill="rgba(37,99,235,0.15)" stroke="var(--col-blue)" stroke-width="2"/>
-          <text x="150" y="16" font-size="12" font-weight="700" fill="var(--text)" text-anchor="middle" dominant-baseline="middle">Output Registers</text>
-          <line x1="150" y1="32" x2="150" y2="45" stroke="var(--text)" stroke-width="1.5" marker-end="url(#arr-black)"/>
-        </g>
-        
-        <!-- 8 Output links -->
-        <g class="sg4-dp-links sg4-fc" transform="translate(0, 360)">
-          <rect x="0" y="0" width="300" height="32" rx="6" fill="rgba(34,197,94,0.15)" stroke="var(--col-green)" stroke-width="2"/>
-          <text x="150" y="16" font-size="12" font-weight="700" fill="var(--text)" text-anchor="middle" dominant-baseline="middle">Output links (Flit width + ctrl)</text>
-        </g>
-      </g>
-
-      <!-- CONTROL PATH COLUMN -->
-      <g transform="translate(580, 75)" pointer-events="none">
-        
-        <!-- 0 Credits -->
-        <g class="sg4-cp-col sg4-fc">
-          <rect x="0" y="0" width="300" height="32" rx="6" fill="rgba(234,88,12,0.15)" stroke="var(--col-orange)" stroke-width="2"/>
-          <text x="150" y="16" font-size="12" font-weight="700" fill="var(--text)" text-anchor="middle" dominant-baseline="middle">Credits (Per output VC)</text>
-          <line x1="150" y1="32" x2="150" y2="45" stroke="var(--text)" stroke-width="1.5" marker-end="url(#arr-black)"/>
-        </g>
-        
-        <!-- 1 VC status -->
-        <g class="sg4-cp-col sg4-fc" transform="translate(0, 45)">
-          <rect x="0" y="0" width="300" height="32" rx="6" fill="rgba(37,99,235,0.15)" stroke="var(--col-blue)" stroke-width="2"/>
-          <text x="150" y="16" font-size="12" font-weight="700" fill="var(--text)" text-anchor="middle" dominant-baseline="middle">VC status (Idle/Active)</text>
-          <line x1="150" y1="32" x2="150" y2="45" stroke="var(--text)" stroke-width="1.5" marker-end="url(#arr-black)"/>
-        </g>
-        
-        <!-- 2 Route Computation -->
-        <g class="sg4-cp-col sg4-fc" transform="translate(0, 90)">
-          <rect x="0" y="0" width="300" height="32" rx="6" fill="var(--s2)" stroke="var(--b2)" stroke-width="2"/>
-          <text x="150" y="16" font-size="12" font-weight="700" fill="var(--text)" text-anchor="middle" dominant-baseline="middle">Route Computation - R</text>
-          <line x1="150" y1="32" x2="150" y2="45" stroke="var(--text)" stroke-width="1.5" marker-end="url(#arr-black)"/>
-        </g>
-        
-        <!-- 3 VC allocation - O -->
-        <g class="sg4-cp-col sg4-fc" transform="translate(0, 135)">
-          <rect x="0" y="0" width="300" height="32" rx="6" fill="rgba(34,197,94,0.15)" stroke="var(--col-green)" stroke-width="2"/>
-          <text x="150" y="16" font-size="12" font-weight="700" fill="var(--text)" text-anchor="middle" dominant-baseline="middle">VC allocation - O</text>
-          <line x1="150" y1="32" x2="150" y2="45" stroke="var(--text)" stroke-width="1.5" marker-end="url(#arr-black)"/>
-        </g>
-        
-        <!-- 4 Switch allocation - G -->
-        <g class="sg4-cp-col sg4-fc" transform="translate(0, 180)">
-          <rect x="0" y="0" width="300" height="32" rx="6" fill="rgba(37,99,235,0.15)" stroke="var(--col-blue)" stroke-width="2"/>
-          <text x="150" y="16" font-size="12" font-weight="700" fill="var(--text)" text-anchor="middle" dominant-baseline="middle">Switch allocation - G</text>
-          <line x1="150" y1="32" x2="150" y2="45" stroke="var(--text)" stroke-width="1.5" marker-end="url(#arr-black)"/>
-        </g>
-        
-        <!-- 5 Crossbar Select -->
-        <g class="sg4-cp-col sg4-fc" transform="translate(0, 225)">
-          <rect x="0" y="0" width="300" height="32" rx="6" fill="var(--s2)" stroke="var(--b2)" stroke-width="2"/>
-          <text x="150" y="16" font-size="12" font-weight="700" fill="var(--text)" text-anchor="middle" dominant-baseline="middle">Crossbar Select [3b] x 6</text>
-          <line x1="150" y1="32" x2="150" y2="45" stroke="var(--text)" stroke-width="1.5" marker-end="url(#arr-black)"/>
-        </g>
-        
-        <!-- 6 Credit Generation -->
-        <g class="sg4-cp-col sg4-fc" transform="translate(0, 270)">
-          <rect x="0" y="0" width="300" height="32" rx="6" fill="rgba(234,88,12,0.15)" stroke="var(--col-orange)" stroke-width="2"/>
-          <text x="150" y="16" font-size="12" font-weight="700" fill="var(--text)" text-anchor="middle" dominant-baseline="middle">Credit Generation - upstream router</text>
-        </g>
-      </g>
-    </svg>
-  </div>
-
-  <!-- ── VIEW 5: FUNCTIONAL SCHEMA & ALLOCATORS ── -->
-  <div id="view-allocators" class="canvas-view">
-    <svg id="slide5-svg" class="hw-svg" viewBox="0 0 1000 520" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <marker id="arr-slide5" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M 0 0 L 6 3 L 0 6 Z" fill="var(--text)"/></marker>
-        <marker id="arr-st" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M 0 0 L 6 3 L 0 6 Z" fill="rgba(236,72,153,0.8)"/></marker>
-        <marker id="arr-purple" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M 0 0 L 6 3 L 0 6 Z" fill="var(--col-purple)"/></marker>
-      </defs>
-      <rect class="box-card active bg-clicker" x="10" y="10" width="980" height="500" rx="14" onclick="App.setSlide5Topic(null)" style="cursor:pointer;"/>
-      <g class="sg5-item sg5-input-port" transform="translate(60, 20)">
-        <rect x="0" y="0" width="70" height="460" fill="rgba(56,189,248,0.15)" stroke="var(--col-blue)" stroke-width="2"/>
-        <text x="35" y="18" font-size="11" font-weight="800" fill="var(--text)" text-anchor="middle">INPUT</text>
-        <text x="35" y="30" font-size="11" font-weight="800" fill="var(--text)" text-anchor="middle">PORT</text>
-        <rect x="0" y="40" width="70" height="100" fill="transparent" stroke="var(--col-blue)"/>
-        <text x="55" y="90" font-size="10" font-weight="700" fill="var(--text)" text-anchor="middle" transform="rotate(-90 55 90)">REQ</text>
-        <g font-size="9" fill="var(--text)">
-          <text x="25" y="58">E</text><line x1="-20" y1="55" x2="15" y2="55" stroke="var(--text)" marker-end="url(#arr-slide5)"/>
-          <line x1="10" y1="48" x2="40" y2="48" stroke="var(--col-blue)" stroke-width="0.5"/>
-          <text x="25" y="73">W</text><line x1="-20" y1="70" x2="15" y2="70" stroke="var(--text)" marker-end="url(#arr-slide5)"/>
-          <line x1="10" y1="63" x2="40" y2="63" stroke="var(--col-blue)" stroke-width="0.5"/>
-          <text x="25" y="88">N</text><line x1="-20" y1="85" x2="15" y2="85" stroke="var(--text)" marker-end="url(#arr-slide5)"/>
-          <line x1="10" y1="78" x2="40" y2="78" stroke="var(--col-blue)" stroke-width="0.5"/>
-          <text x="25" y="103">S</text><line x1="-20" y1="100" x2="15" y2="100" stroke="var(--text)" marker-end="url(#arr-slide5)"/>
-          <line x1="10" y1="93" x2="40" y2="93" stroke="var(--col-blue)" stroke-width="0.5"/>
-          <text x="25" y="118">L0</text><line x1="-20" y1="115" x2="15" y2="115" stroke="var(--text)" marker-end="url(#arr-slide5)"/>
-          <line x1="10" y1="108" x2="40" y2="108" stroke="var(--col-blue)" stroke-width="0.5"/>
-          <text x="25" y="133">L1</text><line x1="-20" y1="130" x2="15" y2="130" stroke="var(--text)" marker-end="url(#arr-slide5)"/>
-          <line x1="10" y1="123" x2="40" y2="123" stroke="var(--col-blue)" stroke-width="0.5"/>
-        </g>
-        <rect x="0" y="145" width="70" height="100" fill="transparent" stroke="var(--col-blue)"/>
-        <text x="55" y="195" font-size="10" font-weight="700" fill="var(--text)" text-anchor="middle" transform="rotate(-90 55 195)">DAT</text>
-        <g font-size="9" fill="var(--text)">
-          <text x="25" y="163">E</text><line x1="-20" y1="160" x2="15" y2="160" stroke="var(--text)" marker-end="url(#arr-slide5)"/>
-          <line x1="10" y1="153" x2="40" y2="153" stroke="var(--col-blue)" stroke-width="0.5"/>
-          <text x="25" y="178">W</text><line x1="-20" y1="175" x2="15" y2="175" stroke="var(--text)" marker-end="url(#arr-slide5)"/>
-          <line x1="10" y1="168" x2="40" y2="168" stroke="var(--col-blue)" stroke-width="0.5"/>
-          <text x="25" y="193">N</text><line x1="-20" y1="190" x2="15" y2="190" stroke="var(--text)" marker-end="url(#arr-slide5)"/>
-          <line x1="10" y1="183" x2="40" y2="183" stroke="var(--col-blue)" stroke-width="0.5"/>
-          <text x="25" y="208">S</text><line x1="-20" y1="205" x2="15" y2="205" stroke="var(--text)" marker-end="url(#arr-slide5)"/>
-          <line x1="10" y1="198" x2="40" y2="198" stroke="var(--col-blue)" stroke-width="0.5"/>
-          <text x="25" y="223">L0</text><line x1="-20" y1="220" x2="15" y2="220" stroke="var(--text)" marker-end="url(#arr-slide5)"/>
-          <line x1="10" y1="213" x2="40" y2="213" stroke="var(--col-blue)" stroke-width="0.5"/>
-          <text x="25" y="238">L1</text><line x1="-20" y1="235" x2="15" y2="235" stroke="var(--text)" marker-end="url(#arr-slide5)"/>
-          <line x1="10" y1="228" x2="40" y2="228" stroke="var(--col-blue)" stroke-width="0.5"/>
-        </g>
-        <rect x="0" y="250" width="70" height="100" fill="transparent" stroke="var(--col-blue)"/>
-        <text x="55" y="300" font-size="10" font-weight="700" fill="var(--text)" text-anchor="middle" transform="rotate(-90 55 300)">SNP</text>
-        <g font-size="9" fill="var(--text)">
-          <text x="25" y="268">E</text><line x1="-20" y1="265" x2="15" y2="265" stroke="var(--text)" marker-end="url(#arr-slide5)"/>
-          <line x1="10" y1="258" x2="40" y2="258" stroke="var(--col-blue)" stroke-width="0.5"/>
-          <text x="25" y="283">W</text><line x1="-20" y1="280" x2="15" y2="280" stroke="var(--text)" marker-end="url(#arr-slide5)"/>
-          <line x1="10" y1="273" x2="40" y2="273" stroke="var(--col-blue)" stroke-width="0.5"/>
-          <text x="25" y="298">N</text><line x1="-20" y1="295" x2="15" y2="295" stroke="var(--text)" marker-end="url(#arr-slide5)"/>
-          <line x1="10" y1="288" x2="40" y2="288" stroke="var(--col-blue)" stroke-width="0.5"/>
-          <text x="25" y="313">S</text><line x1="-20" y1="310" x2="15" y2="310" stroke="var(--text)" marker-end="url(#arr-slide5)"/>
-          <line x1="10" y1="303" x2="40" y2="303" stroke="var(--col-blue)" stroke-width="0.5"/>
-          <text x="25" y="328">L0</text><line x1="-20" y1="325" x2="15" y2="325" stroke="var(--text)" marker-end="url(#arr-slide5)"/>
-          <line x1="10" y1="318" x2="40" y2="318" stroke="var(--col-blue)" stroke-width="0.5"/>
-          <text x="25" y="343">L1</text><line x1="-20" y1="340" x2="15" y2="340" stroke="var(--text)" marker-end="url(#arr-slide5)"/>
-          <line x1="10" y1="333" x2="40" y2="333" stroke="var(--col-blue)" stroke-width="0.5"/>
-        </g>
-        <rect x="0" y="355" width="70" height="100" fill="transparent" stroke="var(--col-blue)"/>
-        <text x="55" y="405" font-size="10" font-weight="700" fill="var(--text)" text-anchor="middle" transform="rotate(-90 55 405)">RSP</text>
-        <g font-size="9" fill="var(--text)">
-          <text x="25" y="373">E</text><line x1="-20" y1="370" x2="15" y2="370" stroke="var(--text)" marker-end="url(#arr-slide5)"/>
-          <line x1="10" y1="363" x2="40" y2="363" stroke="var(--col-blue)" stroke-width="0.5"/>
-          <text x="25" y="388">W</text><line x1="-20" y1="385" x2="15" y2="385" stroke="var(--text)" marker-end="url(#arr-slide5)"/>
-          <line x1="10" y1="378" x2="40" y2="378" stroke="var(--col-blue)" stroke-width="0.5"/>
-          <text x="25" y="403">N</text><line x1="-20" y1="400" x2="15" y2="400" stroke="var(--text)" marker-end="url(#arr-slide5)"/>
-          <line x1="10" y1="393" x2="40" y2="393" stroke="var(--col-blue)" stroke-width="0.5"/>
-          <text x="25" y="418">S</text><line x1="-20" y1="415" x2="15" y2="415" stroke="var(--text)" marker-end="url(#arr-slide5)"/>
-          <line x1="10" y1="408" x2="40" y2="408" stroke="var(--col-blue)" stroke-width="0.5"/>
-          <text x="25" y="433">L0</text><line x1="-20" y1="430" x2="15" y2="430" stroke="var(--text)" marker-end="url(#arr-slide5)"/>
-          <line x1="10" y1="423" x2="40" y2="423" stroke="var(--col-blue)" stroke-width="0.5"/>
-          <text x="25" y="448">L1</text><line x1="-20" y1="445" x2="15" y2="445" stroke="var(--text)" marker-end="url(#arr-slide5)"/>
-          <line x1="10" y1="438" x2="40" y2="438" stroke="var(--col-blue)" stroke-width="0.5"/>
-        </g>
-      </g>
-      <path class="sg5-item sg5-input-port sg5-bw" d="M 130 265 L 190 150" stroke="var(--text)" stroke-width="1" stroke-dasharray="4 2"/>
-      <path class="sg5-item sg5-input-port sg5-bw" d="M 130 340 L 190 410" stroke="var(--text)" stroke-width="1" stroke-dasharray="4 2"/>
-      <g class="sg5-item sg5-vc-state" transform="translate(170, 20)">
-        <rect x="0" y="0" width="140" height="80" fill="rgba(168,85,247,0.15)" stroke="var(--col-purple)" stroke-width="2"/>
-        <text x="70" y="35" font-size="10" font-weight="800" fill="var(--text)" text-anchor="middle">VC STATE MACHINE</text>
-        <text x="70" y="50" font-size="10" font-weight="800" fill="var(--text)" text-anchor="middle">and</text>
-        <text x="70" y="65" font-size="10" font-weight="800" fill="var(--text)" text-anchor="middle">CONTROL UNIT</text>
-      </g>
-      <g class="sg5-item sg5-bw" transform="translate(190, 150)">
-        <rect x="0" y="0" width="100" height="260" fill="rgba(236,72,153,0.15)" stroke="rgba(236,72,153,0.8)" stroke-width="2"/>
-        <text x="50" y="20" font-size="10" font-weight="800" fill="var(--text)" text-anchor="middle">BUFFER WRITE</text>
-        <text x="50" y="35" font-size="10" font-weight="800" fill="var(--text)" text-anchor="middle">(BW)</text>
-        <text x="85" y="65" font-size="10" font-weight="800" fill="var(--text)">E</text>
-        <rect x="10" y="40" width="60" height="12" fill="transparent" stroke="var(--b2)"/>
-        <text x="40" y="49" font-size="8" fill="var(--text)" text-anchor="middle">VC0</text>
-        <rect x="10" y="52" width="60" height="12" fill="transparent" stroke="var(--b2)"/>
-        <text x="40" y="61" font-size="8" fill="var(--text)" text-anchor="middle">VC1</text>
-        <rect x="10" y="64" width="60" height="12" fill="transparent" stroke="var(--b2)"/>
-        <text x="40" y="73" font-size="8" fill="var(--text)" text-anchor="middle">VC2</text>
-        <rect x="10" y="76" width="60" height="12" fill="transparent" stroke="var(--b2)"/>
-        <text x="40" y="85" font-size="8" fill="var(--text)" text-anchor="middle">VC3</text>
-        <text x="85" y="135" font-size="10" font-weight="800" fill="var(--text)">W</text>
-        <rect x="10" y="110" width="60" height="12" fill="transparent" stroke="var(--b2)"/>
-        <text x="40" y="119" font-size="8" fill="var(--text)" text-anchor="middle">VC0</text>
-        <rect x="10" y="122" width="60" height="12" fill="transparent" stroke="var(--b2)"/>
-        <text x="40" y="131" font-size="8" fill="var(--text)" text-anchor="middle">VC1</text>
-        <rect x="10" y="134" width="60" height="12" fill="transparent" stroke="var(--b2)"/>
-        <text x="40" y="143" font-size="8" fill="var(--text)" text-anchor="middle">VC2</text>
-        <rect x="10" y="146" width="60" height="12" fill="transparent" stroke="var(--b2)"/>
-        <text x="40" y="155" font-size="8" fill="var(--text)" text-anchor="middle">VC3</text>
-        <text x="85" y="220" font-size="10" font-weight="800" fill="var(--text)">L1</text>
-        <rect x="10" y="195" width="60" height="12" fill="transparent" stroke="var(--b2)"/>
-        <text x="40" y="204" font-size="8" fill="var(--text)" text-anchor="middle">VC0</text>
-        <rect x="10" y="207" width="60" height="12" fill="transparent" stroke="var(--b2)"/>
-        <text x="40" y="216" font-size="8" fill="var(--text)" text-anchor="middle">VC1</text>
-        <rect x="10" y="219" width="60" height="12" fill="transparent" stroke="var(--b2)"/>
-        <text x="40" y="228" font-size="8" fill="var(--text)" text-anchor="middle">VC2</text>
-        <rect x="10" y="231" width="60" height="12" fill="transparent" stroke="var(--b2)"/>
-        <text x="40" y="240" font-size="8" fill="var(--text)" text-anchor="middle">VC3</text>
-        <line x1="40" y1="170" x2="40" y2="185" stroke="var(--text)" stroke-dasharray="2 2"/>
-      </g>
-      <g class="sg5-item sg5-flow-ctrl" transform="translate(350, 410)">
-        <rect x="0" y="0" width="160" height="90" fill="rgba(99,102,241,0.15)" stroke="var(--col-blue)" stroke-width="2"/>
-        <text x="80" y="15" font-size="10" font-weight="800" fill="var(--text)" text-anchor="middle">FLOW CONTROL UNIT</text>
-        <rect x="25" y="25" width="80" height="40" fill="var(--s1)" stroke="var(--b1)"/>
-        <text x="65" y="35" font-size="7" font-weight="700" fill="var(--text)" text-anchor="middle">CREDIT MANAGER</text>
-        <text x="65" y="47" font-size="7" font-weight="700" fill="var(--text)" text-anchor="middle">CREDIT</text>
-        <text x="65" y="55" font-size="7" font-weight="700" fill="var(--text)" text-anchor="middle">COUNTER</text>
-        <circle cx="120" cy="45" r="7" fill="transparent" stroke="var(--text)"/>
-        <text x="120" y="48" font-size="10" text-anchor="middle">-</text>
-        <text x="120" y="30" font-size="6" text-anchor="middle">DECREMENT</text>
-        <circle cx="65" cy="75" r="7" fill="transparent" stroke="var(--text)"/>
-        <text x="65" y="78" font-size="10" text-anchor="middle">+</text>
-        <text x="65" y="87" font-size="6" text-anchor="middle">INCREMENT</text>
-      </g>
-      <g transform="translate(370, 40)">
-        <g class="sg5-item sg5-rc" transform="translate(0, 10)">
-          <rect x="-20" y="20" width="130" height="110" fill="rgba(236,72,153,0.05)" stroke="rgba(236,72,153,0.4)" stroke-width="2"/>
-          <rect x="-16" y="16" width="130" height="110" fill="rgba(236,72,153,0.05)" stroke="rgba(236,72,153,0.4)" stroke-width="2"/>
-          <rect x="-12" y="12" width="130" height="110" fill="rgba(236,72,153,0.05)" stroke="rgba(236,72,153,0.4)" stroke-width="2"/>
-          <rect x="-8" y="8" width="130" height="110" fill="rgba(236,72,153,0.05)" stroke="rgba(236,72,153,0.4)" stroke-width="2"/>
-          <rect x="-4" y="4" width="130" height="110" fill="rgba(236,72,153,0.05)" stroke="rgba(236,72,153,0.4)" stroke-width="2"/>
-          <rect x="0" y="0" width="130" height="110" fill="rgba(236,72,153,0.15)" stroke="rgba(236,72,153,0.8)" stroke-width="2"/>
-          <text x="65" y="15" font-size="9" font-weight="800" fill="var(--text)" text-anchor="middle">ROUTE COMPUTATION</text>
-          <text x="65" y="27" font-size="9" font-weight="800" fill="var(--text)" text-anchor="middle">(RC)</text>
-          <rect x="20" y="40" width="90" height="60" fill="var(--s1)" stroke="rgba(236,72,153,0.8)"/>
-          <text x="65" y="50" font-size="8" font-weight="800" fill="var(--text)" text-anchor="middle">XY ROUTING</text>
-          <text x="65" y="70" font-size="10" font-weight="800" fill="var(--col-blue)" text-anchor="middle">N ✛ S</text>
-          <text x="65" y="85" font-size="7" font-weight="700" fill="var(--text)" text-anchor="middle">X COMPARE</text>
-          <text x="65" y="95" font-size="7" font-weight="700" fill="var(--text)" text-anchor="middle">Y COMPARE</text>
-        </g>
-        <g class="sg5-item sg5-va" transform="translate(130, 10)">
-          <rect x="0" y="0" width="110" height="110" fill="rgba(236,72,153,0.15)" stroke="rgba(236,72,153,0.8)" stroke-width="2"/>
-          <text x="55" y="15" font-size="9" font-weight="800" fill="var(--text)" text-anchor="middle">VC ALLOCATOR</text>
-          <text x="55" y="27" font-size="9" font-weight="800" fill="var(--text)" text-anchor="middle">(VA)</text>
-          <rect x="15" y="40" width="30" height="25" fill="var(--s1)" stroke="var(--b1)"/>
-          <text x="30" y="52" font-size="7" font-weight="700" fill="var(--text)" text-anchor="middle">VCs</text>
-          <text x="30" y="60" font-size="7" font-weight="700" fill="var(--text)" text-anchor="middle">REQ</text>
-          <rect x="10" y="75" width="45" height="25" fill="var(--s1)" stroke="var(--b1)"/>
-          <text x="32" y="85" font-size="6" fill="var(--text)" text-anchor="middle">SEPARABLE</text>
-          <text x="32" y="93" font-size="6" fill="var(--text)" text-anchor="middle">ALLOCATOR</text>
-          <rect x="70" y="75" width="35" height="25" fill="var(--s1)" stroke="var(--b1)"/>
-          <text x="87" y="85" font-size="6" fill="var(--text)" text-anchor="middle">GRANT</text>
-          <text x="87" y="93" font-size="6" fill="var(--text)" text-anchor="middle">SIGNALS</text>
-          <line x1="55" y1="87" x2="65" y2="87" stroke="var(--text)" marker-end="url(#arr-slide5)"/>
-          <line x1="30" y1="65" x2="30" y2="72" stroke="var(--text)" marker-end="url(#arr-slide5)"/>
-        </g>
-        <g class="sg5-item sg5-sa" transform="translate(240, 10)">
-          <rect x="0" y="0" width="110" height="110" fill="rgba(236,72,153,0.15)" stroke="rgba(236,72,153,0.8)" stroke-width="2"/>
-          <text x="55" y="15" font-size="9" font-weight="800" fill="var(--text)" text-anchor="middle">SWITCH ALLOCATION</text>
-          <text x="55" y="27" font-size="9" font-weight="800" fill="var(--text)" text-anchor="middle">(SA)</text>
-          <rect x="15" y="40" width="30" height="25" fill="var(--s1)" stroke="var(--b1)"/>
-          <text x="30" y="52" font-size="7" font-weight="700" fill="var(--text)" text-anchor="middle">PORTs</text>
-          <text x="30" y="60" font-size="7" font-weight="700" fill="var(--text)" text-anchor="middle">REQ</text>
-          <rect x="10" y="75" width="45" height="25" fill="var(--s1)" stroke="var(--b1)"/>
-          <text x="32" y="85" font-size="6" fill="var(--text)" text-anchor="middle">SEPARABLE</text>
-          <text x="32" y="93" font-size="6" fill="var(--text)" text-anchor="middle">ALLOCATOR</text>
-          <rect x="70" y="75" width="35" height="25" fill="var(--s1)" stroke="var(--b1)"/>
-          <text x="87" y="85" font-size="6" fill="var(--text)" text-anchor="middle">GRANT</text>
-          <text x="87" y="93" font-size="6" fill="var(--text)" text-anchor="middle">SIGNALS</text>
-          <line x1="55" y1="87" x2="65" y2="87" stroke="var(--text)" marker-end="url(#arr-slide5)"/>
-          <line x1="30" y1="65" x2="30" y2="72" stroke="var(--text)" marker-end="url(#arr-slide5)"/>
-        </g>
-      </g>
-      <g class="sg5-item sg5-st-box" transform="translate(630, 180)">
-        <rect x="0" y="0" width="160" height="230" fill="rgba(236,72,153,0.15)" stroke="rgba(236,72,153,0.8)" stroke-width="2"/>
-        <text x="80" y="20" font-size="10" font-weight="800" fill="var(--text)" text-anchor="middle">SWITCH TRAVERSAL</text>
-        <text x="80" y="35" font-size="10" font-weight="800" fill="var(--text)" text-anchor="middle">(ST)</text>
-        <line x1="30" y1="60" x2="60" y2="60" stroke="var(--text)"/>
-        <line x1="130" y1="60" x2="100" y2="60" stroke="var(--text)"/>
-        <line x1="30" y1="180" x2="60" y2="180" stroke="var(--text)"/>
-        <line x1="130" y1="180" x2="100" y2="180" stroke="var(--text)"/>
-        <line x1="60" y1="60" x2="100" y2="180" stroke="var(--text)"/>
-        <line x1="60" y1="180" x2="100" y2="60" stroke="var(--text)"/>
-        <text x="45" y="115" font-size="12" font-weight="700" fill="var(--col-purple)" text-anchor="middle">INPUT</text>
-        <text x="45" y="130" font-size="12" font-weight="700" fill="var(--col-purple)" text-anchor="middle">PORT</text>
-        <text x="115" y="115" font-size="12" font-weight="700" fill="var(--col-purple)" text-anchor="middle">OUTPUT</text>
-        <text x="115" y="130" font-size="12" font-weight="700" fill="var(--col-purple)" text-anchor="middle">PORT</text>
-        <text x="80" y="210" font-size="10" font-weight="800" fill="var(--text)" text-anchor="middle">CROSSBAR</text>
-        <text x="80" y="222" font-size="9" font-weight="800" fill="var(--text)" text-anchor="middle">6x6</text>
-      </g>
-      <g class="sg5-item sg5-st-links-in">
-        <text x="450" y="180" font-size="10" font-weight="800" fill="var(--text)" text-anchor="middle">FLIT DATA (126 bits) AFTER</text>
-        <text x="450" y="195" font-size="10" font-weight="800" fill="var(--text)" text-anchor="middle">ST READ</text>
-        <path d="M 290 220 L 610 220 L 610 215 L 625 225 L 610 235 L 610 230 L 290 230 Z" fill="rgba(236,72,153,0.3)" stroke="rgba(236,72,153,0.8)" stroke-width="1.5"/>
-        <path d="M 290 290 L 610 290 L 610 285 L 625 295 L 610 305 L 610 300 L 290 300 Z" fill="rgba(236,72,153,0.3)" stroke="rgba(236,72,153,0.8)" stroke-width="1.5"/>
-        <path d="M 290 380 L 610 380 L 610 375 L 625 385 L 610 395 L 610 390 L 290 390 Z" fill="rgba(236,72,153,0.3)" stroke="rgba(236,72,153,0.8)" stroke-width="1.5"/>
-        <line x1="450" y1="315" x2="450" y2="350" stroke="var(--text)" stroke-dasharray="2 2"/>
-      </g>
-      <g class="sg5-item sg5-st-links-out">
-        <line x1="790" y1="200" x2="850" y2="200" stroke="var(--text)" stroke-width="1.5" marker-end="url(#arr-slide5)"/>
-        <text x="860" y="204" font-size="11" font-weight="700" fill="var(--text)">E</text>
-        <line x1="790" y1="240" x2="850" y2="240" stroke="var(--text)" stroke-width="1.5" marker-end="url(#arr-slide5)"/>
-        <text x="860" y="244" font-size="11" font-weight="700" fill="var(--text)">W</text>
-        <line x1="790" y1="280" x2="850" y2="280" stroke="var(--text)" stroke-width="1.5" marker-end="url(#arr-slide5)"/>
-        <text x="860" y="284" font-size="11" font-weight="700" fill="var(--text)">N</text>
-        <line x1="790" y1="320" x2="850" y2="320" stroke="var(--text)" stroke-width="1.5" marker-end="url(#arr-slide5)"/>
-        <text x="860" y="324" font-size="11" font-weight="700" fill="var(--text)">S</text>
-        <line x1="790" y1="360" x2="850" y2="360" stroke="var(--text)" stroke-width="1.5" marker-end="url(#arr-slide5)"/>
-        <text x="860" y="364" font-size="11" font-weight="700" fill="var(--text)">L0</text>
-        <line x1="790" y1="400" x2="850" y2="400" stroke="var(--text)" stroke-width="1.5" marker-end="url(#arr-slide5)"/>
-        <text x="860" y="404" font-size="11" font-weight="700" fill="var(--text)">L1</text>
-      </g>
-      <line class="sg5-item sg5-vc-state" x1="240" y1="100" x2="240" y2="145" stroke="var(--text)" stroke-width="1.5" marker-end="url(#arr-slide5)" marker-start="url(#arr-slide5)"/>
-      <line class="sg5-item sg5-vc-state sg5-rc" x1="310" y1="65" x2="350" y2="65" stroke="var(--text)" stroke-width="1.5" marker-end="url(#arr-slide5)" marker-start="url(#arr-slide5)"/>
-      <line class="sg5-item sg5-bw sg5-rc" x1="260" y1="150" x2="260" y2="120" stroke="var(--text)" stroke-width="1.5"/>
-      <line class="sg5-item sg5-bw sg5-rc" x1="260" y1="120" x2="350" y2="120" stroke="var(--text)" stroke-width="1.5" marker-end="url(#arr-slide5)"/>
-      <line class="sg5-item sg5-sa sg5-st-box" x1="665" y1="160" x2="665" y2="175" stroke="var(--text)" stroke-width="1.5" marker-end="url(#arr-slide5)"/>
-      <path class="sg5-item sg5-flow-ctrl sg5-bw" d="M 290 410 L 290 445 L 345 445" stroke="var(--text)" stroke-width="1.5" fill="transparent" marker-end="url(#arr-slide5)"/>
-      <line class="sg5-item sg5-flow-ctrl" x1="510" y1="465" x2="610" y2="465" stroke="var(--text)" stroke-width="1.5"/>
-      <line class="sg5-item sg5-flow-ctrl" x1="510" y1="465" x2="510" y2="455" stroke="var(--text)" stroke-width="1.5" marker-end="url(#arr-slide5)"/>
-      <text class="sg5-item sg5-flow-ctrl" x="550" y="460" font-size="9" fill="var(--text)">CREDIT RECEIVED</text>
-      <line class="sg5-item sg5-flow-ctrl" x1="350" y1="475" x2="250" y2="475" stroke="var(--text)" stroke-width="1.5" marker-end="url(#arr-slide5)"/>
-      <text class="sg5-item sg5-flow-ctrl" x="300" y="470" font-size="9" fill="var(--text)">CREDIT SENT</text>
-    </svg>
-  </div>
-  <!-- ── VIEW 5: ARBITERS & ALLOCATORS ── -->
-  <div id="view-5" class="canvas-view">
-    <div style="display:flex; flex-direction:column; align-items:center; width:100%; gap:2rem; margin-top:2rem; overflow-x:auto;">
-      <div class="tree-diagram tree-dimmed" id="arbiter-tree">
-        <div class="tree-root arb-node" data-topic="arbiter_root" style="background:var(--col-orange); color:#fff; border-color:var(--col-orange);">Arbiter</div>
-        <div class="tree-branches" id="arbiter-branches">
-          <div class="tree-branch"><div class="tree-leaf arb-node" id="arbiter-rr">Round-Robin<br>Arbiter</div></div>
-          <div class="tree-branch"><div class="tree-leaf arb-node">Tree Arbiter</div></div>
-          <div class="tree-branch"><div class="tree-leaf arb-node">Matrix Arbiter</div></div>
-          <div class="tree-branch"><div class="tree-leaf arb-node">Priority Arbiter</div></div>
-        </div>
-      </div>
-
-      <div class="tree-diagram tree-dimmed" id="allocator-tree">
-        <div class="tree-root alloc-node" data-topic="allocator_root" style="background:var(--col-yellow); color:#fff; border-color:var(--col-yellow);">Allocator</div>
-        <div class="tree-branches" id="alloc-layer1">
-          <div class="tree-branch">
-            <div class="tree-leaf alloc-node" id="alloc-sparse">Sparse<br>Allocator</div>
-            <div class="tree-branches" id="alloc-layer2">
-               <div class="tree-branch">
-                 <div class="tree-leaf alloc-node" id="alloc-separable">Separable Allocator</div>
-                 <div class="tree-branches" id="alloc-layer3">
-                   <div class="tree-branch"><div class="tree-leaf alloc-node" id="alloc-sep-in">Separable Input First<br>Allocator</div></div>
-                   <div class="tree-branch"><div class="tree-leaf alloc-node">Separable Output<br>First Allocator</div></div>
-                 </div>
-               </div>
-               <div class="tree-branch"><div class="tree-leaf alloc-node">iSLIP<br>Allocator</div></div>
-               <div class="tree-branch"><div class="tree-leaf alloc-node">Select<br>Allocator</div></div>
+        <line class="sg5-item sg5-vc-state" x1="240" y1="100" x2="240" y2="145" stroke="var(--text)" stroke-width="1.5"
+          marker-end="url(#arr-slide5)" marker-start="url(#arr-slide5)" />
+        <line class="sg5-item sg5-vc-state sg5-rc" x1="310" y1="65" x2="350" y2="65" stroke="var(--text)"
+          stroke-width="1.5" marker-end="url(#arr-slide5)" marker-start="url(#arr-slide5)" />
+        <line class="sg5-item sg5-bw sg5-rc" x1="260" y1="150" x2="260" y2="120" stroke="var(--text)"
+          stroke-width="1.5" />
+        <line class="sg5-item sg5-bw sg5-rc" x1="260" y1="120" x2="350" y2="120" stroke="var(--text)" stroke-width="1.5"
+          marker-end="url(#arr-slide5)" />
+        <line class="sg5-item sg5-sa sg5-st-box" x1="665" y1="160" x2="665" y2="175" stroke="var(--text)"
+          stroke-width="1.5" marker-end="url(#arr-slide5)" />
+        <path class="sg5-item sg5-flow-ctrl sg5-bw" d="M 290 410 L 290 445 L 345 445" stroke="var(--text)"
+          stroke-width="1.5" fill="transparent" marker-end="url(#arr-slide5)" />
+        <line class="sg5-item sg5-flow-ctrl" x1="610" y1="465" x2="510" y2="465" stroke="var(--text)" stroke-width="1.5"
+          marker-end="url(#arr-slide5)" />
+        <line class="sg5-item sg5-flow-ctrl" x1="510" y1="465" x2="510" y2="455" stroke="var(--text)"
+          stroke-width="1.5" />
+        <text class="sg5-item sg5-flow-ctrl" x="550" y="460" font-size="9" fill="var(--text)">CREDIT RECEIVED</text>
+        <line class="sg5-item sg5-flow-ctrl" x1="350" y1="475" x2="250" y2="475" stroke="var(--text)" stroke-width="1.5"
+          marker-end="url(#arr-slide5)" />
+        <text class="sg5-item sg5-flow-ctrl" x="300" y="470" font-size="9" fill="var(--text)">CREDIT SENT</text>
+      </svg>
+    </div>
+    <!-- ── VIEW 5: ARBITERS & ALLOCATORS ── -->
+    <div id="view-5" class="canvas-view">
+      <div
+        style="display:flex; flex-direction:column; align-items:center; width:100%; gap:2rem; margin-top:2rem; overflow-x:auto;">
+        <div class="tree-diagram tree-dimmed" id="arbiter-tree">
+          <div class="tree-root arb-node" data-topic="arbiter_root"
+            style="background:var(--col-orange); color:#fff; border-color:var(--col-orange);">Arbiter</div>
+          <div class="tree-branches" id="arbiter-branches">
+            <div class="tree-branch">
+              <div class="tree-leaf arb-node" id="arbiter-rr">Round-Robin<br>Arbiter</div>
+            </div>
+            <div class="tree-branch">
+              <div class="tree-leaf arb-node">Tree Arbiter</div>
+            </div>
+            <div class="tree-branch">
+              <div class="tree-leaf arb-node">Matrix Arbiter</div>
+            </div>
+            <div class="tree-branch">
+              <div class="tree-leaf arb-node">Priority Arbiter</div>
             </div>
           </div>
-          <div class="tree-branch">
-            <div class="tree-leaf alloc-node">Dense<br>Allocator</div>
-            <div class="tree-branches" id="alloc-dense-layer2">
-               <div class="tree-branch"><div class="tree-leaf alloc-node">MaxSize Match<br>Allocator</div></div>
-               <div class="tree-branch"><div class="tree-leaf alloc-node">PIM</div></div>
-               <div class="tree-branch"><div class="tree-leaf alloc-node">Wavefront<br>Allocator</div></div>
-               <div class="tree-branch"><div class="tree-leaf alloc-node">LOA</div></div>
+        </div>
+
+        <div class="tree-diagram tree-dimmed" id="allocator-tree">
+          <div class="tree-root alloc-node" data-topic="allocator_root"
+            style="background:var(--col-yellow); color:#fff; border-color:var(--col-yellow);">Allocator</div>
+          <div class="tree-branches" id="alloc-layer1">
+            <div class="tree-branch">
+              <div class="tree-leaf alloc-node" id="alloc-sparse">Sparse<br>Allocator</div>
+              <div class="tree-branches" id="alloc-layer2">
+                <div class="tree-branch">
+                  <div class="tree-leaf alloc-node" id="alloc-separable">Separable Allocator</div>
+                  <div class="tree-branches" id="alloc-layer3">
+                    <div class="tree-branch">
+                      <div class="tree-leaf alloc-node" id="alloc-sep-in">Separable Input First<br>Allocator</div>
+                    </div>
+                    <div class="tree-branch">
+                      <div class="tree-leaf alloc-node">Separable Output<br>First Allocator</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="tree-branch">
+                  <div class="tree-leaf alloc-node">iSLIP<br>Allocator</div>
+                </div>
+                <div class="tree-branch">
+                  <div class="tree-leaf alloc-node">Select<br>Allocator</div>
+                </div>
+              </div>
+            </div>
+            <div class="tree-branch">
+              <div class="tree-leaf alloc-node">Dense<br>Allocator</div>
+              <div class="tree-branches" id="alloc-dense-layer2">
+                <div class="tree-branch">
+                  <div class="tree-leaf alloc-node">MaxSize Match<br>Allocator</div>
+                </div>
+                <div class="tree-branch">
+                  <div class="tree-leaf alloc-node">PIM</div>
+                </div>
+                <div class="tree-branch">
+                  <div class="tree-leaf alloc-node">Wavefront<br>Allocator</div>
+                </div>
+                <div class="tree-branch">
+                  <div class="tree-leaf alloc-node">LOA</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-</main>
+  </main>
 
-<!-- ══════════════════════════════════════════════════════════════
+  <!-- ══════════════════════════════════════════════════════════════
      READABILITY EXPLANATION BAND
 ══════════════════════════════════════════════════════════════ -->
-<div id="now-band">
-  <div id="band-body">
-    <!-- Populated dynamically by app.js -->
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════════════════════════
-     RIGHT DETAILS PANEL (SPECIFICATIONS)
-══════════════════════════════════════════════════════════════ -->
-<aside id="details-panel">
-  <div id="details-body">
-    <!-- Populated dynamically by app.js -->
-  </div>
-</aside>
-
-<!-- ══════════════════════════════════════════════════════════════
-     CONTROL BAR (FOOTER)
-══════════════════════════════════════════════════════════════ -->
-<footer id="control-bar">
-  <div class="prog-row">
-    <div class="prog-pips" id="prog-pips"></div>
-    <div class="prog-lbl" id="prog-lbl">
-      Step <span id="prog-num">1</span> of <span id="prog-total">6</span> &nbsp;·&nbsp;
-      <span id="prog-name">Roadmap &amp; CHI Node Integration</span>
+  <div id="now-band">
+    <div id="band-body">
+      <!-- Populated dynamically by app.js -->
     </div>
   </div>
-  <div class="ctrl-btns">
-    <button class="ctrl-btn reset-btn" id="btn-reset" onclick="App.reset()">↺ Reset</button>
-    <button class="ctrl-btn prev-btn"  id="btn-prev"  onclick="App.prev()" disabled>⬅ Prev</button>
-    <button class="ctrl-btn play-btn"  id="btn-play"  onclick="App.togglePlay()">▶ Play</button>
-    <button class="ctrl-btn next-btn"  id="btn-next"  onclick="App.next()">Next ➔</button>
-  </div>
-</footer>
 
-<script src="app.js"></script>
+  <!-- ══════════════════════════════════════════════════════════════
+     RIGHT DETAILS PANEL (SPECIFICATIONS)
+══════════════════════════════════════════════════════════════ -->
+  <aside id="details-panel">
+    <div id="details-body">
+      <!-- Populated dynamically by app.js -->
+    </div>
+  </aside>
+
+  <!-- ══════════════════════════════════════════════════════════════
+     CONTROL BAR (FOOTER)
+══════════════════════════════════════════════════════════════ -->
+  <footer id="control-bar">
+    <div class="prog-row">
+      <div class="prog-pips" id="prog-pips"></div>
+      <div class="prog-lbl" id="prog-lbl">
+        Step <span id="prog-num">1</span> of <span id="prog-total">6</span> &nbsp;·&nbsp;
+        <span id="prog-name">Roadmap &amp; CHI Node Integration</span>
+      </div>
+    </div>
+    <div class="ctrl-btns">
+      <button class="ctrl-btn reset-btn" id="btn-reset" onclick="App.reset()">↺ Reset</button>
+      <button class="ctrl-btn prev-btn" id="btn-prev" onclick="App.prev()" disabled>⬅ Prev</button>
+      <button class="ctrl-btn play-btn" id="btn-play" onclick="App.togglePlay()">▶ Play</button>
+      <button class="ctrl-btn next-btn" id="btn-next" onclick="App.next()">Next ➔</button>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
 </body>
+
 </html>

@@ -13,8 +13,14 @@
     /* Page-specific additions only — style.css itself is never modified. */
     .stg-pipe-box.chdone { opacity: .55; }
 
+    .mod-title { font-size: 14px; }
+    .mod-sub { font-size: 11px; }
+    .stg-pipe-title { font-size: 13px !important; }
+    .stg-pipe-sub { font-size: 10px; }
+    .flit-badge-txt { font-size: 11px; }
+
     .note-txt {
-      font-family: 'Inter', sans-serif; font-size: 10.5px; font-weight: 600;
+      font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600;
       fill: var(--col-orange); text-anchor: middle; dominant-baseline: middle;
       opacity: 0; transition: opacity .4s;
     }
@@ -196,7 +202,7 @@
 ══════════════════════════════════════════════════════════════ -->
 <main id="main-canvas">
   <div id="network-view">
-    <svg id="net-svg" viewBox="0 0 900 640" xmlns="http://www.w3.org/2000/svg"
+    <svg id="net-svg" viewBox="0 0 740 480" xmlns="http://www.w3.org/2000/svg"
          aria-label="CHI Channel Architecture Diagram">
 
       <!-- Row 1: Event Scheduler -->
@@ -369,12 +375,12 @@
       <div class="fd-card">
         <h4>Request Flit</h4>
         <ul>
-          <li class="fd-red">source id</li>
-          <li class="fd-red">target id</li>
-          <li class="fd-red">transaction id</li>
-          <li class="fd-red">return nid</li>
-          <li class="fd-red">address</li>
-          <li class="fd-red">opcode</li>
+          <li class="fd-green">source id</li>
+          <li class="fd-green">target id</li>
+          <li class="fd-green">transaction id</li>
+          <li class="fd-green">return nid</li>
+          <li class="fd-green">address</li>
+          <li class="fd-green">opcode</li>
           <li class="fd-gap"></li>
           <li class="fd-red">size</li>
           <li class="fd-red">memory address</li>
@@ -385,14 +391,14 @@
       <div class="fd-card">
         <h4>Data Flit</h4>
         <ul>
-          <li class="fd-red">source id</li>
-          <li class="fd-red">target id</li>
-          <li class="fd-red">transaction id</li>
-          <li class="fd-red">opcode</li>
-          <li class="fd-red">home nid</li>
-          <li class="fd-red">data payload</li>
-          <li class="fd-red">byte enable</li>
-          <li class="fd-red">data chunk id</li>
+          <li class="fd-green">source id</li>
+          <li class="fd-green">target id</li>
+          <li class="fd-green">transaction id</li>
+          <li class="fd-green">opcode</li>
+          <li class="fd-green">home nid</li>
+          <li class="fd-green">data payload</li>
+          <li class="fd-green">byte enable</li>
+          <li class="fd-green">data chunk id</li>
           <li class="fd-gap"></li>
           <li class="fd-red">flit type</li>
         </ul>
@@ -401,10 +407,10 @@
       <div class="fd-card">
         <h4>Response Flit</h4>
         <ul>
-          <li class="fd-red">source id</li>
-          <li class="fd-red">target id</li>
-          <li class="fd-red">transaction id</li>
-          <li class="fd-red">opcode</li>
+          <li class="fd-green">source id</li>
+          <li class="fd-green">target id</li>
+          <li class="fd-green">transaction id</li>
+          <li class="fd-green">opcode</li>
           <li class="fd-gap"></li>
           <li class="fd-red">flit type</li>
           <li class="fd-red">response error</li>
@@ -414,13 +420,13 @@
       <div class="fd-card">
         <h4>Snoop Flit</h4>
         <ul>
-          <li class="fd-red">source id</li>
-          <li class="fd-red">target id</li>
-          <li class="fd-red">transaction id</li>
-          <li class="fd-red">opcode</li>
-          <li class="fd-red">forward node id</li>
-          <li class="fd-red">forward txn id</li>
-          <li class="fd-red">address</li>
+          <li class="fd-green">source id</li>
+          <li class="fd-green">target id</li>
+          <li class="fd-green">transaction id</li>
+          <li class="fd-green">opcode</li>
+          <li class="fd-green">forward node id</li>
+          <li class="fd-green">forward txn id</li>
+          <li class="fd-green">address</li>
           <li class="fd-gap"></li>
           <li class="fd-red">flit type</li>
           <li class="fd-red">response error</li>
@@ -651,8 +657,14 @@ function applyStep(idx) {
 
     const flitBox = _el('chi-flit-box');
     _el('chi-flit-label').textContent = name;
+    
+    flitBox.style.transition = 'none';
     flitBox.classList.add('flit-' + name, 'show');
     flitBox.setAttribute('transform', `translate(${pos.x},${pos.y})`);
+    
+    void flitBox.offsetWidth;
+    flitBox.style.transition = '';
+
     _flitTimer = setTimeout(() => {
       flitBox.setAttribute('transform', `translate(${PIPE_BOX_POS.x},${PIPE_BOX_POS.y})`);
     }, 450);
@@ -674,11 +686,7 @@ const DetailsPanel = {
     const s = STEPS[idx];
     _el('band-body').style.borderLeftColor = s.hex;
     return `
-      <div class="band-badge" style="color:${s.hex};background:${s.hex}18;border-color:${s.hex}40">
-        ⬡ &nbsp; Step ${idx + 1} of ${STEPS.length}
-      </div>
       <div class="band-title">${s.name}</div>
-      <div class="band-subtitle">CHI Channel Architecture</div>
       <div class="band-desc">${s.overview}</div>
     `;
   },

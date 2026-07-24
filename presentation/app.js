@@ -829,11 +829,7 @@ const Details = {
     _el('band-body').style.borderLeftColor = s.hex;
 
     return `
-      <div class="band-badge" style="color:${s.hex};background:${s.hex}18;border-color:${s.hex}40">
-        ${s.icon} &nbsp; Stage ${stageIdx+1} · Step ${subIdx+1}/${s.subSteps.length}
-      </div>
       <div class="band-title">${curTitle}</div>
-      <div class="band-subtitle">${s.module} &nbsp;·&nbsp; Step ${curSub.subnum}</div>
       <div class="band-desc">${curDesc}</div>
     `;
   },

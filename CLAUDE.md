@@ -5,7 +5,7 @@ Interactive HTML/CSS/JS presentation for a Network-on-Chip (NoC) Simulator, buil
 Plain static files, no build step, opened directly in a browser. Entry point: `index.html` (hub:
 Cover → Team → Table of Contents). Three decks, each self-contained:
 - `hardware-presentation/` (Hardware Architecture & Router Design)
-- `presentation/` (System Architecture & Execution Flow, + 3 sub-pages: `flit-lifecycle.html`,
+- `presentation/` (Software Development Progress, + 3 sub-pages: `flit-lifecycle.html`,
   `router-pipeline.html`, `chi-channel-architecture.html`)
 - `verification-presentation/` (Verification & Validation)
 

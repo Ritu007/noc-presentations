@@ -149,7 +149,7 @@ const STEPS = [
 ];
 
 /* Neighbors in the master presentation sequence — this deck now sits between
-   System Architecture's last sub-page and Verification & Validation. */
+   Software Development Progress's last sub-page and Verification & Validation. */
 const PREV_DECK_URL = "../presentation/chi-channel-architecture.html?end=1";
 const NEXT_DECK_URL = "../verification-presentation/index.html";
 
