@@ -855,12 +855,23 @@ function renderDetails(step) {
       </div>
     </div>`;
 }
+const IDLE_BAND_COPY = {
+  architecture: {
+    title: "Frontend ↔ Backend Architecture",
+    desc: "Configuration flows from the frontend, across the API, through backend simulation, and back as runtime metrics."
+  },
+  scheduler: {
+    title: "Per-Cycle Event Scheduler",
+    desc: "Each cycle moves flits through the Traffic Manager, Router Pipeline, and Local/Router Links."
+  }
+};
 function renderIdleBand() {
   const band = document.getElementById("band-body");
   band.style.borderLeftColor = "var(--b2)";
+  const copy = IDLE_BAND_COPY[PAGES[App.page].id];
   band.innerHTML = `
-    <div class="band-title">Not started</div>
-    <div class="band-desc">Click Next ➔ below to begin walking through the flow.</div>`;
+    <div class="band-title">${copy.title}</div>
+    <div class="band-desc">${copy.desc}</div>`;
   document.getElementById("details-body").innerHTML = `
     <div class="det-empty">Nothing selected yet — click Next to view the first step's details.</div>`;
 }
@@ -929,12 +940,12 @@ const App = {
     if (this.step === -1) {
       document.getElementById("hdr-num").textContent = "–";
       document.getElementById("hdr-total").textContent = steps.length;
-      document.getElementById("hdr-name").textContent = "Not started";
+      document.getElementById("hdr-name").textContent = pageData.label;
       document.getElementById("phase-text").textContent = "Idle";
       renderPips(steps.length, this.step);
       document.getElementById("prog-num").textContent = "–";
       document.getElementById("prog-total").textContent = steps.length;
-      document.getElementById("prog-name").textContent = "Click Next to begin";
+      document.getElementById("prog-name").textContent = pageData.label;
       renderIdleBand();
       document.getElementById("btn-prev").disabled = false;
       document.getElementById("btn-next").disabled = false;
