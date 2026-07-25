@@ -34,7 +34,7 @@ const STEPS = [
       tb5: "<strong>Time Block 5:</strong> Increment 1 completes and exits the pipeline as Increment 5 begins — the cycle repeats indefinitely."
     },
     topicOrder: [null, "concept", "requirements", "design", "implementation", "integration", "maintenance",
-                       "tb1", "tb2", "tb3", "tb4", "tb5"],
+      "tb1", "tb2", "tb3", "tb4", "tb5"],
     details: `
       <div class="det-sec">
         <div class="det-lbl">Focus a Phase</div>
@@ -67,10 +67,10 @@ const STEPS = [
     viewId: "view-1",
     desc: "Detailed study of the CHI protocol and existing simulators, a feasibility study on cycle-accurate vs. functional modeling, and defining the simulator's features and requirements.",
     meta: [
-      { lbl: "Total Items", val: "10" },
-      { lbl: "Completed", val: "7" },
-      { lbl: "In Progress", val: "2" },
-      { lbl: "Planned", val: "1" }
+      { lbl: "Total Items", val: "17" },
+      { lbl: "Completed", val: "8" },
+      { lbl: "In Progress", val: "9" },
+      { lbl: "Planned", val: "0" }
     ],
     topicOrder: [null],
     details: ``
