@@ -92,7 +92,7 @@ const STEPS = [
       /* PCIe Lane Mechanics — 3 sub-topics */
       lane_pair: "<strong>Differential Pair:</strong> A single PCIe lane consists of 1 Transmit (TX) differential pair and 1 Receive (RX) differential pair — enabling full-duplex simultaneous bidirectional transfer on just 4 wires per lane.",
       lane_agg: "<strong>Lane Aggregation (x1–x16):</strong> Combining multiple lanes linearly scales bandwidth. Example: PCIe 4.0 x1 ≈ 2 GB/s; x16 ≈ 32 GB/s. High-demand devices like NVMe SSDs (x4) and GPUs (x16) exploit this to achieve their rated peak throughputs.",
-      lane_scale: "<strong>System Scalability:</strong> The total number of active high-speed PCIe devices is constrained by the CPU's total lane budget and the motherboard's lane routing. Lane allocation (x1, x4, x8, x16) must be planned at platform design time."
+      lane_scale: "<strong>System Scalability:</strong> Total active high-speed devices depend directly on CPU and lane availability."
     },
     topicOrder: [null, "tree", "comp_rc", "comp_rp", "comp_sw", "comp_ep", "lane_pair", "lane_agg", "lane_scale"],
     noHighlightTopics: new Set(["tree", "lane_pair", "lane_agg", "lane_scale"]),
@@ -255,7 +255,7 @@ const STEPS = [
 
 /* Neighbors in the master presentation sequence */
 const PREV_DECK_URL = "../verification-presentation/index.html?end=1";
-const NEXT_DECK_URL = "rni-bridge-walkthrough.html?step=0";
+const NEXT_DECK_URL = "../timeline-presentation/index.html";
 
 /* Outbound topics that trigger showing the outbound SVG on page 4 */
 const OUTBOUND_TOPICS = new Set(["phase_out", "step7", "step8", "step9", "step1011"]);

@@ -84,12 +84,10 @@
       </div>
 
       <div class="landing-divider">Other Presentations</div>
-
       <a class="landing-card" href="../hardware-presentation/index.html">
         <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-purple), var(--col-blue))">⬡</div>
         <div class="landing-card-text">
           <div class="landing-card-name">Hardware Architecture &amp; Router Design</div>
-          <div class="landing-card-desc">CHI protocol nodes, the 6-port router, buffer sizing, and the 5-stage data path.</div>
         </div>
         <div class="landing-card-arrow">↗</div>
       </a>
@@ -97,7 +95,6 @@
         <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-cyan), var(--col-blue))">⬡</div>
         <div class="landing-card-text">
           <div class="landing-card-name">Software Development Progress</div>
-          <div class="landing-card-desc">System architecture, event scheduler, flit lifecycle, router pipeline, and CHI channels.</div>
         </div>
         <div class="landing-card-arrow">↗</div>
       </a>
@@ -105,7 +102,6 @@
         <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-orange), var(--col-yellow))">☑</div>
         <div class="landing-card-text">
           <div class="landing-card-name">Software Development Lifecycle</div>
-          <div class="landing-card-desc">Requirement gathering &amp; analysis, system design, and development &amp; coding status.</div>
         </div>
         <div class="landing-card-arrow">↗</div>
       </a>
@@ -113,14 +109,12 @@
         <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-blue), var(--col-cyan))">⇄</div>
         <div class="landing-card-text">
           <div class="landing-card-name">PCIe &amp; RN-I Bridge</div>
-          <div class="landing-card-desc">PCIe fundamentals, the device hierarchy off the CHI mesh, and the RN-I bridge's request/response pipeline.</div>
         </div>
         <div class="landing-card-arrow">↗</div>
       </a>
     </div>
   </div>
 </div>
-
 <!-- ══════════════════════════════════════════════════════════════
      HEADER BAR
 ══════════════════════════════════════════════════════════════ -->
@@ -136,69 +130,57 @@
     <span>Software Quality &amp; V&amp;V</span>
   </div>
 </header>
-
 <!-- ══════════════════════════════════════════════════════════════
      LEFT NAVIGATOR
 ══════════════════════════════════════════════════════════════ -->
 <nav id="stage-nav" aria-label="Verification & Validation Presentation Pages">
   <a href="javascript:void(0)" class="back-menu-link" onclick="Landing.show()">← Back to Main Menu</a>
-
   <div class="nav-group-label">V&amp;V Pages</div>
-
   <button class="nav-item active" id="nav-0" onclick="App.goToPage(0)">
     <div class="nav-status-icon" id="nav-st-0"></div>
     <div class="nav-text"><div class="nav-num">01</div><div class="nav-name">IEEE V&amp;V Lifecycle</div></div>
     <div class="nav-color-dot" style="background:var(--col-cyan)"></div>
   </button>
-
   <button class="nav-item" id="nav-1" onclick="App.goToPage(1)">
     <div class="nav-status-icon" id="nav-st-1"></div>
     <div class="nav-text"><div class="nav-num">02</div><div class="nav-name">Testing Methodology</div></div>
     <div class="nav-color-dot" style="background:var(--col-purple)"></div>
   </button>
-
   <button class="nav-item" id="nav-2" onclick="App.goToPage(2)">
     <div class="nav-status-icon" id="nav-st-2"></div>
     <div class="nav-text"><div class="nav-num">03</div><div class="nav-name">Taxonomy of Failure</div></div>
     <div class="nav-color-dot" style="background:var(--col-orange)"></div>
   </button>
-
   <button class="nav-item" id="nav-3" onclick="App.goToPage(3)">
     <div class="nav-status-icon" id="nav-st-3"></div>
     <div class="nav-text"><div class="nav-num">04</div><div class="nav-name">Validation w/o RTL</div></div>
     <div class="nav-color-dot" style="background:var(--col-green)"></div>
   </button>
-
   <button class="nav-item" id="nav-4" onclick="App.goToPage(4)">
     <div class="nav-status-icon" id="nav-st-4"></div>
     <div class="nav-text"><div class="nav-num">05</div><div class="nav-name">Formal Verification Tools</div></div>
     <div class="nav-color-dot" style="background:var(--col-pink)"></div>
   </button>
-
   <button class="nav-item" id="nav-5" onclick="App.goToPage(5)">
     <div class="nav-status-icon" id="nav-st-5"></div>
     <div class="nav-text"><div class="nav-num">06</div><div class="nav-name">Verification Toolchain</div></div>
     <div class="nav-color-dot" style="background:var(--col-yellow)"></div>
   </button>
-
   <button class="nav-item" id="nav-6" onclick="App.goToPage(6)">
     <div class="nav-status-icon" id="nav-st-6"></div>
     <div class="nav-text"><div class="nav-num">07</div><div class="nav-name">The Complete Picture</div></div>
     <div class="nav-color-dot" style="background:var(--col-teal)"></div>
   </button>
-
   <div class="nav-kbd-hint">
     <span class="kbd">←</span><span class="kbd">→</span> navigate &nbsp;·&nbsp;
     <span class="kbd">Space</span> play
   </div>
 </nav>
-
 <!-- ══════════════════════════════════════════════════════════════
      MAIN CANVAS (Interactive Views)
 ══════════════════════════════════════════════════════════════ -->
 <main id="main-canvas">
   <div id="canvas-header" class="canvas-header"></div>
-
   <!-- ── VIEW 0: IEEE STANDARD V&V LIFECYCLE ── -->
   <div id="view-0" class="canvas-view active">
     <div class="vv-flow">
@@ -295,7 +277,6 @@
       <div class="fb-text">Feedback Loops &amp; Anomaly Reporting</div>
     </div>
   </div>
-
   <!-- ── VIEW 2: STANDARD TESTING METHODOLOGY ── -->
   <div id="view-2" class="canvas-view">
     <div class="doc-flow">
@@ -335,7 +316,6 @@
       </div>
     </div>
   </div>
-
   <!-- ── VIEW 3: TAXONOMY OF FAILURE ── -->
   <div id="view-3" class="canvas-view">
     <div class="tree-diagram">
@@ -359,7 +339,6 @@
       </div>
     </div>
   </div>
-
   <!-- ── VIEW 4: VALIDATION METHODS WITHOUT RTL ── -->
   <div id="view-4" class="canvas-view">
     <div class="method-card-row">
@@ -377,7 +356,6 @@
       </div>
     </div>
   </div>
-
   <!-- ── VIEW 5: FORMAL VERIFICATION TOOLS ── -->
   <div id="view-5" class="canvas-view">
     <div class="vv-table">
@@ -400,7 +378,6 @@
       </div>
     </div>
   </div>
-
   <!-- ── VIEW 6: THE VERIFICATION TOOLCHAIN ── -->
   <div id="view-6" class="canvas-view">
     <div class="toolchain-grid">
@@ -419,7 +396,6 @@
     </div>
     <div class="callout-box">Wired into continuous integration, these tools turn verification from a manual chore into an automatic gate on every code change.</div>
   </div>
-
   <!-- ── VIEW 7: THE COMPLETE PICTURE ── -->
   <div id="view-7" class="canvas-view">
     <div class="stage-grid">
@@ -438,21 +414,18 @@
     </div>
   </div>
 </main>
-
 <!-- ══════════════════════════════════════════════════════════════
      NOW BAND (readable description)
 ══════════════════════════════════════════════════════════════ -->
 <div id="now-band">
   <div id="band-body"><!-- populated by JS --></div>
 </div>
-
 <!-- ══════════════════════════════════════════════════════════════
      DETAILS PANEL (RIGHT)
 ══════════════════════════════════════════════════════════════ -->
 <aside id="details-panel">
   <div id="details-body"><!-- populated by JS --></div>
 </aside>
-
 <!-- ══════════════════════════════════════════════════════════════
      CONTROL BAR
 ══════════════════════════════════════════════════════════════ -->
@@ -471,7 +444,6 @@
     <button class="ctrl-btn next-btn"  id="btn-next"  onclick="App.next()">Next ➔</button>
   </div>
 </footer>
-
 <script src="app.js"></script>
 </body>
 </html>

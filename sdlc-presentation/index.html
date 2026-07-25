@@ -72,7 +72,6 @@
         <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-purple), var(--col-blue))">⬡</div>
         <div class="landing-card-text">
           <div class="landing-card-name">Hardware Architecture &amp; Router Design</div>
-          <div class="landing-card-desc">CHI protocol nodes, the 6-port router, buffer sizing, and the 5-stage data path.</div>
         </div>
         <div class="landing-card-arrow">↗</div>
       </a>
@@ -80,7 +79,6 @@
         <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-cyan), var(--col-blue))">⬡</div>
         <div class="landing-card-text">
           <div class="landing-card-name">Software Development Progress</div>
-          <div class="landing-card-desc">System architecture, event scheduler, flit lifecycle, router pipeline, and CHI channels.</div>
         </div>
         <div class="landing-card-arrow">↗</div>
       </a>
@@ -88,7 +86,6 @@
         <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-teal), var(--col-cyan))">✓</div>
         <div class="landing-card-text">
           <div class="landing-card-name">Verification &amp; Validation</div>
-          <div class="landing-card-desc">IEEE V&amp;V lifecycle, testing methodology, bug taxonomy, and the practical verification toolchain.</div>
         </div>
         <div class="landing-card-arrow">↗</div>
       </a>
@@ -96,14 +93,12 @@
         <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-blue), var(--col-cyan))">⇄</div>
         <div class="landing-card-text">
           <div class="landing-card-name">PCIe &amp; RN-I Bridge</div>
-          <div class="landing-card-desc">PCIe fundamentals, the device hierarchy off the CHI mesh, and the RN-I bridge's request/response pipeline.</div>
         </div>
         <div class="landing-card-arrow">↗</div>
       </a>
     </div>
   </div>
 </div>
-
 <!-- ══════════════════════════════════════════════════════════════
      HEADER BAR
 ══════════════════════════════════════════════════════════════ -->
@@ -118,57 +113,47 @@
     <span>Project Journey</span>
   </div>
 </header>
-
 <!-- ══════════════════════════════════════════════════════════════
      LEFT NAVIGATOR
 ══════════════════════════════════════════════════════════════ -->
 <nav id="stage-nav" aria-label="SDLC Recap Topics">
   <a href="javascript:void(0)" class="back-menu-link" onclick="Landing.show()">← Back to Main Menu</a>
-
   <div class="nav-group-label">SDLC Phases</div>
-
   <button class="nav-item active" id="nav-0" onclick="App.goToPage(0)">
     <div class="nav-status-icon" id="nav-st-0"></div>
     <div class="nav-text"><div class="nav-num">01</div><div class="nav-name">Standard SDLC Flow</div></div>
     <div class="nav-color-dot" style="background:var(--col-orange)"></div>
   </button>
-
   <button class="nav-item" id="nav-1" onclick="App.goToPage(1)">
     <div class="nav-status-icon" id="nav-st-1"></div>
     <div class="nav-text"><div class="nav-num">02</div><div class="nav-name">Requirement Gathering</div></div>
     <div class="nav-color-dot" style="background:var(--col-orange)"></div>
   </button>
-
   <button class="nav-item" id="nav-2" onclick="App.goToPage(2)">
     <div class="nav-status-icon" id="nav-st-2"></div>
     <div class="nav-text"><div class="nav-num">03</div><div class="nav-name">System Design</div></div>
     <div class="nav-color-dot" style="background:var(--col-orange)"></div>
   </button>
-
   <button class="nav-item" id="nav-3" onclick="App.goToPage(3)">
     <div class="nav-status-icon" id="nav-st-3"></div>
     <div class="nav-text"><div class="nav-num">04</div><div class="nav-name">Development and Coding</div></div>
     <div class="nav-color-dot" style="background:var(--col-orange)"></div>
   </button>
-
   <button class="nav-item" id="nav-4" onclick="App.goToPage(4)">
     <div class="nav-status-icon" id="nav-st-4"></div>
     <div class="nav-text"><div class="nav-num">05</div><div class="nav-name">Documentation Flow</div></div>
     <div class="nav-color-dot" style="background:var(--col-orange)"></div>
   </button>
-
   <div class="nav-kbd-hint">
     <span class="kbd">←</span><span class="kbd">→</span> navigate &nbsp;·&nbsp;
     <span class="kbd">Space</span> play
   </div>
 </nav>
-
 <!-- ══════════════════════════════════════════════════════════════
      MAIN CANVAS
 ══════════════════════════════════════════════════════════════ -->
 <main id="main-canvas">
   <div id="canvas-header" class="canvas-header"></div>
-
   <!-- ── VIEW 0: STANDARD SDLC FLOW ── -->
   <div id="view-0" class="canvas-view active">
     <div class="flow-section-lbl" style="margin-top:0;">Software Development Life Cycle</div>
@@ -226,7 +211,6 @@
         </ul>
       </div>
     </div>
-
     <div class="flow-bottom-wrap">
       <div class="flow-section-lbl">Pipelined Incremental SDLC Model</div>
       <div class="pipeline-grid">
@@ -235,7 +219,6 @@
         <div class="tb-col-hdr" data-tb="3" style="grid-column:3; grid-row:1;">Time Block 3</div>
         <div class="tb-col-hdr" data-tb="4" style="grid-column:4; grid-row:1;">Time Block 4</div>
         <div class="tb-col-hdr" data-tb="5" style="grid-column:5; grid-row:1;">Time Block 5</div>
-
         <!-- Increment 1 — row 2 -->
         <div class="tb-box" data-tb="1" style="grid-column:1; grid-row:2; --c:var(--col-cyan)">
           <div class="tb-box-inc">Increment 1</div>
@@ -253,7 +236,6 @@
           <div class="tb-box-inc">Increment 1</div>
           <div class="tb-box-phase">Testing</div>
         </div>
-
         <!-- Increment 2 — row 3 -->
         <div class="tb-box" data-tb="2" style="grid-column:2; grid-row:3; --c:var(--col-blue)">
           <div class="tb-box-inc">Increment 2</div>
@@ -271,7 +253,6 @@
           <div class="tb-box-inc">Increment 2</div>
           <div class="tb-box-phase">Testing</div>
         </div>
-
         <!-- Increment 3 — row 4 -->
         <div class="tb-box" data-tb="3" style="grid-column:3; grid-row:4; --c:var(--col-purple)">
           <div class="tb-box-inc">Increment 3</div>
@@ -285,7 +266,6 @@
           <div class="tb-box-inc">Increment 3</div>
           <div class="tb-box-phase">Coding</div>
         </div>
-
         <!-- Increment 4 — row 5 -->
         <div class="tb-box" data-tb="4" style="grid-column:4; grid-row:5; --c:var(--col-orange)">
           <div class="tb-box-inc">Increment 4</div>
@@ -295,7 +275,6 @@
           <div class="tb-box-inc">Increment 4</div>
           <div class="tb-box-phase">Design</div>
         </div>
-
         <!-- Increment 5 — row 6 -->
         <div class="tb-box" data-tb="5" style="grid-column:5; grid-row:6; --c:var(--col-teal)">
           <div class="tb-box-inc">Increment 5</div>
@@ -304,7 +283,6 @@
       </div>
     </div>
   </div>
-
   <!-- ── VIEW 1: REQUIREMENT GATHERING AND ANALYSIS ── -->
   <div id="view-1" class="canvas-view">
     <div class="sdlc-cols sdlc-cols-3">
@@ -335,7 +313,6 @@
       </div>
     </div>
   </div>
-
   <!-- ── VIEW 2: SYSTEM DESIGN ── -->
   <div id="view-2" class="canvas-view">
     <div class="sdlc-cols sdlc-cols-2">
@@ -379,7 +356,6 @@
       </div>
     </div>
   </div>
-
   <!-- ── VIEW 3: DEVELOPMENT AND CODING ── -->
   <div id="view-3" class="canvas-view">
     <div class="sdlc-cols sdlc-cols-4">
@@ -392,7 +368,6 @@
           <li><div class="sdlc-item st-planned">Logger</div></li>
         </ul>
       </div>
-
       <div class="sdlc-col">
         <div class="sdlc-col-hdr">Network Layer</div>
         <ul class="sdlc-tree">
@@ -429,7 +404,6 @@
           <li><div class="sdlc-item st-planned">CHI Transactions</div></li>
         </ul>
       </div>
-
       <div class="sdlc-col">
         <div class="sdlc-col-hdr">Device &amp; Endpoints</div>
         <ul class="sdlc-tree">
@@ -475,7 +449,6 @@
           </li>
         </ul>
       </div>
-
       <div class="sdlc-col">
         <div class="sdlc-col-hdr">Experimentation</div>
         <ul class="sdlc-list">
@@ -485,7 +458,6 @@
           <li><div class="sdlc-item st-progress">Stats</div></li>
         </ul>
       </div>
-
       <div class="sdlc-col">
         <div class="sdlc-col-hdr">Interconnect Layer</div>
         <ul class="sdlc-tree">
@@ -506,7 +478,6 @@
           </li>
         </ul>
       </div>
-
       <div class="sdlc-col">
         <div class="sdlc-col-hdr">GUI Tool</div>
         <ul class="sdlc-tree">
@@ -524,7 +495,6 @@
       </div>
     </div>
   </div>
-
   <!-- ── VIEW 4: DOCUMENTATION FLOW ── -->
   <div id="view-4" class="canvas-view">
     <div class="doc-flow">
@@ -579,11 +549,9 @@
     </div>
   </div>
 </main>
-
 <div id="now-band">
   <div id="band-body"><!-- populated dynamically by app.js --></div>
 </div>
-
 <!-- ══════════════════════════════════════════════════════════════
      RIGHT DETAILS PANEL (STATUS LEGEND + SNAPSHOT)
 ══════════════════════════════════════════════════════════════ -->
@@ -597,7 +565,6 @@
     <!-- Populated dynamically by app.js -->
   </div>
 </aside>
-
 <!-- ══════════════════════════════════════════════════════════════
      CONTROL BAR (FOOTER)
 ══════════════════════════════════════════════════════════════ -->
@@ -616,7 +583,6 @@
     <button class="ctrl-btn next-btn"  id="btn-next"  onclick="App.next()">Next ➔</button>
   </div>
 </footer>
-
 <script src="app.js"></script>
 </body>
 </html>

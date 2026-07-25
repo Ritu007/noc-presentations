@@ -228,12 +228,12 @@ const App = {
 
   slide5Topic: null,
   slide5Texts: {
-    intro: "Detailed functional schema of router components and allocation mechanisms. Click the steps to trace the execution flow.",
+    intro: "Detailed functional block diagram of a CHI-based router illustrating the five-stage pipeline and flow-control unit for a single CHI channel; the remaining CHI channels follow the same router pipeline architecture.",
     step1: "<strong>1. Input Port:</strong> The router features 6 distinct physical input ports (East, West, North, South, Local 0, Local 1). Each port receives incoming flits partitioned into REQ, DAT, SNP, and RSP networks.",
     step2: "<strong>2. Buffer Write (BW):</strong> Incoming flits are decoded and written into the Virtual Channel (VC) buffers. Each network message class is assigned to dedicated VC buffers (e.g., VC0-VC3) awaiting further processing.",
     step3: "<strong>3. VC State & Flow Control:</strong> The VC State Machine monitors buffer occupancy and VC status, while the Flow Control Unit manages the credit ecosystem for upstream and downstream synchronization.",
-    step4: "<strong>4. Route Computation (RC):</strong> Once a head flit is buffered, the RC unit computes the output port using XY routing by comparing the current router coordinates with the destination coordinates.",
-    step5: "<strong>5. VC State Machine:</strong> The State Machine transitions the VC from IDLE to ROUTING to ACTIVE, locking the computed output port and preventing conflicts for the duration of the packet.",
+    step4: "<strong>4. Route Computation (RC):</strong> Once a flit is buffered, the RC unit computes the output port using XY routing by comparing the current router coordinates with the destination coordinates.",
+    step5: "<strong>5. VC State Machine:</strong> The State Machine transitions the VC from IDLE to ROUTING, locking the computed output port for the duration of the flit.",
     step6: "<strong>6. VC Allocator (VA):</strong> The VA utilizes separable allocators to reserve available downstream VCs for requesting flits, ensuring buffer space exists at the next router before advancing.",
     step7: "<strong>7. Switch Allocator (SA):</strong> Flits with reserved downstream VCs compete for switch crossbar access. The SA grants access based on Round-Robin arbitration across port requests.",
     step8: "<strong>8. Switch Traversal (ST):</strong> Winning flits read from their BW buffers, traverse the 6x6 Crossbar switch matrix, and are forwarded to their designated output ports.",
@@ -242,7 +242,7 @@ const App = {
 
   slide6Topic: null,
   slide6Texts: {
-    intro: "Explore the hierarchies of Arbiters and Allocators.",
+    intro: "Overview of different arbiter and allocator architectures used for resource arbitration and allocation in NoC routers.",
     arbiter_root: "<strong>Arbiter:</strong> The root component responsible for resolving conflicts when multiple requests target the same resource.",
     arbiter_active: "<strong>Arbiter Types:</strong> There are various types of arbiters such as Round-Robin, Tree, Matrix, and Priority.",
     arbiter_rr: "<strong>Round-Robin Arbiter:</strong> A Round-Robin Arbiter grants requests in a rotating order to ensure fair access and avoid starvation.",
@@ -449,10 +449,10 @@ const App = {
 
   updateRoadmapView() {
     const rs = this.roadmapStep;
-    
-    for(let i=0; i<4; i++) {
+
+    for (let i = 0; i < 4; i++) {
       const card = document.getElementById(`step-card-${i}`);
-      if(card) {
+      if (card) {
         if (i === rs) {
           card.classList.add("active");
         } else {
@@ -468,8 +468,8 @@ const App = {
     const nodeLinks = document.getElementById("rm-node-links");
 
     const setMuted = (el, muted) => {
-      if(!el) return;
-      if(muted) el.classList.add("rm-muted");
+      if (!el) return;
+      if (muted) el.classList.add("rm-muted");
       else el.classList.remove("rm-muted");
     };
 
@@ -498,7 +498,7 @@ const App = {
       setMuted(meshLinks, false);
       setMuted(nodeLinks, false);
     }
-    
+
     document.getElementById("btn-prev").disabled = false;
 
     const descEl = document.getElementById("dynamic-band-desc");
@@ -536,13 +536,13 @@ const App = {
 
   setRouterLayout(layout) {
     this.routerLayout = layout;
-    
+
     // Update live text description
     const descEl = document.getElementById("dynamic-band-desc");
     if (descEl && this.curStep === 1 && typeof STEPS[1].desc === 'object') {
       descEl.innerText = STEPS[1].desc[layout];
     }
-    
+
     ["middle", "edge", "corner"].forEach(l => {
       const btn = document.getElementById(`btn-layout-${l}`);
       if (btn) {
@@ -580,7 +580,7 @@ const App = {
   setSlide3Topic(topic) {
     if (this.curStep !== 2) return;
     this.slide3Topic = topic;
-    
+
     // Update buttons
     ["vcs", "credit", "flit", "depth"].forEach(t => {
       const btn = document.getElementById(`btn-topic-${t}`);
@@ -612,7 +612,7 @@ const App = {
   setSlide4Topic(topic) {
     if (this.curStep !== 3) return;
     this.slide4Topic = topic;
-    
+
     // Update buttons
     ["links", "input", "pipe", "control", "flow"].forEach(t => {
       const btn = document.getElementById(`btn-topic4-${t}`);
@@ -638,7 +638,7 @@ const App = {
   setSlide5Topic(topic) {
     if (this.curStep !== 4) return;
     this.slide5Topic = topic;
-    
+
     // Update buttons
     ["step1", "step2", "step3", "step4", "step5", "step6", "step7", "step8", "step9"].forEach(t => {
       const btn = document.getElementById(`btn-topic5-${t}`);

@@ -430,7 +430,6 @@ body {
         <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-purple), var(--col-blue))">⬡</div>
         <div class="landing-card-text">
           <div class="landing-card-name">Hardware Architecture &amp; Router Design</div>
-          <div class="landing-card-desc">CHI protocol nodes, the 6-port router, buffer sizing, and the 5-stage data path.</div>
         </div>
         <div class="landing-card-arrow">↗</div>
       </a>
@@ -438,7 +437,6 @@ body {
         <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-teal), var(--col-cyan))">✓</div>
         <div class="landing-card-text">
           <div class="landing-card-name">Verification &amp; Validation</div>
-          <div class="landing-card-desc">IEEE V&amp;V lifecycle, testing methodology, bug taxonomy, and the practical verification toolchain.</div>
         </div>
         <div class="landing-card-arrow">↗</div>
       </a>
@@ -446,7 +444,6 @@ body {
         <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-orange), var(--col-yellow))">☑</div>
         <div class="landing-card-text">
           <div class="landing-card-name">Software Development Lifecycle</div>
-          <div class="landing-card-desc">Requirement gathering &amp; analysis, system design, and development &amp; coding status.</div>
         </div>
         <div class="landing-card-arrow">↗</div>
       </a>
@@ -454,14 +451,12 @@ body {
         <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-blue), var(--col-cyan))">⇄</div>
         <div class="landing-card-text">
           <div class="landing-card-name">PCIe &amp; RN-I Bridge</div>
-          <div class="landing-card-desc">PCIe fundamentals, the device hierarchy off the CHI mesh, and the RN-I bridge's request/response pipeline.</div>
         </div>
         <div class="landing-card-arrow">↗</div>
       </a>
     </div>
   </div>
 </div>
-
 <!-- ══════════════════════════════════════════════════════════════
      HEADER
 ══════════════════════════════════════════════════════════════ -->
@@ -481,13 +476,11 @@ body {
     <span id="phase-text">Frontend</span>
   </div>
 </header>
-
 <!-- ══════════════════════════════════════════════════════════════
      LEFT NAVIGATOR
 ══════════════════════════════════════════════════════════════ -->
 <nav id="stage-nav" aria-label="Presentation pages">
   <a href="javascript:void(0)" class="back-menu-link" onclick="Landing.show()">← Back to Main Menu</a>
-
   <div class="flow-switch">
     <div class="flow-switch-lbl">Switch Flow</div>
     <a class="flow-switch-item fs-blue current" href="index.html?flow=architecture">System Architecture</a>
@@ -497,32 +490,26 @@ body {
     <a class="flow-switch-item fs-teal" href="../verification-presentation/index.html">Verification & Validation ↗</a>
     <a class="flow-switch-item fs-pink" href="../pcie-presentation/index.html">PCIe & RN-I Bridge ↗</a>
   </div>
-
   <div class="nav-group-label">Presentation Pages</div>
-
   <button class="nav-item active" id="nav-0" onclick="App.goToPage(0)">
     <div class="nav-status-icon" id="nav-st-0"></div>
     <div class="nav-text"><div class="nav-num">01</div><div class="nav-name">System Architecture</div></div>
     <div class="nav-color-dot" style="background:var(--col-cyan)"></div>
   </button>
-
   <button class="nav-item" id="nav-1" onclick="App.goToPage(1)">
     <div class="nav-status-icon" id="nav-st-1"></div>
     <div class="nav-text"><div class="nav-num">02</div><div class="nav-name">Event Scheduler</div></div>
     <div class="nav-color-dot" style="background:var(--col-purple)"></div>
   </button>
-
   <div class="nav-kbd-hint">
     <span class="kbd">←</span><span class="kbd">→</span> navigate &nbsp;·&nbsp;
     <span class="kbd">Space</span> play
   </div>
 </nav>
-
 <!-- ══════════════════════════════════════════════════════════════
      MAIN CANVAS
 ══════════════════════════════════════════════════════════════ -->
 <main id="main-canvas">
-
   <!-- ── PAGE 1: SYSTEM ARCHITECTURE ── -->
   <div id="page-architecture" class="page-view active">
     <svg id="arch-svg" viewBox="0 0 1100 500" xmlns="http://www.w3.org/2000/svg" aria-label="NoC Simulator system architecture flow">
@@ -540,13 +527,11 @@ body {
           <path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/>
         </marker>
       </defs>
-
       <!-- ═══ BAND 1: FRONTEND ═══ -->
       <rect class="band-box" x="20" y="36" width="1060" height="150" rx="14"/>
       <text class="lane-lbl fe" x="40" y="58">Frontend</text>
       <text class="phase-lbl" x="202" y="76">Phase 1 · Configuration</text>
       <text class="phase-lbl" x="550" y="76">Phase 2 · Performance Analysis</text>
-
       <g class="step-node grp-cyan idle" id="node-1" transform="translate(40,86)">
         <rect class="box" width="150" height="72" rx="10"/>
         <text class="title" x="75" y="30">NoC Configuration</text>
@@ -560,7 +545,6 @@ body {
         <g class="num-badge" transform="translate(0,0)"><circle r="11"/><text>2</text></g>
       </g>
       <path class="flow-arrow" id="arrow-1-2" d="M194,122 L210,122"/>
-
       <g class="step-node grp-cyan idle" id="node-3" transform="translate(388,86)">
         <rect class="box" width="150" height="72" rx="10"/>
         <text class="title" x="75" y="30">Test Case Creation</text>
@@ -574,18 +558,15 @@ body {
         <g class="num-badge" transform="translate(0,0)"><circle r="11"/><text>4</text></g>
       </g>
       <path class="flow-arrow" id="arrow-3-4" d="M542,122 L558,122"/>
-
       <g class="step-node grp-green idle" id="node-10" transform="translate(880,86)">
         <rect class="box" width="170" height="72" rx="10"/>
         <text class="title" x="85" y="30">Metrics &amp; Visualization</text>
         <text class="sub" x="85" y="48">Metrics Dashboard</text>
         <g class="num-badge" transform="translate(0,0)"><circle r="11"/><text>10</text></g>
       </g>
-
       <!-- ═══ BAND 2: INTERFACE ═══ -->
       <rect class="band-box" x="20" y="200" width="1060" height="112" rx="14"/>
       <text class="lane-lbl if" x="40" y="220">Interface · API Gateway</text>
-
       <g class="step-node grp-blue idle" id="node-5" transform="translate(562,224)">
         <rect class="box" width="150" height="72" rx="10"/>
         <text class="title" x="75" y="30">API Call</text>
@@ -600,13 +581,11 @@ body {
       </g>
       <text class="api-arrow-lbl" id="arrow-api-config-lbl" x="800" y="248">⇢ Config Parameters</text>
       <text class="api-arrow-lbl" id="arrow-api-stats-lbl" x="800" y="270">Runtime Stats ⇢</text>
-
       <!-- ═══ BAND 3: BACKEND ═══ -->
       <rect class="band-box" x="20" y="330" width="1060" height="150" rx="14"/>
       <text class="lane-lbl be" x="40" y="352">Backend Engine</text>
       <text class="phase-lbl" x="714" y="370">Phase 1 · Construction</text>
       <text class="phase-lbl" x="965" y="370">Phase 2 · Runtime</text>
-
       <g class="step-node grp-purple idle" id="node-6" transform="translate(562,382)">
         <rect class="box" width="150" height="72" rx="10"/>
         <text class="title" x="75" y="30">Configuration Loader</text>
@@ -620,7 +599,6 @@ body {
         <g class="num-badge" transform="translate(0,0)"><circle r="11"/><text>7</text></g>
       </g>
       <path class="flow-arrow" id="arrow-6-7" d="M716,418 L732,418"/>
-
       <g class="step-node grp-orange idle drill" id="node-8" transform="translate(890,382)" onclick="App.goToPage(1)">
         <title>Click to open the Event Scheduler</title>
         <rect class="box" width="150" height="72" rx="10"/>
@@ -629,7 +607,6 @@ body {
         <text class="drill-hint" x="75" y="60">↳ View Event Scheduler</text>
         <g class="num-badge" transform="translate(0,0)"><circle r="11"/><text>8</text></g>
       </g>
-
       <!-- Vertical interface connectors -->
       <path class="api-arrow idle" id="arrow-4-5" d="M637,158 L637,220"/>
       <path class="api-arrow idle" id="arrow-5-6" d="M637,296 L637,378"/>
@@ -637,7 +614,6 @@ body {
       <path class="api-arrow idle" id="arrow-9-10" d="M965,220 L965,158"/>
     </svg>
   </div>
-
   <!-- ── PAGE 2: EVENT SCHEDULER ── -->
   <div id="page-scheduler" class="page-view">
     <div class="sched-wrap">
@@ -684,7 +660,6 @@ body {
           </div>
         </div>
       </div>
-
       <div class="loop-wrap">
         <svg class="loop-svg" viewBox="0 0 1180 30" preserveAspectRatio="none">
           <defs>
@@ -698,23 +673,19 @@ body {
       </div>
     </div>
   </div>
-
 </main>
-
 <!-- ══════════════════════════════════════════════════════════════
      NOW BAND (full-width, readable explanation)
 ══════════════════════════════════════════════════════════════ -->
 <div id="now-band">
   <div id="band-body"><!-- populated by JS --></div>
 </div>
-
 <!-- ══════════════════════════════════════════════════════════════
      DETAILS PANEL (RIGHT — reference / supporting material)
 ══════════════════════════════════════════════════════════════ -->
 <aside id="details-panel">
   <div id="details-body"><!-- populated by JS --></div>
 </aside>
-
 <!-- ══════════════════════════════════════════════════════════════
      CONTROL BAR
 ══════════════════════════════════════════════════════════════ -->
@@ -733,7 +704,6 @@ body {
     <button class="ctrl-btn next-btn"  id="btn-next"  onclick="App.next()">Next ➔</button>
   </div>
 </footer>
-
 <script>
 /* ================================================================
    STEP DATA
@@ -770,18 +740,15 @@ const ARCH_STEPS = [
     desc:"Frontend receives and displays the runtime stats returned from the API — latency, throughput, and per-flit statistics.",
     meta:[{lbl:"Phase",val:"2 · Performance Analysis"},{lbl:"Module",val:"Metrics Dashboard"},{lbl:"Input",val:"Runtime Stats"}] },
 ];
-
 const ARCH_ARROWS = [
   { id:"arrow-1-2", afterStep:0 },
   { id:"arrow-3-4", afterStep:2 },
   { id:"arrow-6-7", afterStep:5 },
 ];
-
 const ARCH_API_ARROWS = [
   { segIds:["arrow-4-5","arrow-5-6"], stepIdx:4, lblId:"arrow-api-config-lbl" },
   { segIds:["arrow-8-9","arrow-9-10"], stepIdx:8, lblId:"arrow-api-stats-lbl" },
 ];
-
 const SCHED_STEPS = [
   { num:1,  name:"Read Flits",             rowId:"sr-1",  group:"tm", badge:"Traffic Manager", badgeColor:"cyan",   desc:"Eject flits from the network into the Traffic Manager's eject queue for this cycle.",
     meta:[{lbl:"Component",val:"Traffic Manager"},{lbl:"Cycle Step",val:"1 of 16"},{lbl:"Queue",val:"_eject_queues"}] },
@@ -816,16 +783,13 @@ const SCHED_STEPS = [
   { num:16, name:"Deliver Flits",          rowId:"sr-16", group:"rl", badge:"Router Link",      badgeColor:"orange", desc:"Eject flits from the channel into the downstream router's input queue.",
     meta:[{lbl:"Component",val:"Router Link"},{lbl:"Cycle Step",val:"16 of 16"},{lbl:"Direction",val:"Router → Router"}] },
 ];
-
 const PAGES = [
   { id:"architecture", label:"System Architecture", steps: ARCH_STEPS },
   { id:"scheduler",     label:"Event Scheduler",     steps: SCHED_STEPS },
 ];
-
 /* Neighbors in the master presentation sequence */
 const PREV_DECK_URL = "../hardware-presentation/router-3d-explorer.html";
 const NEXT_DECK_URL = "flit-lifecycle.html?stage=0";
-
 /* ================================================================
    RENDER HELPERS
 ================================================================ */
@@ -849,7 +813,6 @@ function renderArchitecture(stepIdx) {
     document.getElementById(a.lblId).style.opacity = stepIdx >= a.stepIdx ? "1" : "0";
   });
 }
-
 function renderScheduler(stepIdx) {
   const activeGroup = SCHED_STEPS[stepIdx].group;
   SCHED_STEPS.forEach((s, i) => {
@@ -866,7 +829,6 @@ function renderScheduler(stepIdx) {
   });
   document.getElementById("loop-lbl").classList.toggle("active", stepIdx === SCHED_STEPS.length - 1);
 }
-
 function renderPips(total, current) {
   const wrap = document.getElementById("prog-pips");
   wrap.innerHTML = "";
@@ -876,14 +838,12 @@ function renderPips(total, current) {
     wrap.appendChild(p);
   }
 }
-
 function renderDetails(step) {
   const band = document.getElementById("band-body");
   band.style.borderLeftColor = `var(--col-${step.badgeColor})`;
   band.innerHTML = `
     <div class="band-title">${step.num}. ${step.name}</div>
     <div class="band-desc">${step.desc}</div>`;
-
   const total = PAGES[App.page].steps.length;
   const body = document.getElementById("details-body");
   body.innerHTML = `
@@ -895,7 +855,6 @@ function renderDetails(step) {
       </div>
     </div>`;
 }
-
 function renderIdleBand() {
   const band = document.getElementById("band-body");
   band.style.borderLeftColor = "var(--b2)";
@@ -905,7 +864,6 @@ function renderIdleBand() {
   document.getElementById("details-body").innerHTML = `
     <div class="det-empty">Nothing selected yet — click Next to view the first step's details.</div>`;
 }
-
 /* ================================================================
    APP STATE MACHINE
 ================================================================ */
@@ -914,7 +872,6 @@ const App = {
   step: -1,
   playing: false,
   playTimer: null,
-
   goToPage(idx) {
     this.stopPlay();
     this.page = idx;
@@ -964,15 +921,11 @@ const App = {
   render() {
     document.querySelectorAll(".nav-item").forEach((el, i) => el.classList.toggle("active", i === this.page));
     document.querySelectorAll(".page-view").forEach((el, i) => el.classList.toggle("active", i === this.page));
-
     const pageData = PAGES[this.page];
     const steps = pageData.steps;
-
     if (this.page === 0) renderArchitecture(this.step);
     if (this.page === 1) renderScheduler(this.step);
-
     const isVeryLastStep = (this.page === PAGES.length - 1) && (this.step === steps.length - 1);
-
     if (this.step === -1) {
       document.getElementById("hdr-num").textContent = "–";
       document.getElementById("hdr-total").textContent = steps.length;
@@ -1005,7 +958,6 @@ const App = {
     }
   }
 };
-
 /* ================================================================
    LANDING VIEW
 ================================================================ */
@@ -1022,7 +974,6 @@ const Landing = {
     App.goToPage(0);
   }
 };
-
 document.addEventListener("keydown", (e) => {
   if (document.getElementById("landing-view").style.display !== "none") {
     if (e.code === "ArrowRight") { e.preventDefault(); Landing.enterArchitecture(); }
@@ -1033,9 +984,7 @@ document.addEventListener("keydown", (e) => {
   else if (e.code === "ArrowLeft") { App.prev(); }
   else if (e.code === "Space") { e.preventDefault(); App.togglePlay(); }
 });
-
 App.render();
-
 const _urlParams = new URLSearchParams(location.search);
 if (_urlParams.get("end") === "1") {
   App.page = PAGES.length - 1;
