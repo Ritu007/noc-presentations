@@ -230,7 +230,7 @@
   <!-- ── VIEW 1: PCIe HIERARCHY & OPERATIONS ── -->
   <div id="view-1" class="canvas-view">
     <div style="width:100%; height:100%; min-height:0; display:flex; justify-content:center; margin-bottom:.5rem;">
-      <svg id="pcie-tree-svg" viewBox="0 0 900 720" style="width:100%; height:100%; max-height:100%;" xmlns="http://www.w3.org/2000/svg" aria-label="PCIe tree topology integrated into the CHI mesh">
+      <svg id="pcie-tree-svg" viewBox="0 0 1000 740" style="width:100%; height:100%; max-height:100%;" xmlns="http://www.w3.org/2000/svg" aria-label="PCIe tree topology integrated into the CHI mesh">
         <defs>
           <marker id="arrow" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto-start-reverse">
             <path d="M0,0 L0,6 L6,3 z" fill="#333"/>
@@ -326,58 +326,58 @@
         </g>
         <!-- PCIe Links and Background -->
         <g class="pt-group focusable" data-topic="tree lane_pair lane_agg lane_scale">
-          <rect x="20" y="500" width="860" height="210" rx="30" fill="#f3f4f6" stroke="#d1d5db" opacity="0.7"/>
-          <path d="M 280,420 L 280,520" fill="none" stroke="#1e40af" stroke-width="2"/>
-          <path d="M 450,420 L 450,520" fill="none" stroke="#1e40af" stroke-width="2"/>
-          <path d="M 630,420 L 630,520" fill="none" stroke="#1e40af" stroke-width="2"/>
-          <text x="275" y="470" text-anchor="end" font-size="11" fill="#1e40af">PCIe Link</text>
-          <text x="445" y="470" text-anchor="end" font-size="11" fill="#1e40af">PCIe Link</text>
-          <text x="625" y="470" text-anchor="end" font-size="11" fill="#1e40af">PCIe Link</text>
+          <rect x="20" y="500" width="960" height="230" rx="30" fill="#f3f4f6" stroke="#d1d5db" opacity="0.7"/>
+          <path d="M 280,420 L 280,513" fill="none" stroke="#1e40af" stroke-width="2"/>
+          <path d="M 450,420 L 480,515" fill="none" stroke="#1e40af" stroke-width="2"/>
+          <path d="M 630,420 L 720,515" fill="none" stroke="#1e40af" stroke-width="2"/>
+          <text x="275" y="470" text-anchor="end" font-size="13" fill="#1e40af">PCIe Link</text>
+          <text x="465" y="470" text-anchor="end" font-size="13" fill="#1e40af">PCIe Link</text>
+          <text x="655" y="470" text-anchor="end" font-size="13" fill="#1e40af">PCIe Link</text>
           <path d="M 235,565 L 190,565" fill="none" stroke="#16a34a" stroke-width="2"/>
           <path d="M 255,600 L 210,645" fill="none" stroke="#16a34a" stroke-width="2"/>
           <path d="M 305,600 L 350,645" fill="none" stroke="#16a34a" stroke-width="2"/>
-          <text x="210" y="560" text-anchor="middle" font-size="10" fill="#16a34a">PCIe</text>
-          <text x="220" y="620" text-anchor="middle" font-size="10" fill="#16a34a">PCIe</text>
-          <text x="340" y="620" text-anchor="middle" font-size="10" fill="#16a34a">PCIe</text>
+          <text x="210" y="560" text-anchor="middle" font-size="11" fill="#16a34a">PCIe</text>
+          <text x="220" y="620" text-anchor="middle" font-size="11" fill="#16a34a">PCIe</text>
+          <text x="340" y="620" text-anchor="middle" font-size="11" fill="#16a34a">PCIe</text>
         </g>
         <!-- PCIe Switch -->
         <g class="pt-group focusable" data-topic="tree comp_sw">
-          <circle cx="280" cy="565" r="45" fill="#16a34a" stroke="#14532d"/>
-          <text x="280" y="560" text-anchor="middle" font-weight="700" font-size="15" fill="#ffffff">PCIe</text>
-          <text x="280" y="580" text-anchor="middle" font-weight="700" font-size="15" fill="#ffffff">Switch</text>
+          <circle cx="280" cy="565" r="52" fill="#16a34a" stroke="#14532d"/>
+          <text x="280" y="558" text-anchor="middle" font-weight="700" font-size="17" fill="#ffffff">PCIe</text>
+          <text x="280" y="581" text-anchor="middle" font-weight="700" font-size="17" fill="#ffffff">Switch</text>
         </g>
         <!-- PCIe Endpoints -->
         <g class="pt-group focusable" data-topic="tree comp_ep">
-          <rect x="70" y="545" width="120" height="40" rx="8" fill="#d97706" stroke="#92400e"/>
-          <text x="130" y="563" text-anchor="middle" font-weight="700" font-size="12" fill="#ffffff">PCIe Endpoint</text>
-          <text x="130" y="577" text-anchor="middle" font-size="10" fill="#fef3c7">(e.g., GPU)</text>
-          <rect x="90" y="645" width="120" height="30" rx="6" fill="#d97706" stroke="#92400e"/>
-          <text x="150" y="664" text-anchor="middle" font-weight="700" font-size="12" fill="#ffffff">PCIe Endpoint</text>
-          <rect x="300" y="645" width="120" height="40" rx="6" fill="#ea580c" stroke="#9a3412"/>
-          <text x="360" y="663" text-anchor="middle" font-weight="700" font-size="12" fill="#ffffff">Legacy PCIe</text>
-          <text x="360" y="677" text-anchor="middle" font-size="10" fill="#ffedd5">Endpoint</text>
-          <rect x="390" y="520" width="120" height="50" rx="8" fill="#d97706" stroke="#92400e"/>
-          <text x="450" y="542" text-anchor="middle" font-weight="700" font-size="12" fill="#ffffff">PCIe Endpoint</text>
-          <text x="450" y="558" text-anchor="middle" font-size="10" fill="#fef3c7">(e.g., NVMe SSD /</text>
-          <text x="450" y="568" text-anchor="middle" font-size="10" fill="#fef3c7">NIC)</text>
+          <rect x="70" y="540" width="150" height="52" rx="8" fill="#d97706" stroke="#92400e"/>
+          <text x="145" y="562" text-anchor="middle" font-weight="700" font-size="15" fill="#ffffff">PCIe Endpoint</text>
+          <text x="145" y="580" text-anchor="middle" font-size="12" fill="#fef3c7">(e.g., GPU)</text>
+          <rect x="90" y="642" width="150" height="38" rx="6" fill="#d97706" stroke="#92400e"/>
+          <text x="165" y="665" text-anchor="middle" font-weight="700" font-size="15" fill="#ffffff">PCIe Endpoint</text>
+          <rect x="300" y="642" width="150" height="50" rx="6" fill="#ea580c" stroke="#9a3412"/>
+          <text x="375" y="664" text-anchor="middle" font-weight="700" font-size="15" fill="#ffffff">Legacy PCIe</text>
+          <text x="375" y="681" text-anchor="middle" font-size="12" fill="#ffedd5">Endpoint</text>
+          <rect x="420" y="515" width="150" height="64" rx="8" fill="#d97706" stroke="#92400e"/>
+          <text x="495" y="538" text-anchor="middle" font-weight="700" font-size="15" fill="#ffffff">PCIe Endpoint</text>
+          <text x="495" y="556" text-anchor="middle" font-size="12" fill="#fef3c7">(e.g., NVMe SSD /</text>
+          <text x="495" y="570" text-anchor="middle" font-size="12" fill="#fef3c7">NIC)</text>
         </g>
         <!-- PCIe Bridge and Legacy Bus -->
         <g class="pt-group focusable" data-topic="tree comp_ep comp_sw">
-          <rect x="570" y="520" width="120" height="50" rx="8" fill="#7e22ce" stroke="#4c1d95"/>
-          <text x="630" y="540" text-anchor="middle" font-weight="700" font-size="13" fill="#ffffff">PCIe Bridge</text>
-          <text x="630" y="555" text-anchor="middle" font-size="10" fill="#e9d5ff">To PCI / PCI-X</text>
-          <path d="M 630,570 L 630,620" fill="none" stroke="#7e22ce" stroke-width="2"/>
-          <text x="640" y="600" font-size="10" fill="#7e22ce">PCI/PCI-X</text>
-          <rect x="530" y="620" width="200" height="24" rx="4" fill="#a855f7" stroke="#6b21a8"/>
-          <text x="630" y="636" text-anchor="middle" font-weight="700" font-size="12" fill="#ffffff">PCI / PCI-X Legacy Bus</text>
-          <path d="M 580,644 L 580,670" fill="none" stroke="#a855f7" stroke-width="2"/>
-          <path d="M 680,644 L 680,670" fill="none" stroke="#a855f7" stroke-width="2"/>
-          <rect x="540" y="670" width="80" height="30" rx="6" fill="#d8b4fe" stroke="#9333ea"/>
-          <text x="580" y="683" text-anchor="middle" font-size="9" fill="#4c1d95">Legacy PCI</text>
-          <text x="580" y="694" text-anchor="middle" font-size="9" fill="#4c1d95">Device</text>
-          <rect x="640" y="670" width="80" height="30" rx="6" fill="#d8b4fe" stroke="#9333ea"/>
-          <text x="680" y="683" text-anchor="middle" font-size="9" fill="#4c1d95">Legacy PCI</text>
-          <text x="680" y="694" text-anchor="middle" font-size="9" fill="#4c1d95">Device</text>
+          <rect x="645" y="515" width="150" height="62" rx="8" fill="#7e22ce" stroke="#4c1d95"/>
+          <text x="720" y="538" text-anchor="middle" font-weight="700" font-size="16" fill="#ffffff">PCIe Bridge</text>
+          <text x="720" y="557" text-anchor="middle" font-size="12" fill="#e9d5ff">To PCI / PCI-X</text>
+          <path d="M 720,577 L 720,630" fill="none" stroke="#7e22ce" stroke-width="2"/>
+          <text x="732" y="608" font-size="12" fill="#7e22ce">PCI/PCI-X</text>
+          <rect x="595" y="630" width="250" height="30" rx="4" fill="#a855f7" stroke="#6b21a8"/>
+          <text x="720" y="650" text-anchor="middle" font-weight="700" font-size="14" fill="#ffffff">PCI / PCI-X Legacy Bus</text>
+          <path d="M 655,660 L 655,688" fill="none" stroke="#a855f7" stroke-width="2"/>
+          <path d="M 785,660 L 785,688" fill="none" stroke="#a855f7" stroke-width="2"/>
+          <rect x="615" y="688" width="90" height="32" rx="6" fill="#d8b4fe" stroke="#9333ea"/>
+          <text x="660" y="702" text-anchor="middle" font-size="11" fill="#4c1d95">Legacy PCI</text>
+          <text x="660" y="714" text-anchor="middle" font-size="11" fill="#4c1d95">Device</text>
+          <rect x="745" y="688" width="90" height="32" rx="6" fill="#d8b4fe" stroke="#9333ea"/>
+          <text x="790" y="702" text-anchor="middle" font-size="11" fill="#4c1d95">Legacy PCI</text>
+          <text x="790" y="714" text-anchor="middle" font-size="11" fill="#4c1d95">Device</text>
         </g>
       </svg>
     </div>
@@ -399,7 +399,7 @@
   </div>
   <!-- ── VIEW 3: RN-I BRIDGE — FULL REQUEST-RESPONSE PIPELINE ── -->
   <div id="view-3" class="canvas-view" style="display: flex; align-items: center; justify-content: center; position: relative;">
-    <svg id="bridge-walk-svg" viewBox="0 0 900 460" xmlns="http://www.w3.org/2000/svg" aria-label="RN-I bridge animated crossing" style="width: 100%; max-width: 920px; height: auto;">
+    <svg id="bridge-walk-svg" viewBox="0 0 900 460" xmlns="http://www.w3.org/2000/svg" aria-label="RN-I bridge animated crossing" style="width: 100%; max-width: 1650px; height: auto;">
       <defs>
         <marker id="arrowhead" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="var(--b2)"/></marker>
       </defs>
@@ -468,12 +468,6 @@
 <div id="now-band">
   <div id="band-body"><!-- populated by JS --></div>
 </div>
-<!-- ══════════════════════════════════════════════════════════════
-     DETAILS PANEL (RIGHT)
-══════════════════════════════════════════════════════════════ -->
-<aside id="details-panel">
-  <div id="details-body"><!-- populated by JS --></div>
-</aside>
 <!-- ══════════════════════════════════════════════════════════════
      CONTROL BAR
 ══════════════════════════════════════════════════════════════ -->

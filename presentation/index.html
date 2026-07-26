@@ -33,8 +33,7 @@
   --col-yellow: #d97706;
   --col-teal:   #0d9488;
 
-  --nav-w:    230px;
-  --det-w:    340px;
+  --nav-w:    260px;
   --hdr-h:    54px;
   --ctrl-h:   64px;
   --r:        10px;
@@ -50,12 +49,12 @@ body {
   color: var(--text);
   display: grid;
   grid-template-rows: var(--hdr-h) 1fr auto var(--ctrl-h);
-  grid-template-columns: var(--nav-w) 1fr var(--det-w);
+  grid-template-columns: var(--nav-w) 1fr;
   grid-template-areas:
-    "hdr  hdr    hdr"
-    "nav  canvas det"
-    "nav  band   band"
-    "ctrl ctrl   ctrl";
+    "hdr  hdr"
+    "nav  canvas"
+    "nav  band"
+    "ctrl ctrl";
 }
 
 /* ================================================================
@@ -234,35 +233,35 @@ body {
 .api-arrow-lbl { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; fill: var(--col-cyan); text-anchor: middle; opacity: 0; transition: opacity .3s; }
 
 /* ---- Event Scheduler page ---- */
-.sched-wrap { width: 100%; max-width: 1180px; display: flex; flex-direction: column; gap: .9rem; }
+.sched-wrap { width: 100%; max-width: 1480px; display: flex; flex-direction: column; gap: 1.1rem; }
 .sched-cols { display: flex; align-items: stretch; gap: .35rem; }
 .sched-col { flex: 1; min-width: 0; background: var(--s1); border: 1px solid var(--b1); border-radius: var(--r); overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.03); display: flex; flex-direction: column; transition: box-shadow .3s; }
-.sched-col-hdr { padding: .6rem .5rem; text-align: center; font-weight: 700; font-size: .85rem; color: #fff; letter-spacing: .2px; }
+.sched-col-hdr { padding: .75rem .6rem; text-align: center; font-weight: 700; font-size: 1rem; color: #fff; letter-spacing: .2px; }
 .sched-col.active { box-shadow: 0 0 0 2px var(--gc, var(--b2)), 0 4px 14px rgba(0,0,0,.08); }
-.sched-rows { display: flex; flex-direction: column; }
-.sched-row { display: flex; gap: .5rem; padding: .55rem .55rem; border-bottom: 1px solid var(--b1); opacity: .4; transition: all .3s; align-items: flex-start; }
+.sched-rows { display: flex; flex-direction: column; flex: 1; }
+.sched-row { display: flex; gap: .7rem; padding: 1.1rem .8rem; border-bottom: 1px solid var(--b1); opacity: .4; transition: all .3s; align-items: center; flex: 1; }
 .sched-row:last-child { border-bottom: none; }
 .sched-row.active { opacity: 1; background: var(--s2); box-shadow: inset 3px 0 0 var(--gc); }
 .sched-row.done { opacity: .85; }
-.sr-icon { width: 22px; height: 22px; border-radius: 50%; background: var(--s2); border: 1px solid var(--b1); font-size: .75rem; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-family: 'JetBrains Mono', monospace; color: var(--muted); margin-top: 1px; transition: all .25s; }
+.sr-icon { width: 30px; height: 30px; border-radius: 50%; background: var(--s2); border: 1px solid var(--b1); font-size: .95rem; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-family: 'JetBrains Mono', monospace; color: var(--muted); transition: all .25s; }
 .sched-row.active .sr-icon { background: var(--gc); border-color: var(--gc); color: #fff; }
 .sched-row.done .sr-icon { background: var(--col-green); border-color: var(--col-green); color: #fff; }
 .sr-txt { min-width: 0; }
-.sr-name { font-size: .85rem; font-weight: 700; color: var(--text); }
-.sr-desc { font-size: .75rem; color: var(--muted); margin-top: 1px; line-height: 1.3; }
+.sr-name { font-size: 1.12rem; font-weight: 700; color: var(--text); }
+.sr-desc { font-size: .96rem; color: var(--muted); margin-top: 3px; line-height: 1.4; }
 .sched-row.active .sr-name { color: var(--gc); }
 .sched-arrow { display: flex; align-items: center; justify-content: center; font-size: 1.05rem; color: var(--b2); flex-shrink: 0; width: 18px; font-weight: 700; }
 
 .sched-col.fabric { gap: 0; }
-.sched-subgroup { display: flex; flex-direction: column; }
+.sched-subgroup { display: flex; flex-direction: column; flex: 1; }
 .sched-subgroup + .sched-subgroup { border-top: 2px solid var(--b1); }
-.sched-subgroup-hdr { padding: .38rem .5rem; text-align: center; font-weight: 700; font-size: .75rem; letter-spacing: .3px; text-transform: uppercase; color: #fff; }
+.sched-subgroup-hdr { padding: .45rem .6rem; text-align: center; font-weight: 700; font-size: .85rem; letter-spacing: .3px; text-transform: uppercase; color: #fff; }
 .sched-subgroup.active .sched-subgroup-hdr { box-shadow: inset 0 0 0 2px rgba(255,255,255,.5); }
 
 .loop-wrap { display: flex; flex-direction: column; align-items: center; gap: .15rem; }
-.loop-svg { width: 100%; height: 30px; display: block; }
+.loop-svg { width: 100%; height: 34px; display: block; }
 .loop-path { fill: none; stroke: var(--b2); stroke-width: 2; stroke-dasharray: 6 4; }
-.loop-lbl { font-family: 'JetBrains Mono', monospace; font-size: .85rem; font-weight: 700; color: var(--dim); letter-spacing: .4px; transition: color .3s; }
+.loop-lbl { font-family: 'JetBrains Mono', monospace; font-size: .95rem; font-weight: 700; color: var(--dim); letter-spacing: .4px; transition: color .3s; }
 .loop-lbl.active { color: var(--col-orange); }
 
 /* ================================================================
@@ -292,7 +291,7 @@ body {
   transition: all .18s;
 }
 .landing-start-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(37,99,235,.4); }
-.landing-inner { margin: auto 0; max-width: 1140px; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 2.4rem; }
+.landing-inner { margin: auto 0; max-width: 95%; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 2.4rem; }
 .landing-title-block { text-align: center; }
 .landing-title { font-size: 2.6rem; font-weight: 800; letter-spacing: -1px; color: var(--text); line-height: 1.15; }
 .landing-subtitle { margin-top: .6rem; font-size: .95rem; font-family: 'JetBrains Mono', monospace; color: var(--dim); font-weight: 500; letter-spacing: .3px; }
@@ -311,8 +310,8 @@ body {
 .landing-card:hover { border-color: var(--b2); box-shadow: 0 4px 14px rgba(0,0,0,0.08); transform: translateY(-1px); }
 .landing-card-icon { width: 44px; height: 44px; border-radius: 10px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #fff; }
 .landing-card-text { flex: 1; min-width: 0; }
-.landing-card-name { font-size: .98rem; font-weight: 700; color: var(--text); margin-bottom: 2px; }
-.landing-card-desc { font-size: .78rem; color: var(--muted); line-height: 1.5; }
+.landing-card-name { font-size: 1.4rem; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+.landing-card-desc { font-size: 1.1rem; color: var(--muted); line-height: 1.5; }
 .landing-card-arrow { font-size: 1.1rem; color: var(--b2); flex-shrink: 0; transition: transform .18s, color .18s; }
 .landing-card:hover .landing-card-arrow { color: var(--col-cyan); transform: translateX(3px); }
 
@@ -333,23 +332,6 @@ body {
 
 .band-title { flex-shrink: 0; font-size: 1.15rem; font-weight: 800; color: var(--text); white-space: nowrap; }
 .band-desc { flex: 1; min-width: 0; font-size: .92rem; color: var(--muted); line-height: 1.5; font-weight: 500; }
-
-/* ================================================================
-   DETAILS PANEL (RIGHT — reference / supporting material)
-================================================================ */
-#details-panel { grid-area: det; background: var(--s1); border-left: 1px solid var(--b1); overflow-y: auto; overflow-x: hidden; padding: 1rem .9rem; box-shadow: -1px 0 4px rgba(0,0,0,0.03); }
-#details-panel::-webkit-scrollbar { width: 5px; }
-#details-panel::-webkit-scrollbar-thumb { background: var(--b1); border-radius: 3px; }
-#details-body { transition: opacity .15s; }
-
-.det-steplbl { font-size: .62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.3px; color: var(--dim); margin-bottom: .75rem; }
-.det-sec { margin-bottom: .9rem; }
-.det-lbl { font-size: .62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.3px; color: var(--dim); margin-bottom: .4rem; }
-.summary-grid { display: grid; grid-template-columns: 1fr; gap: .4rem; }
-.sum-card { background: var(--s2); border: 1px solid var(--b1); border-radius: var(--rs); padding: .5rem .65rem; display: flex; flex-direction: column; gap: 2px; }
-.sum-lbl { font-size: .58rem; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: var(--dim); }
-.sum-val { font-size: .74rem; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: var(--text); word-break: break-word; }
-.det-empty { font-size: .78rem; color: var(--dim); line-height: 1.6; text-align: center; padding: 2rem 0; }
 
 /* ================================================================
    CONTROL BAR (FOOTER)
@@ -681,12 +663,6 @@ body {
   <div id="band-body"><!-- populated by JS --></div>
 </div>
 <!-- ══════════════════════════════════════════════════════════════
-     DETAILS PANEL (RIGHT — reference / supporting material)
-══════════════════════════════════════════════════════════════ -->
-<aside id="details-panel">
-  <div id="details-body"><!-- populated by JS --></div>
-</aside>
-<!-- ══════════════════════════════════════════════════════════════
      CONTROL BAR
 ══════════════════════════════════════════════════════════════ -->
 <footer id="control-bar">
@@ -844,16 +820,6 @@ function renderDetails(step) {
   band.innerHTML = `
     <div class="band-title">${step.num}. ${step.name}</div>
     <div class="band-desc">${step.desc}</div>`;
-  const total = PAGES[App.page].steps.length;
-  const body = document.getElementById("details-body");
-  body.innerHTML = `
-    <div class="det-steplbl">Step ${step.num} of ${total}</div>
-    <div class="det-sec">
-      <div class="det-lbl">Details</div>
-      <div class="summary-grid">
-        ${step.meta.map(m => `<div class="sum-card"><div class="sum-lbl">${m.lbl}</div><div class="sum-val">${m.val}</div></div>`).join("")}
-      </div>
-    </div>`;
 }
 const IDLE_BAND_COPY = {
   architecture: {
@@ -872,8 +838,6 @@ function renderIdleBand() {
   band.innerHTML = `
     <div class="band-title">${copy.title}</div>
     <div class="band-desc">${copy.desc}</div>`;
-  document.getElementById("details-body").innerHTML = `
-    <div class="det-empty">Nothing selected yet — click Next to view the first step's details.</div>`;
 }
 /* ================================================================
    APP STATE MACHINE

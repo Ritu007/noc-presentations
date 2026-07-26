@@ -12,7 +12,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=3">
 </head>
 
 <body>
@@ -150,7 +150,7 @@
       <div class="nav-status-icon" id="nav-st-1"></div>
       <div class="nav-text">
         <div class="nav-num">02</div>
-        <div class="nav-name">Requirement Gathering</div>
+        <div class="nav-name">Pipelined Incremental Model</div>
       </div>
       <div class="nav-color-dot" style="background:var(--col-orange)"></div>
     </button>
@@ -158,7 +158,7 @@
       <div class="nav-status-icon" id="nav-st-2"></div>
       <div class="nav-text">
         <div class="nav-num">03</div>
-        <div class="nav-name">System Design</div>
+        <div class="nav-name">Requirement Gathering</div>
       </div>
       <div class="nav-color-dot" style="background:var(--col-orange)"></div>
     </button>
@@ -166,7 +166,7 @@
       <div class="nav-status-icon" id="nav-st-3"></div>
       <div class="nav-text">
         <div class="nav-num">04</div>
-        <div class="nav-name">Development and Coding</div>
+        <div class="nav-name">System Design</div>
       </div>
       <div class="nav-color-dot" style="background:var(--col-orange)"></div>
     </button>
@@ -174,10 +174,23 @@
       <div class="nav-status-icon" id="nav-st-4"></div>
       <div class="nav-text">
         <div class="nav-num">05</div>
+        <div class="nav-name">Development and Coding</div>
+      </div>
+      <div class="nav-color-dot" style="background:var(--col-orange)"></div>
+    </button>
+    <button class="nav-item" id="nav-5" onclick="App.goToPage(5)">
+      <div class="nav-status-icon" id="nav-st-5"></div>
+      <div class="nav-text">
+        <div class="nav-num">06</div>
         <div class="nav-name">Documentation Flow</div>
       </div>
       <div class="nav-color-dot" style="background:var(--col-orange)"></div>
     </button>
+    <div class="status-legend" id="status-legend">
+      <div class="legend-item"><span class="legend-dot dot-done"></span>Completed</div>
+      <div class="legend-item"><span class="legend-dot dot-progress"></span>In Progress</div>
+      <div class="legend-item"><span class="legend-dot dot-planned"></span>Planned</div>
+    </div>
     <div class="nav-kbd-hint">
       <span class="kbd">←</span><span class="kbd">→</span> navigate &nbsp;·&nbsp;
       <span class="kbd">Space</span> play
@@ -245,8 +258,11 @@
           </ul>
         </div>
       </div>
+    </div>
+    <!-- ── VIEW 0B: PIPELINED INCREMENTAL SDLC MODEL ── -->
+    <div id="view-0b" class="canvas-view">
       <div class="flow-bottom-wrap">
-        <div class="flow-section-lbl">Pipelined Incremental SDLC Model</div>
+        <div class="flow-section-lbl" style="margin-top:0;">Pipelined Incremental SDLC Model</div>
         <div class="pipeline-grid">
           <div class="tb-col-hdr" data-tb="1" style="grid-column:1; grid-row:1;">Time Block 1</div>
           <div class="tb-col-hdr" data-tb="2" style="grid-column:2; grid-row:1;">Time Block 2</div>
@@ -773,19 +789,6 @@
   <div id="now-band">
     <div id="band-body"><!-- populated dynamically by app.js --></div>
   </div>
-  <!-- ══════════════════════════════════════════════════════════════
-     RIGHT DETAILS PANEL (STATUS LEGEND + SNAPSHOT)
-══════════════════════════════════════════════════════════════ -->
-  <aside id="details-panel">
-    <div class="status-legend" id="status-legend">
-      <div class="legend-item"><span class="legend-dot dot-done"></span>Completed</div>
-      <div class="legend-item"><span class="legend-dot dot-progress"></span>In Progress</div>
-      <div class="legend-item"><span class="legend-dot dot-planned"></span>Planned</div>
-    </div>
-    <div id="details-body">
-      <!-- Populated dynamically by app.js -->
-    </div>
-  </aside>
   <!-- ══════════════════════════════════════════════════════════════
      CONTROL BAR (FOOTER)
 ══════════════════════════════════════════════════════════════ -->

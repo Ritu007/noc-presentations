@@ -22,8 +22,7 @@
   --col-yellow: #d97706; /* status: In Progress; deck accent pairing */
   --col-teal:   #0d9488;
 
-  --nav-w:    230px;
-  --det-w:    340px;
+  --nav-w:    260px;
   --hdr-h:    54px;
   --ctrl-h:   64px;
   --r:        10px;
@@ -45,12 +44,12 @@ body {
   color: var(--text);
   display: grid;
   grid-template-rows: var(--hdr-h) 1fr auto var(--ctrl-h);
-  grid-template-columns: var(--nav-w) 1fr var(--det-w);
+  grid-template-columns: var(--nav-w) 1fr;
   grid-template-areas:
-    "hdr  hdr    hdr"
-    "nav  canvas det"
-    "nav  band   det"
-    "ctrl ctrl   ctrl";
+    "hdr  hdr"
+    "nav  canvas"
+    "nav  band"
+    "ctrl ctrl";
 }
 
 /* ================================================================
@@ -127,8 +126,10 @@ body {
   border-right: 1px solid var(--b1);
   padding: 1rem .75rem .6rem;
   display: flex; flex-direction: column; gap: 4px;
-  overflow: hidden;
+  overflow-y: auto; overflow-x: hidden;
 }
+#stage-nav::-webkit-scrollbar { width: 5px; }
+#stage-nav::-webkit-scrollbar-thumb { background: var(--b1); border-radius: 3px; }
 
 .nav-group-label {
   font-size: .62rem; font-weight: 700; text-transform: uppercase;
@@ -176,10 +177,22 @@ body {
 
 .nav-text { flex: 1; min-width: 0; }
 .nav-num  { font-size: .6rem; color: var(--dim); font-family: 'JetBrains Mono', monospace; font-weight: 600; margin-bottom: 1px; }
-.nav-name { font-size: .78rem; font-weight: 600; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nav-name { font-size: 1.1rem; font-weight: 600; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .nav-item.active .nav-name { color: var(--col-orange); }
 .nav-item.done   .nav-name { color: var(--text); }
 .nav-color-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+.nav-topics {
+  display: none;
+  flex-direction: column; gap: 4px;
+  margin: 2px 0 8px 1.9rem;
+  padding-left: .5rem;
+  border-left: 2px solid var(--b1);
+}
+.nav-item.active + .nav-topics { display: flex; }
+.nav-topics .det-sec { margin-bottom: 0; }
+.nav-topics .det-lbl { margin-bottom: .3rem; }
+.nav-topics .opt-btn { text-align: left; font-size: .72rem; padding: .4rem .55rem; }
 
 .nav-kbd-hint {
   margin-top: auto; padding-top: .6rem;
@@ -228,7 +241,7 @@ body {
 .canvas-view.active { opacity: 1; pointer-events: auto; transform: scale(1); }
 
 /* ================================================================
-   NOW BAND & DETAILS PANEL
+   NOW BAND
 ================================================================ */
 #now-band {
   grid-area: band;
@@ -253,41 +266,16 @@ body {
 }
 .band-badge.c-orange { background: rgba(234,88,12,.08);  border-color: rgba(234,88,12,.3);  color: var(--col-orange); }
 
-.band-title { flex-shrink: 0; font-size: 1.15rem; font-weight: 800; color: var(--text); white-space: nowrap; }
-.band-desc { flex: 1; min-width: 0; font-size: .92rem; color: var(--muted); line-height: 1.5; font-weight: 500; }
-
-#details-panel {
-  grid-area: det;
-  background: var(--s1); border-left: 1px solid var(--b1);
-  overflow-y: auto; overflow-x: hidden;
-  padding: 1rem .9rem;
-  box-shadow: -1px 0 4px rgba(0,0,0,0.03);
-}
-#details-panel::-webkit-scrollbar { width: 5px; }
-#details-panel::-webkit-scrollbar-thumb { background: var(--b1); border-radius: 3px; }
-
-#details-body { transition: opacity .15s; }
-#details-body.fading { opacity: 0; }
+.band-title { flex-shrink: 0; font-size: 1.3rem; font-weight: 800; color: var(--text); white-space: nowrap; }
+.band-desc { flex: 1; min-width: 0; font-size: 1.08rem; color: var(--muted); line-height: 1.5; font-weight: 500; }
 
 .det-sec { margin-bottom: .9rem; }
-.det-lbl { font-size: .62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.3px; color: var(--dim); margin-bottom: .4rem; }
-
-.summary-grid {
-  display: grid; grid-template-columns: 1fr;
-  gap: .45rem; margin-top: .35rem;
-}
-.sum-card {
-  background: var(--s2); border: 1px solid var(--b1);
-  border-radius: var(--rs); padding: .5rem .65rem;
-  display: flex; flex-direction: column; gap: 2px;
-}
-.sum-lbl { font-size: .58rem; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: var(--dim); }
-.sum-val { font-size: .74rem; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: var(--text); word-break: break-word; }
+.det-lbl { font-size: .72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.3px; color: var(--dim); margin-bottom: .4rem; }
 
 .opt-btn-group { display: flex; flex-direction: column; gap: .4rem; }
 .opt-btn {
   padding: .45rem .55rem; font-family: 'Inter', sans-serif;
-  font-size: .72rem; font-weight: 700; border-radius: var(--rxs);
+  font-size: .85rem; font-weight: 700; border-radius: var(--rxs);
   border: 1px solid var(--b1); background: var(--s1); color: var(--muted);
   cursor: pointer; transition: all .18s; text-align: left;
 }
@@ -298,8 +286,8 @@ body {
 }
 
 /* ================================================================
-   STATUS LEGEND (static fixture, sits above #details-body — pages 1-3 only,
-   hidden on pages 0 and 4 via App.updateView()'s noLegend check)
+   STATUS LEGEND (static fixture in #stage-nav, pages 1-3 only, hidden on
+   pages 0 and 4 via App.updateView()'s noLegend check)
 ================================================================ */
 .status-legend {
   display: flex; flex-direction: column; gap: .4rem;
@@ -322,30 +310,30 @@ body {
    — the V&V lifecycle stays on its own page in the Verification & Validation
    deck.
 ================================================================ */
-.vv-flow { display: flex; gap: .5rem; width: 100%; max-width: 1200px; align-items: stretch; flex-wrap: nowrap; justify-content: center; margin: 0 auto; }
+.vv-flow { display: flex; gap: .6rem; width: 100%; max-width: 1600px; align-items: stretch; flex-wrap: nowrap; justify-content: center; margin: 0 auto; }
 .vv-arrow-right {
   display: flex; align-items: center; justify-content: center;
-  color: var(--b2); font-size: 1.4rem; font-weight: 900;
+  color: var(--b2); font-size: 1.8rem; font-weight: 900;
 }
-.vv-col { flex: 1 1 0; min-width: 130px; display: flex; flex-direction: column; align-items: stretch; gap: .35rem; }
+.vv-col { flex: 1 1 0; min-width: 180px; display: flex; flex-direction: column; align-items: stretch; gap: .5rem; }
 .vv-sdlc-box {
-  width: 100%; text-align: center; padding: .4rem .5rem; border-radius: var(--rs);
+  width: 100%; text-align: center; padding: .8rem 1rem; border-radius: var(--rs);
   background: linear-gradient(135deg, var(--c), color-mix(in srgb, var(--c) 70%, var(--text)));
-  color: #fff; font-size: .82rem; font-weight: 800; letter-spacing: .2px;
+  color: #fff; font-size: 1.5rem; font-weight: 800; letter-spacing: .2px;
   box-shadow: 0 2px 8px color-mix(in srgb, var(--c) 35%, transparent);
-  height: 3.2rem; display: flex; align-items: center; justify-content: center;
+  height: 5.6rem; display: flex; align-items: center; justify-content: center;
 }
 
 /* SDLC-detail bullets — always visible (dimming, not hiding, is the only
    step-through effect); flex:1 + centered content keeps every column's
    detail box the same size regardless of how many bullets it holds. */
 .vv-sdlc-detail {
-  list-style: none; display: flex; flex-direction: column; justify-content: center; gap: .35rem;
-  flex: 1; margin: .35rem 0 0; padding: .65rem .75rem;
+  list-style: none; display: flex; flex-direction: column; justify-content: center; gap: .6rem;
+  flex: 1; margin: .45rem 0 0; padding: 1.1rem 1.2rem;
   background: var(--s2); border-radius: var(--rs);
   transition: opacity .25s, box-shadow .25s;
 }
-.vv-sdlc-detail li { font-size: .88rem; color: var(--text); line-height: 1.4; padding-left: .95rem; position: relative; font-weight: 500; }
+.vv-sdlc-detail li { font-size: 1.32rem; color: var(--text); line-height: 1.42; padding-left: 1.2rem; position: relative; font-weight: 500; }
 .vv-sdlc-detail li::before { content: '›'; position: absolute; left: 0; color: var(--c); font-weight: 800; }
 
 /* Generic focus/dim mechanism — shared by page 0's phase columns and page 4's
@@ -370,24 +358,24 @@ body {
 .flow-bottom-wrap { display: flex; flex-direction: column; align-items: center; }
 .pipeline-grid {
   display: grid; grid-template-rows: auto repeat(5, auto);
-  gap: .5rem .6rem; width: 100%; max-width: 1250px; margin: .7rem auto 0;
+  gap: 1.1rem 1.4rem; width: 100%; max-width: 1800px; margin: 1.2rem auto 0;
   justify-content: center;
 }
 [data-tb]:not(.revealed) { display: none; }
 .tb-col-hdr {
-  font-size: .68rem; font-weight: 800; text-transform: uppercase; letter-spacing: .5px;
-  color: var(--dim); text-align: center; align-self: end; padding-bottom: .5rem;
+  font-size: 1.35rem; font-weight: 800; text-transform: uppercase; letter-spacing: .5px;
+  color: var(--dim); text-align: center; align-self: end; padding-bottom: 1rem;
 }
 .tb-box {
-  border-radius: var(--rs); padding: .35rem .5rem; color: #fff; text-align: center;
+  border-radius: var(--rs); padding: .9rem 1.1rem; color: #fff; text-align: center;
   background: linear-gradient(135deg, var(--c), color-mix(in srgb, var(--c) 70%, var(--text)));
   box-shadow: 0 2px 6px color-mix(in srgb, var(--c) 30%, transparent);
-  min-height: 2.7rem; min-width: 140px; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; gap: 1px;
+  min-height: 5rem; min-width: 210px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 3px;
   transition: box-shadow .25s, transform .25s;
 }
-.tb-box-inc { font-size: .64rem; font-weight: 800; letter-spacing: .3px; opacity: .95; }
-.tb-box-phase { font-size: .76rem; font-weight: 700; }
+.tb-box-inc { font-size: 1.15rem; font-weight: 800; letter-spacing: .3px; opacity: .95; }
+.tb-box-phase { font-size: 1.5rem; font-weight: 700; }
 .tb-box.active {
   box-shadow: 0 0 0 2px var(--c), 0 4px 10px color-mix(in srgb, var(--c) 35%, transparent);
   transform: translateY(-2px);
@@ -397,7 +385,7 @@ body {
    SDLC CHECKLIST CONTENT (pill/box treatment — pages 1-3)
 ================================================================ */
 .sdlc-cols {
-  display: grid; gap: 1.5rem; width: 100%; max-width: 1300px; margin: 0 auto;
+  display: grid; gap: 1.8rem; width: 100%; max-width: 1650px; margin: 0 auto;
   align-items: stretch;
   flex: 1 1 auto; min-height: 0;
 }
@@ -418,7 +406,7 @@ body {
 
 .sdlc-col {
   background: var(--s1); border: 1px solid var(--b1); border-radius: var(--r);
-  padding: 1.3rem 1.4rem; display: flex; flex-direction: column; gap: .5rem;
+  padding: 1.6rem 1.8rem; display: flex; flex-direction: column; gap: .8rem;
   box-shadow: 0 1px 3px rgba(0,0,0,0.04);
   min-height: 0;
   overflow-y: auto;
@@ -427,12 +415,12 @@ body {
 .sdlc-col::-webkit-scrollbar-thumb { background: var(--b1); border-radius: 3px; }
 
 .sdlc-col-hdr {
-  font-size: 1.05rem; font-weight: 800; color: var(--text);
-  padding-bottom: .5rem; margin-bottom: .3rem; border-bottom: 2px solid var(--s3);
+  font-size: 1.4rem; font-weight: 800; color: var(--text);
+  padding-bottom: .6rem; margin-bottom: .4rem; border-bottom: 2px solid var(--s3);
 }
 .sdlc-sub-hdr {
-  font-size: .82rem; font-weight: 800; text-transform: uppercase; letter-spacing: .5px;
-  color: var(--dim); margin-top: .7rem; margin-bottom: .15rem;
+  font-size: 1.15rem; font-weight: 800; text-transform: uppercase; letter-spacing: .5px;
+  color: var(--dim); margin-top: 1rem; margin-bottom: .3rem;
 }
 .sdlc-col-hdr + .sdlc-sub-hdr { margin-top: 0; }
 .sdlc-sub-hdr.st-done     { color: var(--col-green); }
@@ -445,8 +433,8 @@ body {
 /* Pill/box item — color is the ONLY signal between statuses: no italics,
    no per-status font-weight/style difference. */
 .sdlc-item {
-  display: block; font-size: 1rem; font-weight: 600; line-height: 1.4; color: var(--text);
-  padding: .55rem .85rem; margin-bottom: .45rem;
+  display: block; font-size: 1.3rem; font-weight: 600; line-height: 1.4; color: var(--text);
+  padding: .75rem 1.1rem; margin-bottom: .6rem;
   border-radius: var(--rs); border: 1.5px solid var(--b1); border-left-width: 5px;
   background: var(--s2);
 }
@@ -468,31 +456,31 @@ body {
 
 /* Nested tree levels (up to 3 deep) — smaller pills signal hierarchy depth
    only; status color rules above are unchanged at every depth. */
-.sdlc-tree ul { margin: .3rem 0 .5rem 1rem; padding-left: .75rem; border-left: 2px dashed var(--b1); }
-.sdlc-tree ul .sdlc-item    { font-size: .88rem; padding: .48rem .75rem; margin-bottom: .38rem; }
-.sdlc-tree ul ul .sdlc-item { font-size: .8rem;  padding: .42rem .7rem;  margin-bottom: .32rem; }
+.sdlc-tree ul { margin: .4rem 0 .6rem 1.2rem; padding-left: 1rem; border-left: 2px dashed var(--b1); }
+.sdlc-tree ul .sdlc-item    { font-size: 1.15rem; padding: .65rem 1rem; margin-bottom: .5rem; }
+.sdlc-tree ul ul .sdlc-item { font-size: 1.05rem; padding: .55rem .9rem;  margin-bottom: .4rem; }
 
 /* ================================================================
    PAGE 4 — DOCUMENTATION FLOW (ported from verification-presentation)
 ================================================================ */
-.doc-flow { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 640px; margin: 0 auto; }
+.doc-flow { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 860px; margin: 0 auto; }
 .doc-step {
-  width: 100%; display: flex; align-items: center; gap: .9rem;
+  width: 100%; display: flex; align-items: center; gap: 1.2rem;
   background: var(--s1); border: 1.5px solid var(--b1); border-radius: var(--r);
-  padding: .75rem 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  padding: .85rem 1.4rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
 .doc-step:not(.dimmed):hover { border-color: var(--b2); }
 .doc-num {
-  width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+  width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
   background: var(--s2); border: 2px solid var(--b1); color: var(--muted);
   display: flex; align-items: center; justify-content: center;
-  font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: .8rem;
+  font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 1rem;
   transition: all .25s;
 }
 .doc-step.vv-focusable:not(.dimmed) .doc-num { background: var(--col-orange); border-color: var(--col-orange); color: #fff; }
-.doc-title { font-size: .84rem; font-weight: 700; color: var(--text); margin-bottom: 2px; }
-.doc-desc { font-size: .73rem; color: var(--muted); line-height: 1.4; }
-.doc-connector { color: var(--b2); font-size: .9rem; padding: .1rem 0; }
+.doc-title { font-size: 1.15rem; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+.doc-desc { font-size: 1rem; color: var(--muted); line-height: 1.4; }
+.doc-connector { color: var(--b2); font-size: 1.2rem; padding: .1rem 0; }
 
 /* ================================================================
    CONTROL BAR (FOOTER)
@@ -514,7 +502,7 @@ body {
 .prog-lbl span { color: var(--col-orange); font-weight: 700; }
 
 .ctrl-btns { display: flex; gap: .5rem; align-items: center; flex-shrink: 0; }
-.ctrl-btn { display: flex; align-items: center; justify-content: center; gap: .4rem; height: 36px; padding: 0 1.05rem; border: none; border-radius: var(--rs); font-family: 'Inter', sans-serif; font-size: .78rem; font-weight: 700; cursor: pointer; transition: all .18s; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.ctrl-btn { display: flex; align-items: center; justify-content: center; gap: .4rem; height: 36px; padding: 0 1.05rem; border: none; border-radius: var(--rs); font-family: 'Inter', sans-serif; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: all .18s; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
 .ctrl-btn:disabled { opacity: .3; cursor: not-allowed; }
 .reset-btn { background: var(--s2); border: 1px solid var(--b1); color: var(--muted); font-size: .72rem; padding: 0 .75rem; }
 .reset-btn:hover:not(:disabled) { background: var(--s3); color: var(--text); }
@@ -536,7 +524,7 @@ body {
 .landing-toc-link {
   position: fixed; top: 1.5rem; left: 1.5rem; z-index: 501;
   display: inline-flex; align-items: center; gap: .3rem;
-  text-decoration: none; color: var(--dim); font-size: .78rem; font-weight: 600;
+  text-decoration: none; color: var(--dim); font-size: 1.1rem; font-weight: 600;
   padding: .45rem .8rem; border: 1px solid var(--b1); border-radius: var(--rs);
   background: var(--bg);
   transition: background .2s, border-color .2s, color .2s;
@@ -551,7 +539,7 @@ body {
   transition: all .18s;
 }
 .landing-start-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(234,88,12,.45); }
-.landing-inner { margin: auto 0; max-width: 1140px; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 2.4rem; }
+.landing-inner { margin: auto 0; max-width: 95%; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 2.4rem; }
 .landing-title-block { text-align: center; }
 .landing-title { font-size: 2.5rem; font-weight: 800; letter-spacing: -1px; color: var(--text); line-height: 1.15; }
 .landing-subtitle { margin-top: .6rem; font-size: .95rem; font-family: 'JetBrains Mono', monospace; color: var(--dim); font-weight: 500; letter-spacing: .3px; }
@@ -570,7 +558,7 @@ body {
 .landing-card:hover { border-color: var(--b2); box-shadow: 0 4px 14px rgba(0,0,0,0.08); transform: translateY(-1px); }
 .landing-card-icon { width: 44px; height: 44px; border-radius: 10px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #fff; }
 .landing-card-text { flex: 1; min-width: 0; }
-.landing-card-name { font-size: .98rem; font-weight: 700; color: var(--text); margin-bottom: 2px; }
-.landing-card-desc { font-size: .78rem; color: var(--muted); line-height: 1.5; }
+.landing-card-name { font-size: 1.4rem; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+.landing-card-desc { font-size: 1.1rem; color: var(--muted); line-height: 1.5; }
 .landing-card-arrow { font-size: 1.1rem; color: var(--b2); flex-shrink: 0; transition: transform .18s, color .18s; }
 .landing-card:hover .landing-card-arrow { color: var(--col-orange); transform: translateX(3px); }

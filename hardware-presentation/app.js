@@ -11,7 +11,7 @@ const STEPS = [
     viewId: "view-roadmap",
     microValues: [0, 1, 2, 3],
     desc: [
-      "CHI Exploration & Node Design: Exploring the CHI protocol alongside identifying key functionalities of nodes (RN, HN, SN) required for simulator design.",
+      "CHI Exploration & Node Design: Exploring the CHI protocol alongside identifying key functionalities of nodes (RN, HN, SN) required for simulator design.<br><br><strong>CHI Node Taxonomy</strong> — <strong>RN-F (Fully Coherent Request Node):</strong> Generates coherent cache requests &amp; CPU traffic. <strong>HN-F (Fully Coherent Home Node):</strong> Manages coherence directory &amp; ordering. <strong>SN-F (Slave Node):</strong> Interfaces to main memory controllers.",
       "Router Development: Working on the router architecture required for CHI based NoC.",
       "Mesh Formation: Interconnect routers to form a scalable mesh network topology.",
       "Node Integration: Gradually integrate CHI nodes (RN-F, HN-F, SN-F, etc.) into the router mesh as shown in the block diagram."
@@ -25,20 +25,12 @@ const STEPS = [
     details: `
       <div class="det-sec">
         <div class="det-lbl">Development Milestones</div>
-        <div class="summary-grid">
-          <div class="sum-card"><div class="sum-lbl">Step 1</div><div class="sum-val">CHI Exploration & Node Design</div></div>
-          <div class="sum-card"><div class="sum-lbl">Step 2</div><div class="sum-val">Router Development</div></div>
-          <div class="sum-card"><div class="sum-lbl">Step 3</div><div class="sum-val">Mesh Formation</div></div>
-          <div class="sum-card"><div class="sum-lbl">Step 4</div><div class="sum-val">Node Integration</div></div>
+        <div class="opt-btn-group" style="flex-direction:column; gap:8px;">
+          <button class="opt-btn active" id="btn-roadmap-0" onclick="App.setRoadmapStep(0)">1. CHI Exploration & Node Design</button>
+          <button class="opt-btn" id="btn-roadmap-1" onclick="App.setRoadmapStep(1)">2. Router Development</button>
+          <button class="opt-btn" id="btn-roadmap-2" onclick="App.setRoadmapStep(2)">3. Mesh Formation</button>
+          <button class="opt-btn" id="btn-roadmap-3" onclick="App.setRoadmapStep(3)">4. Node Integration</button>
         </div>
-      </div>
-      <div class="det-sec">
-        <div class="det-lbl">CHI Node Taxonomy</div>
-        <p style="font-size:.75rem; color:var(--muted); line-height:1.4;">
-          <strong>RN-F (Fully Coherent Request Node):</strong> Generates coherent cache requests & CPU traffic.<br>
-          <strong>HN-F (Fully Coherent Home Node):</strong> Manages coherence directory & ordering.<br>
-          <strong>SN-F (Slave Node):</strong> Interfaces to main memory controllers.
-        </p>
       </div>
     `
   },
@@ -77,7 +69,7 @@ const STEPS = [
     badge: "Buffer & Credit Sizing",
     badgeClass: "c-purple",
     viewId: "view-buffers",
-    microValues: [null, "vcs", "credit", "flit", "depth"],
+    microValues: [null, "vcs", "credit", "flit"],
     desc: "Each CHI router consists of six identical ports, and every port contains independent buffers for the four CHI channels: REQ (162b), DAT (756b), SNP (126b), and RSP (73b).",
     meta: [
       { lbl: "REQ Flit Width", val: "162 bits" },
@@ -92,14 +84,6 @@ const STEPS = [
           <button class="opt-btn" id="btn-topic-vcs" onclick="App.setSlide3Topic('vcs')">Dedicated VCs & Sizing</button>
           <button class="opt-btn" id="btn-topic-credit" onclick="App.setSlide3Topic('credit')">Credit Mechanism</button>
           <button class="opt-btn" id="btn-topic-flit" onclick="App.setSlide3Topic('flit')">Single Atomic Flit</button>
-          <button class="opt-btn" id="btn-topic-depth" onclick="App.setSlide3Topic('depth')">VC Buffer Depth</button>
-        </div>
-      </div>
-      <div class="control-widget" id="slide3-depth-widget" style="margin-top:12px; display:none;">
-        <div class="widget-lbl">Adjust VC Buffer Depth</div>
-        <input type="range" class="depth-slider" id="vc-depth-slider" min="0" max="3" step="1" value="1" oninput="App.onDepthChange(this.value)">
-        <div style="display:flex; justify-content:space-between; font-size:.7rem; font-family:'JetBrains Mono'; color:var(--text); font-weight:700;">
-          <span>8 entries</span><span id="vc-depth-val" style="color:var(--col-purple)">16 entries (2⁴)</span><span>32</span><span>64</span>
         </div>
       </div>
     `
@@ -148,7 +132,7 @@ const STEPS = [
     details: `
       <div class="det-sec">
         <div class="det-lbl">9-Step Execution Flow</div>
-        <div class="opt-btn-group" style="flex-direction:column; gap:6px; max-height:280px; overflow-y:auto; padding-right:4px;">
+        <div class="opt-btn-group" style="flex-direction:column; gap:6px;">
           <button class="opt-btn" id="btn-topic5-step1" onclick="App.setSlide5Topic('step1')">1. Input Port</button>
           <button class="opt-btn" id="btn-topic5-step2" onclick="App.setSlide5Topic('step2')">2. Buffer Write (BW)</button>
           <button class="opt-btn" id="btn-topic5-step3" onclick="App.setSlide5Topic('step3')">3. VC State & Flow Control</button>
@@ -158,7 +142,6 @@ const STEPS = [
           <button class="opt-btn" id="btn-topic5-step7" onclick="App.setSlide5Topic('step7')">7. Switch Allocator (SA)</button>
           <button class="opt-btn" id="btn-topic5-step8" onclick="App.setSlide5Topic('step8')">8. Switch Traversal (ST)</button>
           <button class="opt-btn" id="btn-topic5-step9" onclick="App.setSlide5Topic('step9')">9. Flow Control Unit</button>
-        </div>
         </div>
       </div>
     `
@@ -178,7 +161,7 @@ const STEPS = [
     details: `
       <div class="det-sec">
         <div class="det-lbl">Explore Node Hierarchy</div>
-        <div class="opt-btn-group" style="flex-direction:column; gap:6px; max-height:300px; overflow-y:auto; padding-right:4px;">
+        <div class="opt-btn-group" style="flex-direction:column; gap:6px;">
           <button class="opt-btn" id="btn-topic6-arbiter_root" onclick="App.setSlide6Topic('arbiter_root')">Arbiter Root</button>
           <button class="opt-btn" id="btn-topic6-arbiter_active" onclick="App.setSlide6Topic('arbiter_active')">Activate Arbiter Tree</button>
           <button class="opt-btn" id="btn-topic6-arbiter_rr" onclick="App.setSlide6Topic('arbiter_rr')">Round-Robin Arbiter</button>
@@ -204,7 +187,6 @@ const App = {
   routerLayout: "middle",
   isPlaying: false,
   playTimer: null,
-  vcDepthIndex: 1, // 0:8, 1:16, 2:32, 3:64
   allocMode: "dense",
   slide3Topic: null,
 
@@ -212,8 +194,7 @@ const App = {
     intro: "Each CHI router consists of six identical ports, and every port contains independent buffers for the four CHI channels: REQ (162b), DAT (756b), SNP (126b), and RSP (73b).",
     vcs: "<strong>Dedicated VCs & Sizing:</strong> Each channel has its own dedicated VCs. The width of each VC buffer is equal to the corresponding channel flit width.",
     credit: "<strong>Credit Mechanism:</strong> Credit-based flow control is implemented using four independent credit channels, each having n-bit width, where n equals the number of VCs. Credit information indicates downstream VC availability before transmitting a flit.<br><br><span style='opacity:0.8; font-style:italic;'>The current implementation uses a standard router credit mechanism for flow control. CHI-specific credit management and QoS-based priority support will be integrated in future revisions.</span>",
-    flit: "<strong>Single Atomic Flit:</strong> There will be no concept of Head, Body and Tail flits, there will be only one flit which will carry all the information.",
-    depth: "<strong>VC Buffer Depth:</strong> The default VC depth is 16 entries (2⁴) and is configurable in powers of two to support different buffering requirements."
+    flit: "<strong>Single Atomic Flit:</strong> There will be no concept of Head, Body and Tail flits, there will be only one flit which will carry all the information."
   },
 
   slide4Topic: null,
@@ -255,8 +236,22 @@ const App = {
 
   init() {
     this.renderPips();
+    this.renderNavTopics();
     this.updateView();
     this.setupKeyListeners();
+  },
+
+  renderNavTopics() {
+    STEPS.forEach((step, idx) => {
+      if (!step.details) return;
+      const navBtn = document.getElementById(`nav-${idx}`);
+      if (!navBtn) return;
+      const topicsEl = document.createElement("div");
+      topicsEl.className = "nav-topics";
+      topicsEl.id = `nav-topics-${idx}`;
+      topicsEl.innerHTML = step.details;
+      navBtn.insertAdjacentElement("afterend", topicsEl);
+    });
   },
 
   renderPips() {
@@ -335,48 +330,25 @@ const App = {
       }, 150);
     }
 
-    // Details Panel
-    const detBody = document.getElementById("details-body");
-    if (detBody) {
-      detBody.classList.add("fading");
-      setTimeout(() => {
-        let metaHtml = step.meta.map(m => `
-          <div class="sum-card">
-            <div class="sum-lbl">${m.lbl}</div>
-            <div class="sum-val">${m.val}</div>
-          </div>
-        `).join("");
-
-        detBody.innerHTML = `
-          <div class="det-sec">
-            <div class="det-lbl">Specifications</div>
-            <div class="summary-grid">${metaHtml}</div>
-          </div>
-          ${step.details}
-        `;
-        detBody.classList.remove("fading");
-
-        // Re-sync facet buttons/SVG classes to current state (not a hardcoded reset —
-        // lets Next/Prev and deep-links land mid-page, not just at the intro)
-        if (step.num === 2) {
-          this.setRouterLayout(this.routerLayout);
-        }
-        if (step.num === 3) {
-          this.setSlide3Topic(this.slide3Topic);
-          const slider = document.getElementById("vc-depth-slider");
-          if (slider) slider.value = this.vcDepthIndex;
-        }
-        if (step.num === 4) {
-          this.setSlide4Topic(this.slide4Topic);
-        }
-        if (step.num === 5) {
-          this.setSlide5Topic(this.slide5Topic);
-          this.setAllocMode(this.allocMode);
-        }
-        if (step.num === 6) {
-          this.setSlide6Topic(this.slide6Topic);
-        }
-      }, 150);
+    // Re-sync facet buttons/SVG classes to current state (not a hardcoded reset —
+    // lets Next/Prev and deep-links land mid-page, not just at the intro). Topic
+    // buttons now live permanently in the nav (see renderNavTopics), so this just
+    // re-applies .active/desc state to whichever step is current.
+    if (step.num === 2) {
+      this.setRouterLayout(this.routerLayout);
+    }
+    if (step.num === 3) {
+      this.setSlide3Topic(this.slide3Topic);
+    }
+    if (step.num === 4) {
+      this.setSlide4Topic(this.slide4Topic);
+    }
+    if (step.num === 5) {
+      this.setSlide5Topic(this.slide5Topic);
+      this.setAllocMode(this.allocMode);
+    }
+    if (step.num === 6) {
+      this.setSlide6Topic(this.slide6Topic);
     }
 
     // Button states — both ends of the deck now navigate to a neighboring file
@@ -388,7 +360,7 @@ const App = {
      Next/Prev and direct button clicks both walk through in lockstep. */
   _microAccessors() {
     return {
-      0: { get: () => this.roadmapStep, set: v => { this.roadmapStep = v; this.updateRoadmapView(); } },
+      0: { get: () => this.roadmapStep, set: v => this.setRoadmapStep(v) },
       1: { get: () => this.routerLayout, set: v => this.setRouterLayout(v) },
       2: { get: () => this.slide3Topic, set: v => this.setSlide3Topic(v) },
       3: { get: () => this.slide4Topic, set: v => this.setSlide4Topic(v) },
@@ -447,6 +419,11 @@ const App = {
     }
   },
 
+  setRoadmapStep(i) {
+    this.roadmapStep = i;
+    this.updateRoadmapView();
+  },
+
   updateRoadmapView() {
     const rs = this.roadmapStep;
 
@@ -459,6 +436,8 @@ const App = {
           card.classList.remove("active");
         }
       }
+      const btn = document.getElementById(`btn-roadmap-${i}`);
+      if (btn) btn.classList.toggle("active", i === rs);
     }
 
     const devices = document.getElementById("rm-devices");
@@ -503,7 +482,7 @@ const App = {
 
     const descEl = document.getElementById("dynamic-band-desc");
     if (descEl && Array.isArray(STEPS[0].desc)) {
-      descEl.innerText = STEPS[0].desc[rs];
+      descEl.innerHTML = STEPS[0].desc[rs];
     }
   },
 
@@ -554,35 +533,12 @@ const App = {
     });
   },
 
-  onDepthChange(val) {
-    this.vcDepthIndex = parseInt(val, 10);
-    const depths = [8, 16, 32, 64];
-    const targetDepth = depths[this.vcDepthIndex];
-
-    const valEl = document.getElementById("vc-depth-val");
-    if (valEl) {
-      valEl.innerText = `${targetDepth} entries (${this.vcDepthIndex === 1 ? '2⁴' : '2^' + (3 + this.vcDepthIndex)})`;
-    }
-
-    // Update SVG buffer fill heights
-    const reqFill = document.getElementById("buf-fill-req");
-    const datFill = document.getElementById("buf-fill-dat");
-    const snpFill = document.getElementById("buf-fill-snp");
-    const rspFill = document.getElementById("buf-fill-rsp");
-
-    const scale = (targetDepth / 64) * 180 + 30;
-    if (reqFill) reqFill.setAttribute("width", scale * 0.7);
-    if (datFill) datFill.setAttribute("width", scale * 1.0);
-    if (snpFill) snpFill.setAttribute("width", scale * 0.55);
-    if (rspFill) rspFill.setAttribute("width", scale * 0.4);
-  },
-
   setSlide3Topic(topic) {
     if (this.curStep !== 2) return;
     this.slide3Topic = topic;
 
     // Update buttons
-    ["vcs", "credit", "flit", "depth"].forEach(t => {
+    ["vcs", "credit", "flit"].forEach(t => {
       const btn = document.getElementById(`btn-topic-${t}`);
       if (btn) {
         if (t === topic) btn.classList.add("active");
@@ -594,12 +550,6 @@ const App = {
     const descEl = document.getElementById("dynamic-band-desc");
     if (descEl) {
       descEl.innerHTML = topic ? this.slide3Texts[topic] : this.slide3Texts.intro;
-    }
-
-    // Toggle slider visibility
-    const sliderWidget = document.getElementById("slide3-depth-widget");
-    if (sliderWidget) {
-      sliderWidget.style.display = (topic === 'depth') ? 'flex' : 'none';
     }
 
     // Update SVG classes

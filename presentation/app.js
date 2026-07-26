@@ -382,6 +382,21 @@ const Nav = {
       d.className = 'pip'; d.id = `pip-${i}`;
       pips.appendChild(d);
     }
+
+    // Nested flow accordion: one empty container per stage, right after its
+    // own .nav-item, populated/cleared by Details.update() as stages switch.
+    // Stage 2 (Router Pipeline) is skipped — it already has its own dedicated
+    // #pipe-subnav accordion (IQ/RC/VA/SA/ST) right after it; a second
+    // flow-timeline for the same 5 sub-steps would just duplicate it.
+    for (let i = 0; i < STAGES.length; i++) {
+      if (i === 2) continue;
+      const navBtn = document.getElementById(`nav-${i}`);
+      if (!navBtn || document.getElementById(`nav-topics-${i}`)) continue;
+      const topicsEl = document.createElement('div');
+      topicsEl.className = 'nav-topics';
+      topicsEl.id = `nav-topics-${i}`;
+      navBtn.insertAdjacentElement('afterend', topicsEl);
+    }
   },
 
   update(stageIdx, subIdx) {
@@ -803,16 +818,20 @@ const NetView = {
 const Details = {
   update(stageIdx, subIdx, microIdx = 0) {
     const band = _el('band-body');
-    const body = _el('details-body');
-    if (!band || !body) return;
+    if (!band) return;
     band.classList.add('fading');
-    body.classList.add('fading');
     setTimeout(() => {
       band.innerHTML = this._renderBand(stageIdx, subIdx, microIdx);
-      body.innerHTML = this._renderPanel(stageIdx, subIdx);
       band.classList.remove('fading');
-      body.classList.remove('fading');
     }, 150);
+
+    // Nested flow accordion lives inside the left nav now (one per stage,
+    // under its own .nav-item), not a separate right-hand panel.
+    for (let i = 0; i < STAGES.length; i++) {
+      const topicsEl = _el(`nav-topics-${i}`);
+      if (!topicsEl) continue;
+      topicsEl.innerHTML = (i === stageIdx) ? this._renderFlow(stageIdx, subIdx, microIdx) : '';
+    }
   },
 
   _renderBand(stageIdx, subIdx, microIdx = 0) {
@@ -834,7 +853,7 @@ const Details = {
     `;
   },
 
-  _renderPanel(stageIdx, subIdx) {
+  _renderFlow(stageIdx, subIdx, microIdx = 0) {
     const s = STAGES[stageIdx];
 
     return `
@@ -843,28 +862,23 @@ const Details = {
         <div class="flow-timeline">
           ${s.subSteps.map((step, i) => {
       const isAct = (i === subIdx);
+      // Bug fix: when this card is the active sub-step AND that sub-step has
+      // micro-steps, show the same micro-step-level title the band shows —
+      // otherwise the card and band can disagree on granularity mid-talk.
+      // The full description lives only in the band now (cards are title-only).
+      let cardTitle = step.subname;
+      if (isAct && step.microSteps && step.microSteps.length) {
+        cardTitle = step.microSteps[microIdx].title || step.subname;
+      }
       return `
               <div class="flow-step${isAct ? ' active' : ''}" onclick="App.jumpSubStep(${i})">
                 <div class="flow-num" style="background:${isAct ? s.hex : s.hex + '18'};color:${isAct ? '#ffffff' : s.hex};border-color:${s.hex}">${i + 1}</div>
                 <div class="flow-content">
-                  <div class="flow-title" style="color:${isAct ? s.hex : 'var(--text)'}">${step.subname}</div>
-                  <div class="flow-desc">${step.desc}</div>
+                  <div class="flow-title" style="color:${isAct ? s.hex : 'var(--text)'}">${cardTitle}</div>
                 </div>
               </div>
             `;
     }).join('')}
-        </div>
-      </div>
-
-      <div class="det-sec">
-        <div class="det-lbl">Stage Summary</div>
-        <div class="summary-grid">
-          ${s.summary.map(item => `
-            <div class="sum-card">
-              <div class="sum-lbl">${item.lbl}</div>
-              <div class="sum-val" style="color:${s.hex}">${item.val}</div>
-            </div>
-          `).join('')}
         </div>
       </div>
     `;

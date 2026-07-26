@@ -13,11 +13,10 @@ const STEPS = [
     badgeClass: "c-orange",
     viewId: "view-0",
     noLegend: true,
-    desc: "The project's software development lifecycle — six phases from Concept through Operation &amp; Maintenance — followed by a pipelined incremental model showing how successive increments overlap across time blocks, each at a different phase. Verification &amp; Validation activities for each phase are covered in the Verification &amp; Validation deck.",
+    desc: "The project's software development lifecycle — six phases from Concept through Operation &amp; Maintenance. Verification &amp; Validation activities for each phase are covered in the Verification &amp; Validation deck.",
     meta: [
       { lbl: "SDLC Phases", val: "6" },
       { lbl: "Process Model", val: "Incremental / Iterative" },
-      { lbl: "Pipeline Depth", val: "Up to 4 Concurrent Increments" },
       { lbl: "V&amp;V Detail", val: "See Verification &amp; Validation deck" }
     ],
     topics: {
@@ -26,15 +25,9 @@ const STEPS = [
       design: "<strong>Architecture / Design:</strong> High-level system architecture, modules and components, and GUI design; low-level component design, class definitions, and algorithm design.",
       implementation: "<strong>Implementation:</strong> Implement and integrate the modules and components, and develop the frontend, backend engine, and integration framework.",
       integration: "<strong>Integration &amp; Test:</strong> Prepare and run test cases across the integrated system.",
-      maintenance: "<strong>Operation &amp; Maintenance:</strong> Maintain the bug list and update the code based on reported errors and bugs.",
-      tb1: "<strong>Time Block 1:</strong> Increment 1 begins Requirements.",
-      tb2: "<strong>Time Block 2:</strong> Increment 1 moves to Design while Increment 2 begins Requirements.",
-      tb3: "<strong>Time Block 3:</strong> Increment 1 reaches Coding, Increment 2 reaches Design, and Increment 3 begins Requirements.",
-      tb4: "<strong>Time Block 4:</strong> the pipeline reaches steady state — four increments run concurrently, one at each phase.",
-      tb5: "<strong>Time Block 5:</strong> Increment 1 completes and exits the pipeline as Increment 5 begins — the cycle repeats indefinitely."
+      maintenance: "<strong>Operation &amp; Maintenance:</strong> Maintain the bug list and update the code based on reported errors and bugs."
     },
-    topicOrder: [null, "concept", "requirements", "design", "implementation", "integration", "maintenance",
-      "tb1", "tb2", "tb3", "tb4", "tb5"],
+    topicOrder: [null, "concept", "requirements", "design", "implementation", "integration", "maintenance"],
     details: `
       <div class="det-sec">
         <div class="det-lbl">Focus a Phase</div>
@@ -47,6 +40,29 @@ const STEPS = [
           <button class="opt-btn" id="btn-topic-maintenance" onclick="App.setTopic('maintenance')">Operation &amp; Maint.</button>
         </div>
       </div>
+    `
+  },
+  {
+    num: 2,
+    name: "Pipelined Incremental SDLC Model",
+    badge: "Reference",
+    badgeClass: "c-orange",
+    viewId: "view-0b",
+    noLegend: true,
+    desc: "How successive increments overlap across time blocks, each at a different SDLC phase — the pipeline reaches steady state with up to four increments running concurrently.",
+    meta: [
+      { lbl: "Pipeline Depth", val: "Up to 4 Concurrent Increments" },
+      { lbl: "Time Blocks Shown", val: "5" }
+    ],
+    topics: {
+      tb1: "<strong>Time Block 1:</strong> Increment 1 begins Requirements.",
+      tb2: "<strong>Time Block 2:</strong> Increment 1 moves to Design while Increment 2 begins Requirements.",
+      tb3: "<strong>Time Block 3:</strong> Increment 1 reaches Coding, Increment 2 reaches Design, and Increment 3 begins Requirements.",
+      tb4: "<strong>Time Block 4:</strong> the pipeline reaches steady state — four increments run concurrently, one at each phase.",
+      tb5: "<strong>Time Block 5:</strong> Increment 1 completes and exits the pipeline as Increment 5 begins — the cycle repeats indefinitely."
+    },
+    topicOrder: [null, "tb1", "tb2", "tb3", "tb4", "tb5"],
+    details: `
       <div class="det-sec">
         <div class="det-lbl">Pipeline Time Blocks</div>
         <div class="opt-btn-group" style="flex-direction:column; gap:6px;">
@@ -60,7 +76,7 @@ const STEPS = [
     `
   },
   {
-    num: 2,
+    num: 3,
     name: "Requirement Gathering and Analysis",
     badge: "Phase 1 of 3",
     badgeClass: "c-orange",
@@ -76,7 +92,7 @@ const STEPS = [
     details: ``
   },
   {
-    num: 3,
+    num: 4,
     name: "System Design",
     badge: "Phase 2 of 3",
     badgeClass: "c-orange",
@@ -92,7 +108,7 @@ const STEPS = [
     details: ``
   },
   {
-    num: 4,
+    num: 5,
     name: "Development and Coding",
     badge: "Phase 3 of 3",
     badgeClass: "c-orange",
@@ -108,7 +124,7 @@ const STEPS = [
     details: ``
   },
   {
-    num: 5,
+    num: 6,
     name: "Documentation Flow",
     badge: "Document Trail",
     badgeClass: "c-orange",
@@ -165,8 +181,22 @@ const App = {
 
   init() {
     this.renderPips();
+    this.renderNavTopics();
     this.updateView();
     this.setupKeyListeners();
+  },
+
+  renderNavTopics() {
+    STEPS.forEach((step, idx) => {
+      if (!step.details) return;
+      const navBtn = document.getElementById(`nav-${idx}`);
+      if (!navBtn) return;
+      const topicsEl = document.createElement("div");
+      topicsEl.className = "nav-topics";
+      topicsEl.id = `nav-topics-${idx}`;
+      topicsEl.innerHTML = step.details;
+      navBtn.insertAdjacentElement("afterend", topicsEl);
+    });
   },
 
   renderPips() {
@@ -225,28 +255,11 @@ const App = {
       }, 150);
     }
 
-    const detBody = document.getElementById("details-body");
-    if (detBody) {
-      detBody.classList.add("fading");
-      setTimeout(() => {
-        const metaHtml = step.meta.map(m => `
-          <div class="sum-card">
-            <div class="sum-lbl">${m.lbl}</div>
-            <div class="sum-val">${m.val}</div>
-          </div>
-        `).join("");
-
-        detBody.innerHTML = `
-          <div class="det-sec">
-            <div class="det-lbl">Snapshot</div>
-            <div class="summary-grid">${metaHtml}</div>
-          </div>
-          ${step.details}
-        `;
-        detBody.classList.remove("fading");
-        this._syncTopicButtons();
-      }, 150);
-    }
+    // Re-sync topic buttons to current state (not a hardcoded reset — lets
+    // Next/Prev and deep-links land mid-page, not just at the intro). Topic
+    // buttons now live permanently in the nav (see renderNavTopics), so this
+    // just re-applies .active state to whichever step is current.
+    this._syncTopicButtons();
 
     document.getElementById("btn-prev").disabled = false;
     document.getElementById("btn-next").disabled = false;
@@ -301,7 +314,9 @@ const App = {
 
   _syncTopicButtons() {
     const topic = this.topicByStep[this.curStep];
-    document.querySelectorAll("#details-body .opt-btn[id^='btn-topic-']").forEach(btn => {
+    const container = document.getElementById(`nav-topics-${this.curStep}`);
+    if (!container) return;
+    container.querySelectorAll(".opt-btn[id^='btn-topic-']").forEach(btn => {
       const key = btn.id.replace("btn-topic-", "");
       btn.classList.toggle("active", key === topic);
     });

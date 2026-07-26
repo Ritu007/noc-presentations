@@ -89,7 +89,7 @@ header::after {
 .layout {
   flex: 1;
   display: grid;
-  grid-template-columns: 264px 1fr;
+  grid-template-columns: 220px 1fr;
   overflow: hidden;
 }
 
@@ -265,8 +265,8 @@ header::after {
 }
 .desc-card {
   border: none; border-left: 4px solid var(--dim);
-  padding: 14px 22px;
-  font-size: 15px; line-height: 1.6; color: var(--muted); font-weight: 500;
+  padding: 22px 26px;
+  font-size: 20px; line-height: 1.6; color: var(--muted); font-weight: 500;
   transition: border-left-color var(--tr);
 }
 .desc-card.d-eval { border-left-color: var(--eval); }
@@ -275,20 +275,32 @@ header::after {
 .desc-card.d-tran { border-left-color: var(--tran); }
 .desc-card.d-done { border-left-color: var(--done); }
 
-/* Why Evaluate & Update? — idle-step explainer table in the now-band */
-.desc-card:has(.why-table) { padding: 0; }
-.why-table { padding: 10px 22px 12px; display: flex; flex-direction: column; gap: 6px; }
-.why-hdr { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--dim); margin-bottom: 2px; }
+/* Why Evaluate & Update? — permanent explainer panel beside the timeline table */
+.tl-split { display: flex; gap: 18px; align-items: stretch; }
+.tl-split-box {
+  border: 1px solid var(--b1); border-radius: var(--r);
+  background: var(--s1); padding: 16px 18px;
+}
+.why-box { flex: 0 0 54%; }
+.tl-box  { flex: 1 1 auto; min-width: 0; }
+.tl-box .timeline-tbl { width: 100%; }
+.why-table { display: flex; flex-direction: column; gap: 10px; }
+.why-hdr { font-size: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--dim); margin-bottom: 4px; }
 .wp-row { display: flex; align-items: stretch; border-radius: 8px; overflow: hidden; }
 .wp-lbl {
-  flex: 0 0 88px; display: flex; align-items: center; justify-content: center;
-  font-size: 13px; font-weight: 700; color: #fff; padding: 8px 6px;
+  flex: 0 0 96px; display: flex; align-items: center; justify-content: center;
+  font-size: 17px; font-weight: 700; color: #fff; padding: 10px 8px;
 }
-.wp-desc { flex: 1; padding: 8px 14px; font-size: 13px; line-height: 1.45; color: var(--muted); background: var(--s2, var(--s1)); }
+.wp-desc { flex: 1; padding: 12px 18px; font-size: 18px; line-height: 1.5; color: var(--muted); background: var(--s2, var(--s1)); }
 .wp-need .wp-lbl    { background: #3b82f6; }
 .wp-eval .wp-lbl    { background: var(--eval); }
 .wp-upd  .wp-lbl    { background: var(--upd); }
 .wp-example .wp-lbl { background: #db2777; }
+
+@media (max-width: 1100px) {
+  .tl-split { flex-direction: column; }
+  .why-box { flex: none; }
+}
 
 /* ═══════════════════ RIGHT AREA ═══════════════════ */
 .right-area { display: flex; flex-direction: column; overflow: hidden; }
@@ -791,8 +803,21 @@ Click Next ➔ to begin.</div>
 
       <!-- TIMELINE CARD -->
       <div class="card">
-        <div class="card-title">Cycle-by-Cycle Timeline &nbsp;·&nbsp; I = IQ Arrival &nbsp;·&nbsp; E = Evaluate &nbsp;·&nbsp; U = Update</div>
-        <table class="timeline-tbl" id="timeline-tbl" aria-label="Pipeline timeline"></table>
+        <div class="tl-split">
+          <div class="tl-split-box why-box">
+          <div class="why-table">
+            <div class="why-hdr">Why Evaluate &amp; Update Phases?</div>
+            <div class="wp-row wp-need"><div class="wp-lbl">Need</div><div class="wp-desc">Keeps flit processing cycle-accurate — based on the latency of each upcoming phase, a timestamp decides exactly when that phase is to be executed for the flit.</div></div>
+            <div class="wp-row wp-eval"><div class="wp-lbl">Evaluate</div><div class="wp-desc">All timestamps are decided here, one per phase. For VC Allocation and Switch Allocation specifically, requests are also polled and grants generated in this phase.</div></div>
+            <div class="wp-row wp-upd"><div class="wp-lbl">Update</div><div class="wp-desc">The actual state update happens here — but only for flits that have reached their dedicated timestamp maturity.</div></div>
+            <div class="wp-row wp-example"><div class="wp-lbl">Example</div><div class="wp-desc">If at cycle t a flit is at RC, then VC Alloc Evaluate stamps t + VC_Alloc_Latency as the cycle when VC Allocation is to execute.</div></div>
+          </div>
+          </div><!-- /why-box -->
+          <div class="tl-split-box tl-box">
+            <div class="card-title tl-box-title">Cycle-by-Cycle Timeline &nbsp;·&nbsp; I = IQ Arrival &nbsp;·&nbsp; E = Evaluate &nbsp;·&nbsp; U = Update</div>
+            <table class="timeline-tbl" id="timeline-tbl" aria-label="Pipeline timeline"></table>
+          </div>
+        </div>
       </div>
 
     </div><!-- /pipe-scroll -->
@@ -845,13 +870,6 @@ const STEPS = [
   queueTag:'—',
   actionText:'The pipeline is idle.\nNo flit is being processed.\nClick Next ➔ to begin.',
   desc:'The router pipeline is idle. All stages are waiting. Click Next to start the flit traversal.',
-  descHTML:'<div class="why-table">'
-    + '<div class="why-hdr">Why Evaluate &amp; Update Phases?</div>'
-    + '<div class="wp-row wp-need"><div class="wp-lbl">Need</div><div class="wp-desc">Keeps flit processing cycle-accurate — based on the latency of each upcoming phase, a timestamp decides exactly when that phase is to be executed for the flit.</div></div>'
-    + '<div class="wp-row wp-eval"><div class="wp-lbl">Evaluate</div><div class="wp-desc">All timestamps are decided here, one per phase. For VC Allocation and Switch Allocation specifically, requests are also polled and grants generated in this phase.</div></div>'
-    + '<div class="wp-row wp-upd"><div class="wp-lbl">Update</div><div class="wp-desc">The actual state update happens here — but only for flits that have reached their dedicated timestamp maturity.</div></div>'
-    + '<div class="wp-row wp-example"><div class="wp-lbl">Example</div><div class="wp-desc">If at cycle t a flit is at RC, then VC Alloc Evaluate stamps t + VC_Alloc_Latency as the cycle when VC Allocation is to execute.</div></div>'
-    + '</div>',
   outputBuf:false },
 
 /* 1 IQ */

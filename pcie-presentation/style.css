@@ -25,8 +25,7 @@
   --col-yellow: #d97706;
   --col-teal:   #0d9488;
 
-  --nav-w:    230px;
-  --det-w:    340px;
+  --nav-w:    280px;
   --hdr-h:    54px;
   --ctrl-h:   64px;
   --r:        10px;
@@ -48,12 +47,12 @@ body {
   color: var(--text);
   display: grid;
   grid-template-rows: var(--hdr-h) 1fr auto var(--ctrl-h);
-  grid-template-columns: var(--nav-w) 1fr var(--det-w);
+  grid-template-columns: var(--nav-w) 1fr;
   grid-template-areas:
-    "hdr  hdr    hdr"
-    "nav  canvas det"
-    "nav  band   det"
-    "ctrl ctrl   ctrl";
+    "hdr  hdr"
+    "nav  canvas"
+    "nav  band"
+    "ctrl ctrl";
 }
 
 /* ================================================================
@@ -104,7 +103,7 @@ body {
 }
 
 .hdr-center {
-  font-size: .78rem; color: var(--muted); font-weight: 500;
+  font-size: 1.1rem; color: var(--muted); font-weight: 500;
   font-family: 'JetBrains Mono', monospace;
 }
 .hdr-center span { color: var(--col-blue); font-weight: 700; }
@@ -136,8 +135,10 @@ body {
   border-right: 1px solid var(--b1);
   padding: 1rem .75rem .6rem;
   display: flex; flex-direction: column; gap: 4px;
-  overflow: hidden;
+  overflow-y: auto; overflow-x: hidden;
 }
+#stage-nav::-webkit-scrollbar { width: 5px; }
+#stage-nav::-webkit-scrollbar-thumb { background: var(--b1); border-radius: 3px; }
 
 .nav-group-label {
   font-size: .62rem; font-weight: 700; text-transform: uppercase;
@@ -185,10 +186,22 @@ body {
 
 .nav-text { flex: 1; min-width: 0; }
 .nav-num  { font-size: .6rem; color: var(--dim); font-family: 'JetBrains Mono', monospace; font-weight: 600; margin-bottom: 1px; }
-.nav-name { font-size: .78rem; font-weight: 600; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nav-name { font-size: 1.1rem; font-weight: 600; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .nav-item.active .nav-name { color: var(--col-blue); }
 .nav-item.done   .nav-name { color: var(--text); }
 .nav-color-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+.nav-topics {
+  display: none;
+  flex-direction: column; gap: 4px;
+  margin: 2px 0 8px 1.9rem;
+  padding-left: .5rem;
+  border-left: 2px solid var(--b1);
+}
+.nav-item.active + .nav-topics { display: flex; }
+.nav-topics .det-sec { margin-bottom: 0; }
+.nav-topics .det-lbl { margin-bottom: .3rem; }
+.nav-topics .opt-btn { text-align: left; font-size: .72rem; padding: .4rem .55rem; }
 
 .nav-kbd-hint {
   margin-top: auto; padding-top: .6rem;
@@ -229,7 +242,7 @@ body {
 .canvas-view {
   position: absolute; top: 70px; left: 0; right: 0; bottom: 0;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  padding: 1rem 1.6rem 1.4rem;
+  padding: 1rem 1.2rem 1.4rem;
   opacity: 0; pointer-events: none; transform: scale(.96);
   transition: opacity .4s, transform .4s;
   overflow: hidden;
@@ -240,16 +253,16 @@ body {
    PHASE TAB ROW (view-3 merged bridge page)
 ================================================================ */
 .phase-tab-row {
-  display: flex; align-items: center; gap: .75rem;
-  width: 100%; max-width: 860px;
-  margin-bottom: .7rem;
+  display: flex; align-items: center; gap: .9rem;
+  width: 100%; max-width: 95%;
+  margin-bottom: .8rem;
   background: var(--s1); border: 1px solid var(--b1);
-  border-radius: var(--r); padding: .45rem .8rem;
+  border-radius: var(--r); padding: .6rem 1.1rem;
 }
 .phase-tab {
   flex: 1; text-align: center;
-  font-size: .72rem; font-weight: 700; letter-spacing: .4px;
-  color: var(--dim); padding: .35rem .6rem;
+  font-size: .95rem; font-weight: 700; letter-spacing: .4px;
+  color: var(--dim); padding: .5rem .7rem;
   border-radius: var(--rs); border: 1.5px solid transparent;
   transition: all .25s; cursor: default;
 }
@@ -272,21 +285,21 @@ body {
 /* ================================================================
    BULLET LIST (intro copy — step 0 / step 5)
 ================================================================ */
-.bullet-list { list-style: none; display: flex; flex-direction: column; gap: .7rem; width: 100%; max-width: 780px; }
+.bullet-list { list-style: none; display: flex; flex-direction: column; gap: 1rem; width: 100%; max-width: 95%; }
 .bullet-list li {
-  font-size: .92rem; color: var(--text); line-height: 1.5; padding-left: 1.3rem; position: relative; font-weight: 500;
+  font-size: 1.22rem; color: var(--text); line-height: 1.55; padding-left: 1.7rem; position: relative; font-weight: 500;
   background: var(--s1); border: 1px solid var(--b1); border-radius: var(--rs);
-  padding: .75rem .9rem .75rem 1.5rem;
+  padding: 1.1rem 1.3rem 1.1rem 1.9rem;
   box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
-.bullet-list li::before { content: '›'; position: absolute; left: .55rem; color: var(--col-blue); font-weight: 800; font-size: 1.05rem; }
+.bullet-list li::before { content: '›'; position: absolute; left: .65rem; color: var(--col-blue); font-weight: 800; font-size: 1.25rem; }
 .bullet-list li strong { color: var(--col-blue); }
 
 /* ================================================================
    DUAL-COLUMN PANEL (view-5: Address Translation & Ordering)
 ================================================================ */
 .dual-col-panel {
-  display: flex; gap: 1.6rem; width: 100%; max-width: 1140px;
+  display: flex; gap: 1.6rem; width: 100%; max-width: 95%;
   align-items: flex-start;
 }
 .dual-col {
@@ -297,7 +310,7 @@ body {
 }
 .dual-col:not(.dimmed):hover { border-color: var(--b2); }
 .dual-col-hdr {
-  font-size: .78rem; font-weight: 800; text-transform: uppercase;
+  font-size: 1.22rem; font-weight: 800; text-transform: uppercase;
   letter-spacing: .7px; color: var(--col-blue); padding-bottom: .5rem;
   border-bottom: 1.5px solid var(--b1);
 }
@@ -307,51 +320,51 @@ body {
 /* ================================================================
    DATA TABLE (RN-F vs RN-I architectural difference matrix)
 ================================================================ */
-.data-table { width: 100%; max-width: 980px; background: var(--s1); border: 1px solid var(--b1); border-radius: var(--r); overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+.data-table { width: 100%; max-width: 95%; background: var(--s1); border: 1px solid var(--b1); border-radius: var(--r); overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
 .data-table-hdr, .data-table-row { display: grid; grid-template-columns: 1.1fr 1.4fr 1.4fr; }
-.data-table-hdr { padding: .65rem 1.1rem; background: var(--s2); font-size: .64rem; font-weight: 800; text-transform: uppercase; letter-spacing: .7px; color: var(--dim); border-bottom: 1px solid var(--b1); }
+.data-table-hdr { padding: .8rem 1.5rem; background: var(--s2); font-size: .82rem; font-weight: 800; text-transform: uppercase; letter-spacing: .7px; color: var(--dim); border-bottom: 1px solid var(--b1); }
 .data-table-hdr > div:nth-child(2) { color: var(--col-purple); }
 .data-table-hdr > div:nth-child(3) { color: var(--col-green); }
-.data-table-row { padding: .75rem 1.1rem; border-bottom: 1px solid var(--b1); align-items: start; gap: .5rem; }
+.data-table-row { padding: 1.05rem 1.5rem; border-bottom: 1px solid var(--b1); align-items: start; gap: .8rem; }
 .data-table-row:last-child { border-bottom: none; }
 .data-table-row:not(.dimmed):hover { background: var(--s2); }
-.dt-feature { font-size: .78rem; font-weight: 800; color: var(--text); }
-.dt-rnf { font-size: .76rem; color: var(--muted); line-height: 1.4; }
-.dt-rni { font-size: .76rem; color: var(--muted); line-height: 1.4; }
+.dt-feature { font-size: 1.4rem; font-weight: 800; color: var(--text); }
+.dt-rnf { font-size: 1.02rem; color: var(--muted); line-height: 1.5; }
+.dt-rni { font-size: 1.02rem; color: var(--muted); line-height: 1.5; }
 
 /* ================================================================
    PCI vs PCIe PHYSICAL/ARCHITECTURAL COMPARISON (step 0)
 ================================================================ */
-.compare-panel { display: flex; gap: 1.4rem; width: 100%; max-width: 1080px; }
-.compare-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: .55rem; background: var(--s1); border: 1.5px solid var(--b1); border-radius: var(--r); padding: 1.1rem 1.2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+.compare-panel { display: flex; gap: 2rem; width: 100%; max-width: 95%; }
+.compare-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: .8rem; background: var(--s1); border: 1.5px solid var(--b1); border-radius: var(--r); padding: 1.6rem 1.7rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
 .compare-hdr { text-align: center; margin-bottom: .3rem; }
-.compare-hdr-title { font-size: .95rem; font-weight: 800; color: var(--c); }
-.compare-hdr-sub { font-size: .72rem; color: var(--dim); font-weight: 600; }
-.compare-devices { display: flex; gap: .5rem; width: 100%; justify-content: center; }
+.compare-hdr-title { font-size: 1.28rem; font-weight: 800; color: var(--c); }
+.compare-hdr-sub { font-size: .92rem; color: var(--dim); font-weight: 600; }
+.compare-devices { display: flex; gap: .7rem; width: 100%; justify-content: center; }
 .compare-device {
-  flex: 1; max-width: 120px; text-align: center; padding: .5rem .3rem; border-radius: var(--rxs);
-  background: var(--col-green); color: #fff; font-size: .72rem; font-weight: 800;
+  flex: 1; max-width: 170px; text-align: center; padding: .7rem .5rem; border-radius: var(--rxs);
+  background: var(--col-green); color: #fff; font-size: .95rem; font-weight: 800;
   box-shadow: 0 2px 6px rgba(22,163,74,.3);
 }
-.compare-arrow-down { color: var(--b2); font-size: 1.1rem; line-height: 1; }
+.compare-arrow-down { color: var(--b2); font-size: 1.4rem; line-height: 1; }
 .compare-bus {
-  width: 100%; text-align: center; padding: .6rem .5rem; border-radius: var(--rxs);
-  background: #b91c1c; color: #fff; font-size: .74rem; font-weight: 800; line-height: 1.35;
+  width: 100%; text-align: center; padding: .85rem .7rem; border-radius: var(--rxs);
+  background: #b91c1c; color: #fff; font-size: .98rem; font-weight: 800; line-height: 1.35;
   box-shadow: 0 2px 8px rgba(185,28,28,.3);
 }
 .compare-ctrl {
-  width: 100%; text-align: center; padding: .65rem .5rem; border-radius: var(--rxs);
-  background: var(--text); color: #fff; font-size: .78rem; font-weight: 800; line-height: 1.3;
+  width: 100%; text-align: center; padding: .9rem .7rem; border-radius: var(--rxs);
+  background: var(--text); color: #fff; font-size: 1.4rem; font-weight: 800; line-height: 1.3;
 }
 .compare-note {
-  width: 100%; margin-top: .3rem; text-align: center; font-size: .72rem; color: var(--muted);
-  background: var(--s2); border: 1px solid var(--b1); border-radius: var(--rxs); padding: .6rem .7rem; line-height: 1.4;
+  width: 100%; margin-top: .3rem; text-align: center; font-size: .95rem; color: var(--muted);
+  background: var(--s2); border: 1px solid var(--b1); border-radius: var(--rxs); padding: .85rem 1rem; line-height: 1.5;
 }
 
 /* ================================================================
    PCIe TREE TOPOLOGY (SVG diagram — step 1)
 ================================================================ */
-#pcie-tree-svg { width: 100%; max-width: 960px; height: auto; }
+#pcie-tree-svg { width: 100%; max-width: 1220px; height: auto; }
 .pt-mesh-bg { fill: #fffbeb; stroke: var(--col-yellow); stroke-width: 1.2; stroke-dasharray: 4 3; }
 .pt-router {
   fill: #fecaca; stroke: #b91c1c; stroke-width: 1.4;
@@ -383,7 +396,7 @@ body {
 /* ================================================================
    RN-I BRIDGE STATIC OVERVIEW (SVG diagram — steps 3 & 4)
 ================================================================ */
-#bridge-svg { width: 100%; max-width: 900px; height: auto; }
+#bridge-svg { width: 100%; max-width: 1140px; height: auto; }
 .br-outer { fill: #eff6ff; stroke: var(--col-blue); stroke-width: 1.4; stroke-dasharray: 5 4; }
 .br-outer-lbl { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 800; fill: var(--col-blue); text-anchor: middle; }
 .br-ext { fill: #ecfdf5; stroke: var(--col-green); stroke-width: 1.6; }
@@ -401,9 +414,9 @@ body {
    CALLOUT
 ================================================================ */
 .callout-box {
-  margin-top: 1rem; width: 100%; max-width: 940px; text-align: center;
-  padding: 1rem 1.4rem; border-radius: var(--r); font-size: .88rem; font-weight: 600;
-  color: var(--muted); background: rgba(37,99,235,.06); border: 1px solid rgba(37,99,235,.3); line-height: 1.5;
+  margin-top: 1.1rem; width: 100%; max-width: 95%; text-align: center;
+  padding: 1.2rem 1.8rem; border-radius: var(--r); font-size: 1.1rem; font-weight: 600;
+  color: var(--muted); background: rgba(37,99,235,.06); border: 1px solid rgba(37,99,235,.3); line-height: 1.55;
 }
 
 /* ================================================================
@@ -439,41 +452,16 @@ body {
 .band-badge.c-yellow { background: rgba(217,119,6,.08);  border-color: rgba(217,119,6,.3);   color: var(--col-yellow); }
 .band-badge.c-teal   { background: rgba(13,148,136,.08); border-color: rgba(13,148,136,.3);  color: var(--col-teal); }
 
-.band-title { flex-shrink: 0; font-size: 1.15rem; font-weight: 800; color: var(--text); white-space: nowrap; }
-.band-desc { flex: 1; min-width: 0; font-size: .92rem; color: var(--muted); line-height: 1.5; font-weight: 500; }
-
-#details-panel {
-  grid-area: det;
-  background: var(--s1); border-left: 1px solid var(--b1);
-  overflow-y: auto; overflow-x: hidden;
-  padding: 1rem .9rem;
-  box-shadow: -1px 0 4px rgba(0,0,0,0.03);
-}
-#details-panel::-webkit-scrollbar { width: 5px; }
-#details-panel::-webkit-scrollbar-thumb { background: var(--b1); border-radius: 3px; }
-
-#details-body { transition: opacity .15s; }
-#details-body.fading { opacity: 0; }
+.band-title { flex-shrink: 0; font-size: 1.3rem; font-weight: 800; color: var(--text); white-space: nowrap; }
+.band-desc { flex: 1; min-width: 0; font-size: 1.08rem; color: var(--muted); line-height: 1.5; font-weight: 500; }
 
 .det-sec { margin-bottom: .9rem; }
-.det-lbl { font-size: .62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.3px; color: var(--dim); margin-bottom: .4rem; }
-
-.summary-grid {
-  display: grid; grid-template-columns: 1fr;
-  gap: .45rem; margin-top: .35rem;
-}
-.sum-card {
-  background: var(--s2); border: 1px solid var(--b1);
-  border-radius: var(--rs); padding: .5rem .65rem;
-  display: flex; flex-direction: column; gap: 2px;
-}
-.sum-lbl { font-size: .58rem; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: var(--dim); }
-.sum-val { font-size: .74rem; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: var(--text); word-break: break-word; }
+.det-lbl { font-size: .72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.3px; color: var(--dim); margin-bottom: .4rem; }
 
 .opt-btn-group { display: flex; flex-direction: column; gap: .4rem; }
 .opt-btn {
   padding: .45rem .55rem; font-family: 'Inter', sans-serif;
-  font-size: .72rem; font-weight: 700; border-radius: var(--rxs);
+  font-size: .85rem; font-weight: 700; border-radius: var(--rxs);
   border: 1px solid var(--b1); background: var(--s1); color: var(--muted);
   cursor: pointer; transition: all .18s; text-align: left;
 }
@@ -503,7 +491,7 @@ body {
 .prog-lbl span { color: var(--col-blue); font-weight: 700; }
 
 .ctrl-btns { display: flex; gap: .5rem; align-items: center; flex-shrink: 0; }
-.ctrl-btn { display: flex; align-items: center; justify-content: center; gap: .4rem; height: 36px; padding: 0 1.05rem; border: none; border-radius: var(--rs); font-family: 'Inter', sans-serif; font-size: .78rem; font-weight: 700; cursor: pointer; transition: all .18s; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.ctrl-btn { display: flex; align-items: center; justify-content: center; gap: .4rem; height: 36px; padding: 0 1.05rem; border: none; border-radius: var(--rs); font-family: 'Inter', sans-serif; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: all .18s; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
 .ctrl-btn:disabled { opacity: .3; cursor: not-allowed; }
 .reset-btn { background: var(--s2); border: 1px solid var(--b1); color: var(--muted); font-size: .72rem; padding: 0 .75rem; }
 .reset-btn:hover:not(:disabled) { background: var(--s3); color: var(--text); }
@@ -527,7 +515,7 @@ body {
 .landing-toc-link {
   position: fixed; top: 1.5rem; left: 1.5rem; z-index: 501;
   display: inline-flex; align-items: center; gap: .3rem;
-  text-decoration: none; color: var(--dim); font-size: .78rem; font-weight: 600;
+  text-decoration: none; color: var(--dim); font-size: 1.1rem; font-weight: 600;
   padding: .45rem .8rem; border: 1px solid var(--b1); border-radius: var(--rs);
   background: var(--bg);
   transition: background .2s, border-color .2s, color .2s;
@@ -542,7 +530,7 @@ body {
   transition: all .18s;
 }
 .landing-start-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(37,99,235,.4); }
-.landing-inner { margin: auto 0; max-width: 1140px; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 2.4rem; }
+.landing-inner { margin: auto 0; max-width: 95%; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 2.4rem; }
 .landing-title-block { text-align: center; }
 .landing-title { font-size: 2.4rem; font-weight: 800; letter-spacing: -1px; color: var(--text); line-height: 1.15; }
 .landing-subtitle { margin-top: .6rem; font-size: .95rem; font-family: 'JetBrains Mono', monospace; color: var(--dim); font-weight: 500; letter-spacing: .3px; }
@@ -559,8 +547,8 @@ body {
 .landing-card:hover { border-color: var(--b2); box-shadow: 0 4px 14px rgba(0,0,0,0.08); transform: translateY(-1px); }
 .landing-card-icon { width: 42px; height: 42px; border-radius: 10px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 19px; color: #fff; }
 .landing-card-text { flex: 1; min-width: 0; }
-.landing-card-name { font-size: .95rem; font-weight: 700; color: var(--text); margin-bottom: 2px; }
-.landing-card-desc { font-size: .76rem; color: var(--muted); line-height: 1.5; }
+.landing-card-name { font-size: 1.4rem; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+.landing-card-desc { font-size: 1.1rem; color: var(--muted); line-height: 1.5; }
 .landing-card-arrow { font-size: 1.1rem; color: var(--b2); flex-shrink: 0; transition: transform .18s, color .18s; }
 .landing-card:hover .landing-card-arrow { color: var(--col-blue); transform: translateX(3px); }
 

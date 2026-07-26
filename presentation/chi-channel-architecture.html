@@ -446,15 +446,6 @@
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════
-     DETAILS PANEL (right — reference / supporting material)
-══════════════════════════════════════════════════════════════ -->
-<aside id="details-panel">
-  <div id="details-body">
-    <!-- populated by JS -->
-  </div>
-</aside>
-
-<!-- ══════════════════════════════════════════════════════════════
      CONTROL BAR
 ══════════════════════════════════════════════════════════════ -->
 <footer id="control-bar">
@@ -691,39 +682,6 @@ const DetailsPanel = {
     `;
   },
 
-  renderPanel(idx) {
-    const s = STEPS[idx];
-    return `
-      <div class="det-sec">
-        <div class="det-lbl">Architecture Steps (Click to Jump)</div>
-        <div class="flow-timeline">
-          ${STEPS.map((step, i) => {
-            const isAct = (i === idx);
-            return `
-              <div class="flow-step${isAct ? ' active' : ''}" onclick="App.goToStep(${i})">
-                <div class="flow-num" style="background:${isAct ? step.hex : step.hex + '18'};color:${isAct ? '#ffffff' : step.hex};border-color:${step.hex}">${i + 1}</div>
-                <div class="flow-content">
-                  <div class="flow-title" style="color:${isAct ? step.hex : 'var(--text)'}">${step.name}</div>
-                </div>
-              </div>
-            `;
-          }).join('')}
-        </div>
-      </div>
-
-      <div class="det-sec">
-        <div class="det-lbl">Summary</div>
-        <div class="summary-grid">
-          ${s.summary.map(item => `
-            <div class="sum-card">
-              <div class="sum-lbl">${item.lbl}</div>
-              <div class="sum-val" style="color:${s.hex}">${item.val}</div>
-            </div>
-          `).join('')}
-        </div>
-      </div>
-    `;
-  }
 };
 
 const App = {
@@ -789,14 +747,10 @@ const App = {
     applyStep(_step);
 
     const band = _el('band-body');
-    const body = _el('details-body');
     band.classList.add('fading');
-    body.classList.add('fading');
     setTimeout(() => {
       band.innerHTML = DetailsPanel.renderBand(_step);
-      body.innerHTML = DetailsPanel.renderPanel(_step);
       band.classList.remove('fading');
-      body.classList.remove('fading');
     }, 150);
   },
 

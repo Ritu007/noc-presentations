@@ -269,8 +269,22 @@ const App = {
 
   init() {
     this.renderPips();
+    this.renderNavTopics();
     this.updateView();
     this.setupKeyListeners();
+  },
+
+  renderNavTopics() {
+    STEPS.forEach((step, idx) => {
+      if (!step.details) return;
+      const navBtn = document.getElementById(`nav-${idx}`);
+      if (!navBtn) return;
+      const topicsEl = document.createElement("div");
+      topicsEl.className = "nav-topics";
+      topicsEl.id = `nav-topics-${idx}`;
+      topicsEl.innerHTML = step.details;
+      navBtn.insertAdjacentElement("afterend", topicsEl);
+    });
   },
 
   renderPips() {
@@ -327,28 +341,9 @@ const App = {
       }, 150);
     }
 
-    const detBody = document.getElementById("details-body");
-    if (detBody) {
-      detBody.classList.add("fading");
-      setTimeout(() => {
-        const metaHtml = step.meta.map(m => `
-          <div class="sum-card">
-            <div class="sum-lbl">${m.lbl}</div>
-            <div class="sum-val">${m.val}</div>
-          </div>
-        `).join("");
-
-        detBody.innerHTML = `
-          <div class="det-sec">
-            <div class="det-lbl">Specifications</div>
-            <div class="summary-grid">${metaHtml}</div>
-          </div>
-          ${step.details}
-        `;
-        detBody.classList.remove("fading");
-        this._syncTopicButtons();
-      }, 150);
-    }
+    // Topic buttons now live permanently in the nav (see renderNavTopics), so
+    // just re-sync their active state to whichever step/topic is current.
+    this._syncTopicButtons();
 
     document.getElementById("btn-prev").disabled = false;
     document.getElementById("btn-next").disabled = false;
@@ -489,7 +484,7 @@ const App = {
 
   _syncTopicButtons() {
     const topic = this.topicByStep[this.curStep];
-    document.querySelectorAll("#details-body .opt-btn[id^='btn-topic-']").forEach(btn => {
+    document.querySelectorAll("#stage-nav .opt-btn[id^='btn-topic-']").forEach(btn => {
       const key = btn.id.replace("btn-topic-", "");
       btn.classList.toggle("active", key === topic);
     });
