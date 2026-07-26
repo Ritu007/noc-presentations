@@ -26,35 +26,35 @@ const STAGES = [
         title: "Event Scheduler Trigger",
         desc: "Event scheduler calls <code>TrafficManager::_Inject(t)</code> for active source nodes per cycle.",
         moduleState: { injectProc: "idle", trafficPattern: "idle", poolCount: 64, signal: null },
-        net: { srcNode:"n0", showFlitCard: false, showInspector: false }
+        net: { srcNode: "n0", showFlitCard: false, showInspector: false }
       },
       {
         subnum: "1.2", subname: "Injection Test",
         title: "Query InjectionProcess Module",
         desc: "<code>_IssuePacket()</code> queries external <code>InjectionProcess</code> module (Bernoulli / OnOff). Evaluates & returns <code>bool: true</code>.",
         moduleState: { injectProc: "act", trafficPattern: "idle", poolCount: 64, signal: "ip" },
-        net: { srcNode:"n0", showFlitCard: false, showInspector: false }
+        net: { srcNode: "n0", showFlitCard: false, showInspector: false }
       },
       {
         subnum: "1.3", subname: "Select Destination",
         title: "Query TrafficPattern Module",
         desc: "TM queries external <code>TrafficPattern</code> module (e.g. UniformRandom). Computes & returns <code>dst_node = N1</code>.",
         moduleState: { injectProc: "done", trafficPattern: "act", poolCount: 64, signal: "tp" },
-        net: { srcNode:"n0", dstNode:"n1", showFlitCard: false, showInspector: false }
+        net: { srcNode: "n0", dstNode: "n1", showFlitCard: false, showInspector: false }
       },
       {
         subnum: "1.4", subname: "Generate Packet",
         title: "Acquire Flit & Stamp Fields",
         desc: "Acquires flit from <code>RecyclingPool</code>. Stamped with fields: <code>id=0</code>, <code>type=REQ</code>, <code>src=0</code>, <code>dst=1</code>, <code>creation_time=T</code>, <code>head=1</code>, <code>tail=1</code>.",
         moduleState: { injectProc: "done", trafficPattern: "done", poolCount: 63, signal: "pool" },
-        net: { srcNode:"n0", dstNode:"n1", showFlitCard: true, cardPos: { x: 120, y: 170 }, showInspector: true, fields: { id:0, type:"REQ", src:"Node N₀ (0)", dst:"Node N₁ (1)", time:"T", vc:0 } }
+        net: { srcNode: "n0", dstNode: "n1", showFlitCard: true, cardPos: { x: 120, y: 170 }, showInspector: true, fields: { id: 0, type: "REQ", src: "Node N₀ (0)", dst: "Node N₁ (1)", time: "T", vc: 0 } }
       },
       {
         subnum: "1.5", subname: "Queue in TM",
         title: "Enqueue to Partial Packet Queue",
         desc: "Flit Data Card slides into <code>_partial_packets[0][REQ]</code> queue slot inside TrafficManager & registered in <code>_total_in_flight</code> list.",
         moduleState: { injectProc: "idle", trafficPattern: "idle", poolCount: 63, signal: null },
-        net: { srcNode:"n0", dstNode:"n1", showFlitCard: false, partialQueueFilled: true, showInspector: true, fields: { id:0, type:"REQ", src:"Node N₀ (0)", dst:"Node N₁ (1)", time:"T", vc:0 } }
+        net: { srcNode: "n0", dstNode: "n1", showFlitCard: false, partialQueueFilled: true, showInspector: true, fields: { id: 0, type: "REQ", src: "Node N₀ (0)", dst: "Node N₁ (1)", time: "T", vc: 0 } }
       }
     ]
   },
@@ -76,25 +76,25 @@ const STAGES = [
         subnum: "2.1", subname: "Write Flits",
         title: "Dequeue & Stamp Injection Time",
         desc: "TM dequeues front flit from <code>_partial_packets</code> (TM queue slot 1 empties). Stamps injection timestamp <code>flit->itime = t</code> on Flit Inspector Card. Flit moves into LocalLink staging queue (<code>_inject_queues[REQ]</code>).",
-        net: { srcNode:"n0", actRouter:"r00", showFlitCard: false, partialQueueFilled: false, injectQueueFilled: true, actLocalLink: true, showInspector: true, fields: { id:0, type:"REQ", src:"Node N₀ (0)", dst:"Node N₁ (1)", time:"T", itime:"T", vc:0 } }
+        net: { srcNode: "n0", actRouter: "r00", showFlitCard: false, partialQueueFilled: false, injectQueueFilled: true, actLocalLink: true, showInspector: true, fields: { id: 0, type: "REQ", src: "Node N₀ (0)", dst: "Node N₁ (1)", time: "T", itime: "T", vc: 0 } }
       },
       {
         subnum: "2.2", subname: "Credit Check",
         title: "LocalLink Credit Verification",
         desc: "LocalLink verifies channel credit (<code>_inject_credits[REQ] > 0</code>). Flit remains staged in <code>_inject_queues</code> ready for wire injection.",
-        net: { srcNode:"n0", actRouter:"r00", showFlitCard: false, partialQueueFilled: false, injectQueueFilled: true, actLocalLink: true, showInspector: true, fields: { id:0, type:"REQ", src:"Node N₀ (0)", dst:"Node N₁ (1)", time:"T", itime:"T", vc:0 } }
+        net: { srcNode: "n0", actRouter: "r00", showFlitCard: false, partialQueueFilled: false, injectQueueFilled: true, actLocalLink: true, showInspector: true, fields: { id: 0, type: "REQ", src: "Node N₀ (0)", dst: "Node N₁ (1)", time: "T", itime: "T", vc: 0 } }
       },
       {
         subnum: "2.3", subname: "Forward Flits",
         title: "Set Delivery Time & Inject Wire",
         desc: "LocalLink sets <code>delivery_time = current_cycle + channel_latency</code> (stamped as <code>delivery_time: T+1</code> on Flit Inspector Card). Decrements credit & pushes flit into local wire channel.",
-        net: { srcNode:"n0", actRouter:"r00", showFlitCard: true, cardPos: { x: 300, y: 210 }, partialQueueFilled: false, injectQueueFilled: false, localChannelFilled: true, actLocalLink: true, showInspector: true, fields: { id:0, type:"REQ", src:"Node N₀ (0)", dst:"Node N₁ (1)", time:"T", itime:"T", dtime:"T+1", vc:0 } }
+        net: { srcNode: "n0", actRouter: "r00", showFlitCard: true, cardPos: { x: 300, y: 210 }, partialQueueFilled: false, injectQueueFilled: false, localChannelFilled: true, actLocalLink: true, showInspector: true, fields: { id: 0, type: "REQ", src: "Node N₀ (0)", dst: "Node N₁ (1)", time: "T", itime: "T", dtime: "T+1", vc: 0 } }
       },
       {
         subnum: "2.4", subname: "Deliver Flits",
         title: "Deliver to Attached Vertical Input Queue",
         desc: "At delivery cycle, flit badge traverses local wire channel into Router R00's <strong>attached vertical Input Queue (Port 4 LOCAL_0)</strong>.",
-        net: { srcNode:"n0", actRouter:"r00", showFlitCard: true, cardPos: { x: 345, y: 172 }, partialQueueFilled: false, injectQueueFilled: false, routerVcFilled: true, actLocalLink: false, glowLink:"lk-n0", showInspector: true, fields: { id:0, type:"REQ", src:"Node N₀ (0)", dst:"Node N₁ (1)", time:"T", itime:"T", dtime:"T+1", vc:0 } }
+        net: { srcNode: "n0", actRouter: "r00", showFlitCard: true, cardPos: { x: 345, y: 172 }, partialQueueFilled: false, injectQueueFilled: false, routerVcFilled: true, actLocalLink: false, glowLink: "lk-n0", showInspector: true, fields: { id: 0, type: "REQ", src: "Node N₀ (0)", dst: "Node N₁ (1)", time: "T", itime: "T", dtime: "T+1", vc: 0 } }
       }
     ]
   },
@@ -119,15 +119,15 @@ const STAGES = [
         microSteps: [
           {
             title: "Flit in Local Queue", desc: "Flit waits in attached <code>input_buffer[LOCAL_0]</code>.",
-            net: { isPipelineView: true, pipeVcFilled: true, vcBufFilled: false, actStg: "iq", vcState: "idle", showInspector: true, fields: { id:0, type:"REQ", src:"Node N₀ (0)", dst:"Node N₁ (1)", time:"T", itime:"T", dtime:"T+1", vc:0, state:"idle" } }
+            net: { isPipelineView: true, pipeVcFilled: true, vcBufFilled: false, actStg: "iq", vcState: "idle", showInspector: true, fields: { id: 0, type: "REQ", src: "Node N₀ (0)", dst: "Node N₁ (1)", time: "T", itime: "T", dtime: "T+1", vc: 0, state: "idle" } }
           },
           {
             title: "Write to VC Buffer", desc: "Flit is written into <code>VC0 Buffer</code> slot. State changes to <code>routing</code>.",
-            net: { isPipelineView: true, pipeVcFilled: false, vcBufFilled: true, actStg: "iq", vcState: "routing", showInspector: true, fields: { id:0, type:"REQ", src:"Node N₀ (0)", dst:"Node N₁ (1)", time:"T", itime:"T", dtime:"T+1", vc:0, state:"routing" } }
+            net: { isPipelineView: true, pipeVcFilled: false, vcBufFilled: true, actStg: "iq", vcState: "routing", showInspector: true, fields: { id: 0, type: "REQ", src: "Node N₀ (0)", dst: "Node N₁ (1)", time: "T", itime: "T", dtime: "T+1", vc: 0, state: "routing" } }
           },
           {
             title: "Move to _route_vcs", desc: "Flit pointer moves into <code>_route_vcs</code> queue awaiting route computation.",
-            net: { isPipelineView: true, cardPos: { x: 187, y: 196 }, pipeVcFilled: false, vcBufFilled: true, actStg: "iq", vcState: "routing", showInspector: true, fields: { id:0, type:"REQ", src:"Node N₀ (0)", dst:"Node N₁ (1)", time:"T", itime:"T", dtime:"T+1", vc:0, state:"routing" } }
+            net: { isPipelineView: true, cardPos: { x: 187, y: 196 }, pipeVcFilled: false, vcBufFilled: true, actStg: "iq", vcState: "routing", showInspector: true, fields: { id: 0, type: "REQ", src: "Node N₀ (0)", dst: "Node N₁ (1)", time: "T", itime: "T", dtime: "T+1", vc: 0, state: "routing" } }
           }
         ]
       },
@@ -138,11 +138,11 @@ const STAGES = [
         microSteps: [
           {
             title: "Query RoutingAlgorithm", desc: "Pulse query to external <code>RoutingAlgorithm</code> module (MeshXY). Computes output port <code>out_port = East</code>.",
-            net: { isPipelineView: true, cardPos: { x: 187, y: 196 }, vcBufFilled: true, actStg: "rc", sigQuery: "rc", vcState: "routing", showInspector: true, fields: { id:0, type:"REQ", src:"Node N₀ (0)", dst:"Node N₁ (1)", time:"T", itime:"T", dtime:"T+1", vc:0, state:"routing", out_port:"East" } }
+            net: { isPipelineView: true, cardPos: { x: 187, y: 196 }, vcBufFilled: true, actStg: "rc", sigQuery: "rc", vcState: "routing", showInspector: true, fields: { id: 0, type: "REQ", src: "Node N₀ (0)", dst: "Node N₁ (1)", time: "T", itime: "T", dtime: "T+1", vc: 0, state: "routing", out_port: "East" } }
           },
           {
             title: "Move to _vc_alloc_vcs", desc: "Route computed. Flit moves to <code>_vc_alloc_vcs</code> queue. State: <code>vc_alloc</code>.",
-            net: { isPipelineView: true, cardPos: { x: 187, y: 276 }, vcBufFilled: true, actStg: "rc", vcState: "vc_alloc", showInspector: true, fields: { id:0, type:"REQ", src:"Node N₀ (0)", dst:"Node N₁ (1)", time:"T", itime:"T", dtime:"T+1", vc:0, state:"vc_alloc", out_port:"East" } }
+            net: { isPipelineView: true, cardPos: { x: 187, y: 276 }, vcBufFilled: true, actStg: "rc", vcState: "vc_alloc", showInspector: true, fields: { id: 0, type: "REQ", src: "Node N₀ (0)", dst: "Node N₁ (1)", time: "T", itime: "T", dtime: "T+1", vc: 0, state: "vc_alloc", out_port: "East" } }
           }
         ]
       },
@@ -153,11 +153,11 @@ const STAGES = [
         microSteps: [
           {
             title: "Query VCAllocator", desc: "Pulse query to external <code>VCAllocator</code> module. Allocates downstream output VC on R01 (<code>out_vc = 0</code> granted).",
-            net: { isPipelineView: true, cardPos: { x: 187, y: 276 }, vcBufFilled: true, actStg: "va", sigQuery: "va", vcState: "vc_alloc", showInspector: true, fields: { id:0, type:"REQ", src:"Node N₀ (0)", dst:"Node N₁ (1)", time:"T", itime:"T", dtime:"T+1", vc:0, state:"vc_alloc", out_vc:0 } }
+            net: { isPipelineView: true, cardPos: { x: 187, y: 276 }, vcBufFilled: true, actStg: "va", sigQuery: "va", vcState: "vc_alloc", showInspector: true, fields: { id: 0, type: "REQ", src: "Node N₀ (0)", dst: "Node N₁ (1)", time: "T", itime: "T", dtime: "T+1", vc: 0, state: "vc_alloc", out_vc: 0 } }
           },
           {
             title: "Move to _sa_vcs", desc: "VC allocated. Flit moves to <code>_sa_vcs</code> queue. State: <code>active</code>.",
-            net: { isPipelineView: true, cardPos: { x: 187, y: 356 }, vcBufFilled: true, actStg: "va", vcState: "active", showInspector: true, fields: { id:0, type:"REQ", src:"Node N₀ (0)", dst:"Node N₁ (1)", time:"T", itime:"T", dtime:"T+1", vc:0, state:"active", out_vc:0 } }
+            net: { isPipelineView: true, cardPos: { x: 187, y: 356 }, vcBufFilled: true, actStg: "va", vcState: "active", showInspector: true, fields: { id: 0, type: "REQ", src: "Node N₀ (0)", dst: "Node N₁ (1)", time: "T", itime: "T", dtime: "T+1", vc: 0, state: "active", out_vc: 0 } }
           }
         ]
       },
@@ -168,11 +168,11 @@ const STAGES = [
         microSteps: [
           {
             title: "Query SwitchAllocator", desc: "Pulse query to external <code>SwitchAllocator</code> module for crossbar traversal grant.",
-            net: { isPipelineView: true, cardPos: { x: 187, y: 356 }, vcBufFilled: true, actStg: "sa", sigQuery: "sa", vcState: "active", showInspector: true, fields: { id:0, type:"REQ", src:"Node N₀ (0)", dst:"Node N₁ (1)", time:"T", itime:"T", dtime:"T+1", vc:0, state:"active", out_vc:0 } }
+            net: { isPipelineView: true, cardPos: { x: 187, y: 356 }, vcBufFilled: true, actStg: "sa", sigQuery: "sa", vcState: "active", showInspector: true, fields: { id: 0, type: "REQ", src: "Node N₀ (0)", dst: "Node N₁ (1)", time: "T", itime: "T", dtime: "T+1", vc: 0, state: "active", out_vc: 0 } }
           },
           {
             title: "Move to _st_vcs", desc: "Grant received. Flit moves to <code>_st_vcs</code> queue awaiting traversal.",
-            net: { isPipelineView: true, cardPos: { x: 187, y: 436 }, vcBufFilled: true, actStg: "sa", vcState: "active", showInspector: true, fields: { id:0, type:"REQ", src:"Node N₀ (0)", dst:"Node N₁ (1)", time:"T", itime:"T", dtime:"T+1", vc:0, state:"active", out_vc:0 } }
+            net: { isPipelineView: true, cardPos: { x: 187, y: 436 }, vcBufFilled: true, actStg: "sa", vcState: "active", showInspector: true, fields: { id: 0, type: "REQ", src: "Node N₀ (0)", dst: "Node N₁ (1)", time: "T", itime: "T", dtime: "T+1", vc: 0, state: "active", out_vc: 0 } }
           }
         ]
       },
@@ -183,11 +183,11 @@ const STAGES = [
         microSteps: [
           {
             title: "Traverse Crossbar", desc: "Flit leaves the VC0 buffer and traverses the crossbar fabric.",
-            net: { isPipelineView: true, cardPos: { x: 380, y: 427 }, outputBufFilled: false, vcBufFilled: false, actStg: "st", vcState: "idle", showInspector: true, fields: { id:0, type:"REQ", src:"Node N₀ (0)", dst:"Node N₁ (1)", time:"T", itime:"T", dtime:"T+1", vc:0, state:"active", out_vc:0 } }
+            net: { isPipelineView: true, cardPos: { x: 380, y: 427 }, outputBufFilled: false, vcBufFilled: false, actStg: "st", vcState: "idle", showInspector: true, fields: { id: 0, type: "REQ", src: "Node N₀ (0)", dst: "Node N₁ (1)", time: "T", itime: "T", dtime: "T+1", vc: 0, state: "active", out_vc: 0 } }
           },
           {
             title: "Enter Output Buffer", desc: "Flit enters <code>_output_buffer[East]</code>. Ready for inter-router transfer.",
-            net: { isPipelineView: true, cardPos: { x: 636, y: 427 }, outputBufFilled: true, vcBufFilled: false, actStg: "st", vcState: "idle", showInspector: true, fields: { id:0, type:"REQ", src:"Node N₀ (0)", dst:"Node N₁ (1)", time:"T", itime:"T", dtime:"T+1", vc:0, state:"active", out_vc:0 } }
+            net: { isPipelineView: true, cardPos: { x: 636, y: 427 }, outputBufFilled: true, vcBufFilled: false, actStg: "st", vcState: "idle", showInspector: true, fields: { id: 0, type: "REQ", src: "Node N₀ (0)", dst: "Node N₁ (1)", time: "T", itime: "T", dtime: "T+1", vc: 0, state: "active", out_vc: 0 } }
           }
         ]
       }
@@ -214,11 +214,11 @@ const STAGES = [
         microSteps: [
           {
             title: "Flit in Output Buffer", desc: "Flit awaits transfer in the internal <code>_output_buffer</code>.",
-            net: { srcNode:"n0", dstNode:"n1", actRouter:"r00", showFlitCard: true, cardPos: { x: 501, y: 172 }, showInspector: true, fields: { id:0, type:"REQ", src:"Node N₀ (0)", dst:"Node N₁ (1)", time:"T", itime:"T", vc:0 } }
+            net: { srcNode: "n0", dstNode: "n1", actRouter: "r00", showFlitCard: true, cardPos: { x: 501, y: 172 }, showInspector: true, fields: { id: 0, type: "REQ", src: "Node N₀ (0)", dst: "Node N₁ (1)", time: "T", itime: "T", vc: 0 } }
           },
           {
             title: "Inject to Flit Channel Queue", desc: "Flit is injected into the external <code>Flit Channel Queue</code> on the link. Delivery timestamp (dtime) is set.",
-            net: { srcNode:"n0", dstNode:"n1", actRouter:"r00", showFlitCard: true, cardPos: { x: 560, y: 193 }, showInspector: true, flitChannelFilled: true, fields: { id:0, type:"REQ", src:"Node N₀ (0)", dst:"Node N₁ (1)", time:"T", itime:"T", dtime:"T+1", vc:0 } }
+            net: { srcNode: "n0", dstNode: "n1", actRouter: "r00", showFlitCard: true, cardPos: { x: 560, y: 193 }, showInspector: true, flitChannelFilled: true, fields: { id: 0, type: "REQ", src: "Node N₀ (0)", dst: "Node N₁ (1)", time: "T", itime: "T", dtime: "T+1", vc: 0 } }
           }
         ]
       },
@@ -228,12 +228,12 @@ const STAGES = [
         desc: "Flit traverses the horizontal link and is delivered to the input queue of the downstream router.",
         microSteps: [
           {
-            title: "Traverse Horizontal Link", desc: "Flit traverses across horizontal link H0.",
-            net: { srcNode:"n0", dstNode:"n1", showFlitCard: true, cardPos: { x: 595, y: 193 }, showInspector: true, glowLink:"lk-h0", flitChannelFilled: true, fields: { id:0, type:"REQ", src:"Node N₀ (0)", dst:"Node N₁ (1)", time:"T", itime:"T", dtime:"T+1", vc:0 } }
+            title: "Traverse Horizontal Link", desc: "Flit traverses across the router-router link from Router R00 to R01.",
+            net: { srcNode: "n0", dstNode: "n1", showFlitCard: true, cardPos: { x: 595, y: 193 }, showInspector: true, glowLink: "lk-h0", flitChannelFilled: true, fields: { id: 0, type: "REQ", src: "Node N₀ (0)", dst: "Node N₁ (1)", time: "T", itime: "T", dtime: "T+1", vc: 0 } }
           },
           {
             title: "Enter R01 Input Queue", desc: "Flit arrives and snaps into the WEST Input Queue of Router R01.",
-            net: { srcNode:"n0", dstNode:"n1", actRouter:"r01", showFlitCard: true, cardPos: { x: 612, y: 172 }, showInspector: true, glowLink:"lk-h0", fields: { id:0, type:"REQ", src:"Node N₀ (0)", dst:"Node N₁ (1)", time:"T", itime:"T", dtime:"T+1", vc:0 } }
+            net: { srcNode: "n0", dstNode: "n1", actRouter: "r01", showFlitCard: true, cardPos: { x: 612, y: 172 }, showInspector: true, glowLink: "lk-h0", fields: { id: 0, type: "REQ", src: "Node N₀ (0)", dst: "Node N₁ (1)", time: "T", itime: "T", dtime: "T+1", vc: 0 } }
           }
         ]
       }
@@ -260,11 +260,11 @@ const STAGES = [
         microSteps: [
           {
             title: "Flit in Output Buffer", desc: "Flit awaits transfer in the internal <code>_output_buffer</code> of R01.",
-            net: { srcNode:"n0", dstNode:"n1", actRouter:"r01", showFlitCard: true, cardPos: { x: 774, y: 172 }, showInspector: true, fields: { id:0, type:"REQ", src:"Node N₀ (0)", dst:"Node N₁ (1)", time:"T", itime:"T", dtime:"T+1", vc:0 } }
+            net: { srcNode: "n0", dstNode: "n1", actRouter: "r01", showFlitCard: true, cardPos: { x: 774, y: 172 }, showInspector: true, fields: { id: 0, type: "REQ", src: "Node N₀ (0)", dst: "Node N₁ (1)", time: "T", itime: "T", dtime: "T+1", vc: 0 } }
           },
           {
             title: "Inject to Eject Channel Queue", desc: "Flit is injected into the external <code>Eject Flit Channel</code>. Delivery timestamp (dtime) is set.",
-            net: { srcNode:"n0", dstNode:"n1", actRouter:"r01", showFlitCard: true, cardPos: { x: 812, y: 196 }, showInspector: true, actLocalLink2: true, ejectChannelFilled: true, fields: { id:0, type:"REQ", src:"Node N₀ (0)", dst:"Node N₁ (1)", time:"T", itime:"T", dtime:"T+2", vc:0 } }
+            net: { srcNode: "n0", dstNode: "n1", actRouter: "r01", showFlitCard: true, cardPos: { x: 812, y: 196 }, showInspector: true, actLocalLink2: true, ejectChannelFilled: true, fields: { id: 0, type: "REQ", src: "Node N₀ (0)", dst: "Node N₁ (1)", time: "T", itime: "T", dtime: "T+2", vc: 0 } }
           }
         ]
       },
@@ -275,11 +275,11 @@ const STAGES = [
         microSteps: [
           {
             title: "Traverse Local Link", desc: "Flit traverses across local link towards the Traffic Manager.",
-            net: { srcNode:"n0", dstNode:"n1", showFlitCard: true, cardPos: { x: 844, y: 196 }, showInspector: true, actLocalLink2: true, glowLink:"lk-n1", ejectChannelFilled: true, fields: { id:0, type:"REQ", src:"Node N₀ (0)", dst:"Node N₁ (1)", time:"T", itime:"T", dtime:"T+2", vc:0 } }
+            net: { srcNode: "n0", dstNode: "n1", showFlitCard: true, cardPos: { x: 844, y: 196 }, showInspector: true, actLocalLink2: true, glowLink: "lk-n1", ejectChannelFilled: true, fields: { id: 0, type: "REQ", src: "Node N₀ (0)", dst: "Node N₁ (1)", time: "T", itime: "T", dtime: "T+2", vc: 0 } }
           },
           {
             title: "Enter N1 Eject Queue", desc: "Flit arrives and snaps into the <code>_eject_queues</code> of Node N1. Arrival timestamp (atime) is recorded.",
-            net: { srcNode:"n0", dstNode:"n1", showFlitCard: true, cardPos: { x: 855, y: 200 }, showInspector: true, glowLink:"lk-n1", ejectQueueFilled: true, fields: { id:0, type:"REQ", src:"Node N₀ (0)", dst:"Node N₁ (1)", time:"T", itime:"T", dtime:"T+2", atime:"T+2", vc:0 } }
+            net: { srcNode: "n0", dstNode: "n1", showFlitCard: true, cardPos: { x: 855, y: 200 }, showInspector: true, glowLink: "lk-n1", ejectQueueFilled: true, fields: { id: 0, type: "REQ", src: "Node N₀ (0)", dst: "Node N₁ (1)", time: "T", itime: "T", dtime: "T+2", atime: "T+2", vc: 0 } }
           }
         ]
       }
@@ -306,7 +306,7 @@ const STAGES = [
         microSteps: [
           {
             title: "Highlight Ejected Flit", desc: "The flit in the <code>_eject_queues</code> is highlighted as ReadFlit() processes it.",
-            net: { dstNode:"n1", showFlitCard: true, cardPos: { x: 855, y: 200 }, highlightFlit: true, showInspector: true, ejectQueueFilled: true, trackingFilled: true, fields: { id:0, type:"REQ", src:"Node N₀ (0)", dst:"Node N₁ (1)", time:"T", itime:"T", dtime:"T+2", atime:"T+2", vc:0 } }
+            net: { dstNode: "n1", showFlitCard: true, cardPos: { x: 855, y: 200 }, highlightFlit: true, showInspector: true, ejectQueueFilled: true, trackingFilled: true, fields: { id: 0, type: "REQ", src: "Node N₀ (0)", dst: "Node N₁ (1)", time: "T", itime: "T", dtime: "T+2", atime: "T+2", vc: 0 } }
           }
         ]
       },
@@ -317,7 +317,7 @@ const STAGES = [
         microSteps: [
           {
             title: "Clear Tracking Tokens", desc: "The tracking tokens are removed from the global tracking queues.",
-            net: { dstNode:"n1", showFlitCard: true, cardPos: { x: 855, y: 200 }, showInspector: true, ejectQueueFilled: true, trackingFilled: false, fields: { id:0, type:"REQ", src:"Node N₀ (0)", dst:"Node N₁ (1)", time:"T", itime:"T", dtime:"T+2", atime:"T+2", vc:0 } }
+            net: { dstNode: "n1", showFlitCard: true, cardPos: { x: 855, y: 200 }, showInspector: true, ejectQueueFilled: true, trackingFilled: false, fields: { id: 0, type: "REQ", src: "Node N₀ (0)", dst: "Node N₁ (1)", time: "T", itime: "T", dtime: "T+2", atime: "T+2", vc: 0 } }
           }
         ]
       },
@@ -328,7 +328,7 @@ const STAGES = [
         microSteps: [
           {
             title: "Compute Latency", desc: "Calculates latency (<code>atime - itime</code>) and displays it on the Stats Calculator.",
-            net: { dstNode:"n1", showFlitCard: true, cardPos: { x: 855, y: 200 }, showInspector: true, ejectQueueFilled: true, trackingFilled: false, showStats: true, fields: { id:0, type:"REQ", src:"Node N₀ (0)", dst:"Node N₁ (1)", time:"T", itime:"T", dtime:"T+2", atime:"T+2", vc:0 } }
+            net: { dstNode: "n1", showFlitCard: true, cardPos: { x: 855, y: 200 }, showInspector: true, ejectQueueFilled: true, trackingFilled: false, showStats: true, fields: { id: 0, type: "REQ", src: "Node N₀ (0)", dst: "Node N₁ (1)", time: "T", itime: "T", dtime: "T+2", atime: "T+2", vc: 0 } }
           }
         ]
       },
@@ -339,7 +339,7 @@ const STAGES = [
         microSteps: [
           {
             title: "Move to replies_pending", desc: "Flit is moved into the TM's internal <code>replies_pending</code> queue.",
-            net: { dstNode:"n1", showFlitCard: true, cardPos: { x: 1051, y: 199 }, showInspector: true, ejectQueueFilled: false, trackingFilled: false, repliesQueueFilled: true, showStats: true, fields: { id:0, type:"REQ", src:"Node N₀ (0)", dst:"Node N₁ (1)", time:"T", itime:"T", dtime:"T+2", atime:"T+2", vc:0 } }
+            net: { dstNode: "n1", showFlitCard: true, cardPos: { x: 1051, y: 199 }, showInspector: true, ejectQueueFilled: false, trackingFilled: false, repliesQueueFilled: true, showStats: true, fields: { id: 0, type: "REQ", src: "Node N₀ (0)", dst: "Node N₁ (1)", time: "T", itime: "T", dtime: "T+2", atime: "T+2", vc: 0 } }
           }
         ]
       }
@@ -348,21 +348,21 @@ const STAGES = [
 ];
 
 const SVG = {
-  routers: { r00:'rt-r00', r01:'rt-r01', r10:'rt-r10', r11:'rt-r11' },
-  rLabels: { r00:'rl-r00', r01:'rl-r01', r10:'rl-r10', r11:'rl-r11' },
-  nodes:   { n0:'nd-n0',   n1:'nd-n1',   n2:'nd-n2',   n3:'nd-n3'   },
-  nLabels: { n0:'nl-n0',   n1:'nl-n1',   n2:'nl-n2',   n3:'nl-n3'   },
-  nSubs:   { n0:'ns-n0',   n1:'ns-n1'   }
+  routers: { r00: 'rt-r00', r01: 'rt-r01', r10: 'rt-r10', r11: 'rt-r11' },
+  rLabels: { r00: 'rl-r00', r01: 'rl-r01', r10: 'rl-r10', r11: 'rl-r11' },
+  nodes: { n0: 'nd-n0', n1: 'nd-n1', n2: 'nd-n2', n3: 'nd-n3' },
+  nLabels: { n0: 'nl-n0', n1: 'nl-n1', n2: 'nl-n2', n3: 'nl-n3' },
+  nSubs: { n0: 'ns-n0', n1: 'ns-n1' }
 };
 
 /* ================================================================
    STATE
 ================================================================ */
-let _stage   = 0;
+let _stage = 0;
 let _subStep = 0;
 let _microStep = 0;
 let _playing = false;
-let _timer   = null;
+let _timer = null;
 let _credRAF = null;
 
 /* Neighbors in the master presentation sequence */
@@ -388,15 +388,15 @@ const Nav = {
     const stage = STAGES[stageIdx];
     const sub = stage.subSteps[subIdx];
 
-    _el('hdr-num').textContent     = stageIdx + 1;
-    _el('hdr-subnum').textContent  = subIdx + 1;
-    _el('hdr-name').textContent    = stage.name;
+    _el('hdr-num').textContent = stageIdx + 1;
+    _el('hdr-subnum').textContent = subIdx + 1;
+    _el('hdr-name').textContent = stage.name;
     const hBadge = _el('hdr-subname-badge');
     if (hBadge) hBadge.textContent = sub.subname;
 
-    _el('prog-num').textContent     = stageIdx + 1;
-    const pSubnum = _el('prog-subnum');  if (pSubnum) pSubnum.textContent = subIdx + 1;
-    const pName = _el('prog-name');      if (pName) pName.textContent = stage.name;
+    _el('prog-num').textContent = stageIdx + 1;
+    const pSubnum = _el('prog-subnum'); if (pSubnum) pSubnum.textContent = subIdx + 1;
+    const pName = _el('prog-name'); if (pName) pName.textContent = stage.name;
     const pSubname = _el('prog-subname'); if (pSubname) pSubname.textContent = sub.subname;
 
     for (let i = 0; i < 6; i++) {
@@ -407,7 +407,7 @@ const Nav = {
     for (let i = 0; i < 6; i++) {
       const ni = _el(`nav-${i}`);
       if (!ni) continue;
-      ni.classList.remove('active','done');
+      ni.classList.remove('active', 'done');
       if (i < stageIdx) ni.classList.add('done');
       if (i === stageIdx) ni.classList.add('active');
     }
@@ -415,7 +415,7 @@ const Nav = {
     _el('btn-prev').disabled = false;
     const nb = _el('btn-next');
     const isLast = (stageIdx === 5 && subIdx === stage.subSteps.length - 1);
-    nb.disabled    = false;
+    nb.disabled = false;
     nb.textContent = isLast ? 'Next Deck ➔' : 'Next Step ➔';
   }
 };
@@ -438,113 +438,113 @@ const NetView = {
     Object.values(SVG.nLabels).forEach(id => {
       const el = _el(id); if (el) el.className = (id === 'nl-n0') ? 'svg-lbl tm-container-title' : 'svg-lbl node-lbl';
     });
-    ['ns-n0','ns-n1'].forEach(id => {
+    ['ns-n0', 'ns-n1'].forEach(id => {
       const el = _el(id); if (el) { el.className = (id === 'ns-n0') ? 'svg-lbl tm-container-sub' : 'svg-lbl node-sub'; }
     });
 
     const linkBases = {
-      'lk-h0':'net-link','lk-h1':'net-link',
-      'lk-v0':'net-link','lk-v1':'net-link',
-      'lk-n0':'net-link','lk-n1':'net-link',
-      'lk-n2':'net-link local-link','lk-n3':'net-link local-link'
+      'lk-h0': 'net-link', 'lk-h1': 'net-link',
+      'lk-v0': 'net-link', 'lk-v1': 'net-link',
+      'lk-n0': 'net-link', 'lk-n1': 'net-link',
+      'lk-n2': 'net-link local-link', 'lk-n3': 'net-link local-link'
     };
     Object.entries(linkBases).forEach(([id, base]) => {
       const el = _el(id); if (el) el.className = base;
     });
 
     // Reset module badges
-    ['mod-inject-proc','mod-traffic-pattern','mod-recycling-pool'].forEach(id => {
-      const el = _el(id); if (el) el.querySelector('.mod-box').setAttribute('class','mod-box');
+    ['mod-inject-proc', 'mod-traffic-pattern', 'mod-recycling-pool'].forEach(id => {
+      const el = _el(id); if (el) el.querySelector('.mod-box').setAttribute('class', 'mod-box');
     });
 
-    const ipB = _el('mod-ip-badge'); if (ipB) ipB.setAttribute('class','mod-badge-idle');
-    const ipBT = _el('mod-ip-badge-txt'); if (ipBT) { ipBT.setAttribute('class','mod-badge-txt'); ipBT.textContent = 'Test() idle'; }
+    const ipB = _el('mod-ip-badge'); if (ipB) ipB.setAttribute('class', 'mod-badge-idle');
+    const ipBT = _el('mod-ip-badge-txt'); if (ipBT) { ipBT.setAttribute('class', 'mod-badge-txt'); ipBT.textContent = 'Test() idle'; }
 
-    const tpB = _el('mod-tp-badge'); if (tpB) tpB.setAttribute('class','mod-badge-idle');
-    const tpBT = _el('mod-tp-badge-txt'); if (tpBT) { tpBT.setAttribute('class','mod-badge-txt'); tpBT.textContent = 'Dest() idle'; }
+    const tpB = _el('mod-tp-badge'); if (tpB) tpB.setAttribute('class', 'mod-badge-idle');
+    const tpBT = _el('mod-tp-badge-txt'); if (tpBT) { tpBT.setAttribute('class', 'mod-badge-txt'); tpBT.textContent = 'Dest() idle'; }
 
-    ['sig-arrow-ip','sig-arrow-tp','sig-arrow-pool'].forEach(id => {
-      const el = _el(id); if (el) el.setAttribute('opacity','0');
+    ['sig-arrow-ip', 'sig-arrow-tp', 'sig-arrow-pool'].forEach(id => {
+      const el = _el(id); if (el) el.setAttribute('opacity', '0');
     });
 
     // Reset Stage 3 Helper Modules & Arrows
-    ['sig-arrow-rc','sig-arrow-va','sig-arrow-sa'].forEach(id => {
-      const el = _el(id); if (el) el.setAttribute('opacity','0');
+    ['sig-arrow-rc', 'sig-arrow-va', 'sig-arrow-sa'].forEach(id => {
+      const el = _el(id); if (el) el.setAttribute('opacity', '0');
     });
-    ['mod-ra-badge','mod-va-badge','mod-sa-badge'].forEach(id => {
-      const el = _el(id); if (el) el.setAttribute('class','mod-badge-idle');
+    ['mod-ra-badge', 'mod-va-badge', 'mod-sa-badge'].forEach(id => {
+      const el = _el(id); if (el) el.setAttribute('class', 'mod-badge-idle');
     });
 
     // Reset LocalLink containers
     const ll = _el('mod-locallink');
-    if (ll) ll.querySelector('.locallink-box').setAttribute('class','locallink-box');
+    if (ll) ll.querySelector('.locallink-box').setAttribute('class', 'locallink-box');
 
     const lln1 = _el('mod-locallink-n1');
-    if (lln1) lln1.querySelector('.locallink-box').setAttribute('class','locallink-box');
+    if (lln1) lln1.querySelector('.locallink-box').setAttribute('class', 'locallink-box');
 
     // Reset queues
     const slotP = _el('q-slots-partial');
-    if (slotP) Array.from(slotP.children).forEach(c => c.setAttribute('class','q-slot'));
+    if (slotP) Array.from(slotP.children).forEach(c => c.setAttribute('class', 'q-slot'));
 
     const slotI = _el('q-slots-inject');
-    if (slotI) Array.from(slotI.children).forEach(c => c.setAttribute('class','q-slot'));
+    if (slotI) Array.from(slotI.children).forEach(c => c.setAttribute('class', 'q-slot'));
 
     const slotVC = _el('q-slots-vc');
-    if (slotVC) Array.from(slotVC.children).forEach(c => c.setAttribute('class','q-slot-v'));
+    if (slotVC) Array.from(slotVC.children).forEach(c => c.setAttribute('class', 'q-slot-v'));
 
     const slotR00Out = _el('q-slots-r00-out-internal');
-    if (slotR00Out) Array.from(slotR00Out.children).forEach(c => c.setAttribute('class','q-slot-v'));
+    if (slotR00Out) Array.from(slotR00Out.children).forEach(c => c.setAttribute('class', 'q-slot-v'));
 
     const slotR01Out = _el('q-slots-r01-out-internal');
-    if (slotR01Out) Array.from(slotR01Out.children).forEach(c => c.setAttribute('class','q-slot-v'));
+    if (slotR01Out) Array.from(slotR01Out.children).forEach(c => c.setAttribute('class', 'q-slot-v'));
 
     const slotFlitCh = _el('q-slot-flit-channel');
-    if (slotFlitCh) slotFlitCh.setAttribute('class','q-slot');
+    if (slotFlitCh) slotFlitCh.setAttribute('class', 'q-slot');
 
     const slotLocalCh = _el('q-slot-local-channel');
-    if (slotLocalCh) slotLocalCh.setAttribute('class','q-slot');
+    if (slotLocalCh) slotLocalCh.setAttribute('class', 'q-slot');
 
     const slotEjectCh = _el('q-slot-eject-channel');
-    if (slotEjectCh) slotEjectCh.setAttribute('class','q-slot');
+    if (slotEjectCh) slotEjectCh.setAttribute('class', 'q-slot');
 
     const slotsEject = _el('q-slots-eject');
-    if (slotsEject) Array.from(slotsEject.children).forEach(c => c.setAttribute('class','q-slot-v'));
+    if (slotsEject) Array.from(slotsEject.children).forEach(c => c.setAttribute('class', 'q-slot-v'));
 
     const slotsReplies = _el('q-slots-replies');
-    if (slotsReplies) Array.from(slotsReplies.children).forEach(c => c.setAttribute('class','q-slot'));
+    if (slotsReplies) Array.from(slotsReplies.children).forEach(c => c.setAttribute('class', 'q-slot'));
 
     const slotTotFl = _el('q-slot-total-flight');
-    if (slotTotFl) slotTotFl.setAttribute('class','q-slot');
+    if (slotTotFl) slotTotFl.setAttribute('class', 'q-slot');
 
     const slotMeasFl = _el('q-slot-measured-flight');
-    if (slotMeasFl) slotMeasFl.setAttribute('class','q-slot');
+    if (slotMeasFl) slotMeasFl.setAttribute('class', 'q-slot');
 
     const statsBox = _el('stats-calc-box');
     if (statsBox) statsBox.setAttribute('opacity', '0');
 
     // Reset Stage 3 Router Internal Queues
-    ['q-slots-vc-buf','q-slots-route','q-slots-vcalloc','q-slots-switched','q-slots-st','q-slots-output','q-slots-vc-pipe'].forEach(id => {
+    ['q-slots-vc-buf', 'q-slots-route', 'q-slots-vcalloc', 'q-slots-switched', 'q-slots-st', 'q-slots-output', 'q-slots-vc-pipe'].forEach(id => {
       const q = _el(id);
       if (q) Array.from(q.children).forEach(c => c.setAttribute('class', id === 'q-slots-vc-pipe' ? 'q-slot-v' : 'q-slot'));
     });
 
     // Reset Stage 3 Pipeline Boxes
-    ['stg-iq-box','stg-rc-box','stg-va-box','stg-sa-box','stg-st-box'].forEach(id => {
+    ['stg-iq-box', 'stg-rc-box', 'stg-va-box', 'stg-sa-box', 'stg-st-box'].forEach(id => {
       const b = _el(id);
-      if (b) b.querySelector('.stg-pipe-box').setAttribute('class','stg-pipe-box');
+      if (b) b.querySelector('.stg-pipe-box').setAttribute('class', 'stg-pipe-box');
     });
 
     // Reset flit cards & inspector
-    const fcg = _el('flit-card-group'); if (fcg) fcg.setAttribute('opacity','0');
-    const fpcg = _el('flit-pipe-card-group'); if (fpcg) fpcg.setAttribute('opacity','0');
-    const insp = _el('flit-inspector'); if (insp) insp.setAttribute('opacity','0');
+    const fcg = _el('flit-card-group'); if (fcg) fcg.setAttribute('opacity', '0');
+    const fpcg = _el('flit-pipe-card-group'); if (fpcg) fpcg.setAttribute('opacity', '0');
+    const insp = _el('flit-inspector'); if (insp) insp.setAttribute('opacity', '0');
 
     if (_credRAF) { cancelAnimationFrame(_credRAF); _credRAF = null; }
     const cd = _el('credit-dot'); if (cd) cd.style.opacity = '0';
-    const h0l = _el('h0-ch-label'); if (h0l) h0l.setAttribute('opacity','0');
+    const h0l = _el('h0-ch-label'); if (h0l) h0l.setAttribute('opacity', '0');
   },
 
-  update(stageIdx, subIdx, microIdx=0) {
+  update(stageIdx, subIdx, microIdx = 0) {
     this.clear();
     const stage = STAGES[stageIdx];
     const sub = stage.subSteps[subIdx];
@@ -561,35 +561,35 @@ const NetView = {
       if (nv) nv.className = 'view-mode-pipe';
 
       if (ns.sigQuery === 'rc') {
-        _el('sig-arrow-rc').setAttribute('opacity','1');
-        _el('mod-ra-badge').setAttribute('class','mod-badge-act');
+        _el('sig-arrow-rc').setAttribute('opacity', '1');
+        _el('mod-ra-badge').setAttribute('class', 'mod-badge-act');
       }
       if (ns.sigQuery === 'va') {
-        _el('sig-arrow-va').setAttribute('opacity','1');
-        _el('mod-va-badge').setAttribute('class','mod-badge-act');
+        _el('sig-arrow-va').setAttribute('opacity', '1');
+        _el('mod-va-badge').setAttribute('class', 'mod-badge-act');
       }
       if (ns.sigQuery === 'sa') {
-        _el('sig-arrow-sa').setAttribute('opacity','1');
-        _el('mod-sa-badge').setAttribute('class','mod-badge-act');
+        _el('sig-arrow-sa').setAttribute('opacity', '1');
+        _el('mod-sa-badge').setAttribute('class', 'mod-badge-act');
       }
 
       if (ns.actStg) {
-        const boxId = { iq:'stg-iq-box', rc:'stg-rc-box', va:'stg-va-box', sa:'stg-sa-box', st:'stg-st-box' }[ns.actStg];
+        const boxId = { iq: 'stg-iq-box', rc: 'stg-rc-box', va: 'stg-va-box', sa: 'stg-sa-box', st: 'stg-st-box' }[ns.actStg];
         const b = _el(boxId);
-        if (b) b.querySelector('.stg-pipe-box').setAttribute('class','stg-pipe-box act');
+        if (b) b.querySelector('.stg-pipe-box').setAttribute('class', 'stg-pipe-box act');
       }
 
       if (ns.pipeVcFilled) {
         const slots = _el('q-slots-vc-pipe');
-        if (slots && slots.children[0]) slots.children[0].setAttribute('class','q-slot-v filled');
+        if (slots && slots.children[0]) slots.children[0].setAttribute('class', 'q-slot-v filled');
       }
       if (ns.vcBufFilled) {
         const slots = _el('q-slots-vc-buf');
-        if (slots && slots.children[0]) slots.children[0].setAttribute('class','q-slot filled');
+        if (slots && slots.children[0]) slots.children[0].setAttribute('class', 'q-slot filled');
       }
       if (ns.outputBufFilled) {
         const slots = _el('q-slots-output');
-        if (slots && slots.children[3]) slots.children[3].setAttribute('class','q-slot filled');
+        if (slots && slots.children[3]) slots.children[3].setAttribute('class', 'q-slot filled');
       }
 
       if (ns.cardPos) {
@@ -616,12 +616,12 @@ const NetView = {
       if (nv) nv.className = 'view-mode-net';
 
       if (ns.srcNode) {
-        _el(SVG.nodes[ns.srcNode]).className   = 'tm-container-box src-nd';
+        _el(SVG.nodes[ns.srcNode]).className = 'tm-container-box src-nd';
         _el(SVG.nLabels[ns.srcNode]).className = 'svg-lbl tm-container-title src';
       }
 
       if (ns.dstNode) {
-        _el(SVG.nodes[ns.dstNode]).className   = (ns.dstNode === 'n1') ? 'tm-container-box dst-nd' : 'node-circle dst-nd';
+        _el(SVG.nodes[ns.dstNode]).className = (ns.dstNode === 'n1') ? 'tm-container-box dst-nd' : 'node-circle dst-nd';
         _el(SVG.nLabels[ns.dstNode]).className = (ns.dstNode === 'n1') ? 'svg-lbl tm-container-title dst' : 'svg-lbl node-lbl dst';
         const subEl = _el(SVG.nSubs[ns.dstNode]);
         if (subEl) { subEl.className = 'svg-lbl node-sub dst'; subEl.textContent = 'Destination Endpoint'; }
@@ -639,11 +639,11 @@ const NetView = {
 
       if (ns.actLocalLink) {
         const ll = _el('mod-locallink');
-        if (ll) ll.querySelector('.locallink-box').setAttribute('class','locallink-box act');
+        if (ll) ll.querySelector('.locallink-box').setAttribute('class', 'locallink-box act');
       }
       if (ns.actLocalLink2) {
         const lln1 = _el('mod-locallink-n1');
-        if (lln1) lln1.querySelector('.locallink-box').setAttribute('class','locallink-box act');
+        if (lln1) lln1.querySelector('.locallink-box').setAttribute('class', 'locallink-box act');
       }
 
       if (ns.glowLink) {
@@ -656,37 +656,37 @@ const NetView = {
 
       if (ns.flitChannelFilled) {
         const fslot = _el('q-slot-flit-channel');
-        if (fslot) fslot.setAttribute('class','q-slot filled');
+        if (fslot) fslot.setAttribute('class', 'q-slot filled');
       }
       if (ns.localChannelFilled) {
         const lslot = _el('q-slot-local-channel');
-        if (lslot) lslot.setAttribute('class','q-slot filled');
+        if (lslot) lslot.setAttribute('class', 'q-slot filled');
       }
       if (ns.ejectChannelFilled) {
         const eslot = _el('q-slot-eject-channel');
-        if (eslot) eslot.setAttribute('class','q-slot filled');
+        if (eslot) eslot.setAttribute('class', 'q-slot filled');
       }
       if (ns.ejectQueueFilled) {
         const slots = _el('q-slots-eject');
-        if (slots && slots.children[0]) slots.children[0].setAttribute('class','q-slot-v filled');
+        if (slots && slots.children[0]) slots.children[0].setAttribute('class', 'q-slot-v filled');
       }
 
       // Automatically keep tracking queues filled while flit is in-flight 
       // (From Stage 1.5 creation until Stage 6.2 retirement)
       const isTrackingActive = (stageIdx > 0 || (stageIdx === 0 && subIdx >= 4)) && !(stageIdx === 5 && subIdx >= 1);
       if (ns.trackingFilled || isTrackingActive) {
-        const s1 = _el('q-slot-total-flight'); if (s1) s1.setAttribute('class','q-slot filled');
-        const s2 = _el('q-slot-measured-flight'); if (s2) s2.setAttribute('class','q-slot filled');
+        const s1 = _el('q-slot-total-flight'); if (s1) s1.setAttribute('class', 'q-slot filled');
+        const s2 = _el('q-slot-measured-flight'); if (s2) s2.setAttribute('class', 'q-slot filled');
       }
 
       if (ns.repliesQueueFilled) {
         const rslots = _el('q-slots-replies');
-        if (rslots && rslots.children[0]) rslots.children[0].setAttribute('class','q-slot filled');
+        if (rslots && rslots.children[0]) rslots.children[0].setAttribute('class', 'q-slot filled');
       }
       if (ns.showStats) {
         const sb = _el('stats-calc-box');
         if (sb) {
-          sb.setAttribute('opacity','1');
+          sb.setAttribute('opacity', '1');
           _el('stats-lbl-latency').textContent = 'latency: 18 cycles';
           _el('stats-lbl-hops').textContent = 'hops: 1 (N0 → N1)';
         }
@@ -696,28 +696,28 @@ const NetView = {
       const ms = sub.moduleState;
       if (ms) {
         if (ms.injectProc === 'act') {
-          _el('mod-inject-proc').querySelector('.mod-box').setAttribute('class','mod-box act');
-          _el('mod-ip-badge').setAttribute('class','mod-badge-act');
-          _el('mod-ip-badge-txt').setAttribute('class','mod-badge-txt act');
+          _el('mod-inject-proc').querySelector('.mod-box').setAttribute('class', 'mod-box act');
+          _el('mod-ip-badge').setAttribute('class', 'mod-badge-act');
+          _el('mod-ip-badge-txt').setAttribute('class', 'mod-badge-txt act');
           _el('mod-ip-badge-txt').textContent = 'true (Generated)';
         }
         if (ms.trafficPattern === 'act') {
-          _el('mod-traffic-pattern').querySelector('.mod-box').setAttribute('class','mod-box act');
-          _el('mod-tp-badge').setAttribute('class','mod-badge-act');
-          _el('mod-tp-badge-txt').setAttribute('class','mod-badge-txt act');
+          _el('mod-traffic-pattern').querySelector('.mod-box').setAttribute('class', 'mod-box act');
+          _el('mod-tp-badge').setAttribute('class', 'mod-badge-act');
+          _el('mod-tp-badge-txt').setAttribute('class', 'mod-badge-txt act');
           _el('mod-tp-badge-txt').textContent = 'dst = N₁ (Node 1)';
         }
         if (ms.poolCount !== undefined) {
           _el('mod-pool-count').textContent = `Available: ${ms.poolCount} Flits`;
         }
-        if (ms.signal === 'ip')   _el('sig-arrow-ip').setAttribute('opacity','1');
-        if (ms.signal === 'tp')   _el('sig-arrow-tp').setAttribute('opacity','1');
-        if (ms.signal === 'pool') _el('sig-arrow-pool').setAttribute('opacity','1');
+        if (ms.signal === 'ip') _el('sig-arrow-ip').setAttribute('opacity', '1');
+        if (ms.signal === 'tp') _el('sig-arrow-tp').setAttribute('opacity', '1');
+        if (ms.signal === 'pool') _el('sig-arrow-pool').setAttribute('opacity', '1');
       }
 
       if (ns.partialQueueFilled) {
         const slots = _el('q-slots-partial');
-        if (slots && slots.children[0]) slots.children[0].setAttribute('class','q-slot filled');
+        if (slots && slots.children[0]) slots.children[0].setAttribute('class', 'q-slot filled');
       }
       if (ns.injectQueueFilled) {
         const slots = _el('q-slots-inject');
@@ -728,7 +728,7 @@ const NetView = {
       }
       if (ns.routerVcFilled) {
         const slots = _el('q-slots-vc');
-        if (slots && slots.children[0]) slots.children[0].setAttribute('class','q-slot-v filled');
+        if (slots && slots.children[0]) slots.children[0].setAttribute('class', 'q-slot-v filled');
       }
 
       if (ns.showFlitCard && ns.cardPos) {
@@ -754,25 +754,25 @@ const NetView = {
       if (ns.fields) {
         let dtxt = '';
         if (ns.fields.atime) {
-            dtxt = ` | itime: ${ns.fields.itime} | dtime: ${ns.fields.dtime} | atime: ${ns.fields.atime}`;
+          dtxt = ` | itime: ${ns.fields.itime} | dtime: ${ns.fields.dtime} | atime: ${ns.fields.atime}`;
         } else if (ns.fields.dtime) {
-            dtxt = ` | itime: ${ns.fields.itime} | dtime: ${ns.fields.dtime}`;
+          dtxt = ` | itime: ${ns.fields.itime} | dtime: ${ns.fields.dtime}`;
         } else if (ns.fields.itime) {
-            dtxt = ` | itime: ${ns.fields.itime}`;
+          dtxt = ` | itime: ${ns.fields.itime}`;
         }
-        
+
         const stxt = ns.fields.state ? ` | state: ${ns.fields.state}` : '';
         const ptxt = ns.fields.out_port ? ` | out_port: ${ns.fields.out_port}` : '';
         const vtxt = ns.fields.out_vc !== undefined ? ` | out_vc: ${ns.fields.out_vc}` : '';
-        
+
         _el('insp-title').textContent = `${ns.fields.type} Flit #${ns.fields.id} [HEAD|TAIL]`;
         _el('insp-route').textContent = `Src: ${ns.fields.src} ➔ Dst: ${ns.fields.dst}`;
-        
-        _el('insp-meta').textContent  = `creation_time: ${ns.fields.time}${dtxt}`;
-        
+
+        _el('insp-meta').textContent = `creation_time: ${ns.fields.time}${dtxt}`;
+
         const meta2 = _el('insp-meta-2');
         if (meta2) {
-            meta2.textContent = `VC: ${ns.fields.vc}${stxt}${ptxt}${vtxt} | record: true`;
+          meta2.textContent = `VC: ${ns.fields.vc}${stxt}${ptxt}${vtxt} | record: true`;
         }
       }
     }
@@ -842,17 +842,17 @@ const Details = {
         <div class="det-lbl">Stage Flow Steps (Click to Jump)</div>
         <div class="flow-timeline">
           ${s.subSteps.map((step, i) => {
-            const isAct = (i === subIdx);
-            return `
+      const isAct = (i === subIdx);
+      return `
               <div class="flow-step${isAct ? ' active' : ''}" onclick="App.jumpSubStep(${i})">
-                <div class="flow-num" style="background:${isAct ? s.hex : s.hex+'18'};color:${isAct ? '#ffffff' : s.hex};border-color:${s.hex}">${i+1}</div>
+                <div class="flow-num" style="background:${isAct ? s.hex : s.hex + '18'};color:${isAct ? '#ffffff' : s.hex};border-color:${s.hex}">${i + 1}</div>
                 <div class="flow-content">
                   <div class="flow-title" style="color:${isAct ? s.hex : 'var(--text)'}">${step.subname}</div>
                   <div class="flow-desc">${step.desc}</div>
                 </div>
               </div>
             `;
-          }).join('')}
+    }).join('')}
         </div>
       </div>
 
@@ -893,13 +893,13 @@ const App = {
   next() {
     const curStage = STAGES[_stage];
     const sub = curStage.subSteps[_subStep];
-    
+
     if (sub.microSteps && _microStep < sub.microSteps.length - 1) {
       _microStep++;
       this._render();
       return;
     }
-    
+
     _microStep = 0;
     if (_subStep < curStage.subSteps.length - 1) {
       _subStep++;
@@ -959,7 +959,7 @@ const App = {
     if (!_playing) return;
     const curStage = STAGES[_stage];
     const sub = curStage.subSteps[_subStep];
-    
+
     if (sub.microSteps && _microStep < sub.microSteps.length - 1) {
       _microStep++;
       this._render();
