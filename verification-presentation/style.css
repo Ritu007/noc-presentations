@@ -331,42 +331,42 @@ body {
 /* ================================================================
    PAGE 4 — TAXONOMY OF FAILURE (TREE)
 ================================================================ */
-.tree-diagram { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 1600px; }
+.tree-diagram { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 2000px; }
 .tree-root {
-  padding: 1.5rem 3rem; border-radius: var(--rs); font-weight: 800; font-size: 1.8rem;
+  padding: 2rem 4rem; border-radius: var(--rs); font-weight: 800; font-size: 2.4rem;
   background: var(--text); color: #fff; box-shadow: 0 2px 8px rgba(15,23,42,.25);
 }
-.tree-branches { display: flex; justify-content: center; gap: 5rem; margin-top: 50px; position: relative; width: 100%; }
-.tree-branches::before { content: ''; position: absolute; top: -25px; left: 27%; right: 27%; height: 2px; background: var(--b2); }
-.tree-branch { position: relative; padding-top: 25px; display: flex; flex-direction: column; align-items: stretch; min-width: 320px; }
-.tree-branch::before { content: ''; position: absolute; top: -25px; left: 50%; width: 2px; height: 25px; background: var(--b2); }
+.tree-branches { display: flex; justify-content: center; gap: 6rem; margin-top: 60px; position: relative; width: 100%; }
+.tree-branches::before { content: ''; position: absolute; top: -30px; left: 27%; right: 27%; height: 2px; background: var(--b2); }
+.tree-branch { position: relative; padding-top: 30px; display: flex; flex-direction: column; align-items: stretch; min-width: 400px; }
+.tree-branch::before { content: ''; position: absolute; top: -30px; left: 50%; width: 2px; height: 30px; background: var(--b2); }
 .tree-branch-hdr {
-  text-align: center; padding: 1rem 1.6rem; border-radius: var(--rs); margin-bottom: 1rem;
+  text-align: center; padding: 1.5rem 2rem; border-radius: var(--rs); margin-bottom: 1.5rem;
   background: color-mix(in srgb, var(--col-orange) 12%, var(--s1)); border: 1.5px solid var(--col-orange);
-  color: var(--col-orange); font-weight: 800; font-size: 1.45rem;
+  color: var(--col-orange); font-weight: 800; font-size: 1.8rem;
 }
-.tree-leaves { display: flex; flex-direction: column; gap: 0.8rem; }
+.tree-leaves { display: flex; flex-direction: column; gap: 1rem; }
 .tree-leaf {
-  text-align: center; padding: 1rem 1.4rem; border-radius: var(--rxs);
+  text-align: center; padding: 1.5rem 2rem; border-radius: var(--rxs);
   background: var(--s1); border: 1px solid var(--b1); color: var(--muted);
-  font-size: 1.6rem; font-weight: 600;
+  font-size: 2rem; font-weight: 600;
 }
 .tree-leaf.lone { font-weight: 800; color: var(--col-orange); border-color: color-mix(in srgb, var(--col-orange) 40%, var(--b1)); }
 
 /* ================================================================
    PAGE 5 — VALIDATION METHODS (3-UP CARDS)
 ================================================================ */
-.method-card-row { display: flex; gap: 1.5rem; width: 100%; max-width: 1400px; flex-wrap: wrap; justify-content: center; }
+.method-card-row { display: flex; gap: 3rem; width: 100%; max-width: 1800px; flex-wrap: wrap; justify-content: center; }
 .method-card {
-  flex: 1 1 350px; max-width: 440px; background: var(--s1); border: 1.5px solid var(--b1); border-radius: var(--r);
-  padding: 1.8rem 1.6rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04); display: flex; flex-direction: column; gap: 1rem;
+  flex: 1 1 350px; max-width: 540px; background: var(--s1); border: 1.5px solid var(--b1); border-radius: var(--r);
+  padding: 2.5rem 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04); display: flex; flex-direction: column; gap: 2rem;
 }
 .method-card:not(.dimmed):hover { border-color: var(--col-green); box-shadow: 0 4px 14px rgba(22,163,74,.1); }
 .method-icon {
-  width: 72px; height: 72px; border-radius: var(--rs); background: rgba(22,163,74,.12); color: var(--col-green);
-  display: flex; align-items: center; justify-content: center; font-size: 2.2rem; font-weight: 800;
+  width: 120px; height: 120px; border-radius: var(--rs); background: rgba(22,163,74,.12); color: var(--col-green);
+  display: flex; align-items: center; justify-content: center; font-size: 4rem; font-weight: 800;
 }
-.method-title { font-size: 1.4rem; font-weight: 800; color: var(--text); }
+.method-title { font-size: 2rem; font-weight: 800; color: var(--text); }
 
 /* ================================================================
    PAGE 6 — FORMAL VERIFICATION TOOLS (TABLE)
@@ -382,13 +382,13 @@ body {
 /* ================================================================
    PAGE 7 — VERIFICATION TOOLCHAIN (2x2 GRID + CALLOUT)
 ================================================================ */
-.toolchain-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.4rem; width: 100%; max-width: 1100px; }
-.tool-chip { background: var(--s1); border: 1.5px solid var(--b1); border-radius: var(--r); padding: 1.8rem 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04); text-align: center; }
+.toolchain-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; width: 100%; max-width: 1600px; }
+.tool-chip { background: var(--s1); border: 1.5px solid var(--b1); border-radius: var(--r); padding: 3rem 4rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04); text-align: center; }
 .tool-chip:not(.dimmed):hover { border-color: var(--col-yellow); }
-.tool-chip-name { font-size: 1.6rem; font-weight: 800; color: var(--col-yellow); }
+.tool-chip-name { font-size: 2.4rem; font-weight: 800; color: var(--col-yellow); }
 .callout-box {
-  margin-top: 1.6rem; width: 100%; max-width: 1100px; text-align: center;
-  padding: 1.4rem 1.8rem; border-radius: var(--r); font-size: 1.2rem; font-weight: 600;
+  margin-top: 1.6rem; width: 100%; max-width: 1600px; text-align: center;
+  padding: 2rem 2.5rem; border-radius: var(--r); font-size: 1.6rem; font-weight: 600;
   color: var(--muted); background: rgba(13,148,136,.06); border: 1px solid rgba(13,148,136,.3); line-height: 1.6;
 }
 
