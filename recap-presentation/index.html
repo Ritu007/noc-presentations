@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NoC Simulator — Recap</title>
+  <meta name="description"
+    content="Recap of the existing NoC simulator landscape, the simulator accuracy model tradeoff, the C++ vs SystemC language decision, and the modules of the proposed CHI-based NoC Simulator.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=5">
+</head>
+
+<body>
+
+  <!-- ══════════════════════════════════════════════════════════════
+     HEADER BAR
+══════════════════════════════════════════════════════════════ -->
+  <header id="app-header">
+    <div class="brand">
+      <div class="brand-icon">↺</div>
+      <h1>NoC Simulator — Recap</h1>
+      <span class="chi-badge">Recap</span>
+    </div>
+    <div class="phase-pill" id="phase-pill">
+      <span class="phase-dot"></span>
+      <span>Project Journey</span>
+    </div>
+  </header>
+
+  <!-- ══════════════════════════════════════════════════════════════
+     LEFT NAVIGATOR
+══════════════════════════════════════════════════════════════ -->
+  <nav id="stage-nav" aria-label="Recap Topics">
+    <a href="../index.html?end=1" class="back-menu-link">← Table of Contents</a>
+    <div class="nav-group-label">Recap</div>
+    <button class="nav-item active" id="nav-0" onclick="App.goToPage(0)">
+      <div class="nav-status-icon" id="nav-st-0"></div>
+      <div class="nav-text">
+        <div class="nav-num">01</div>
+        <div class="nav-name">Existing NoC Simulators</div>
+      </div>
+      <div class="nav-color-dot" style="background:var(--col-green)"></div>
+    </button>
+    <button class="nav-item" id="nav-1" onclick="App.goToPage(1)">
+      <div class="nav-status-icon" id="nav-st-1"></div>
+      <div class="nav-text">
+        <div class="nav-num">02</div>
+        <div class="nav-name">Comparison of NoC Simulators</div>
+      </div>
+      <div class="nav-color-dot" style="background:var(--col-green)"></div>
+    </button>
+    <button class="nav-item" id="nav-2" onclick="App.goToPage(2)">
+      <div class="nav-status-icon" id="nav-st-2"></div>
+      <div class="nav-text">
+        <div class="nav-num">03</div>
+        <div class="nav-name">Simulator Accuracy Models</div>
+      </div>
+      <div class="nav-color-dot" style="background:var(--col-green)"></div>
+    </button>
+    <button class="nav-item" id="nav-3" onclick="App.goToPage(3)">
+      <div class="nav-status-icon" id="nav-st-3"></div>
+      <div class="nav-text">
+        <div class="nav-num">04</div>
+        <div class="nav-name">Programming Languages</div>
+      </div>
+      <div class="nav-color-dot" style="background:var(--col-green)"></div>
+    </button>
+    <button class="nav-item" id="nav-4" onclick="App.goToPage(4)">
+      <div class="nav-status-icon" id="nav-st-4"></div>
+      <div class="nav-text">
+        <div class="nav-num">05</div>
+        <div class="nav-name">Hierarchical View</div>
+      </div>
+      <div class="nav-color-dot" style="background:var(--col-green)"></div>
+    </button>
+    <button class="nav-item" id="nav-5" onclick="App.goToPage(5)">
+      <div class="nav-status-icon" id="nav-st-5"></div>
+      <div class="nav-text">
+        <div class="nav-num">06</div>
+        <div class="nav-name">Modules of the Proposed System</div>
+      </div>
+      <div class="nav-color-dot" style="background:var(--col-green)"></div>
+    </button>
+    <div class="status-legend" id="status-legend"></div>
+    <div class="nav-kbd-hint">
+      <span class="kbd">←</span><span class="kbd">→</span> navigate &nbsp;·&nbsp;
+      <span class="kbd">Space</span> play
+    </div>
+  </nav>
+
+  <!-- ══════════════════════════════════════════════════════════════
+     MAIN CANVAS
+══════════════════════════════════════════════════════════════ -->
+  <main id="main-canvas">
+    <div id="canvas-header" class="canvas-header"></div>
+
+    <!-- ── VIEW 0: EXISTING NoC SIMULATORS ── -->
+    <div id="view-0" class="canvas-view active">
+      <div class="sim-card-grid">
+        <div class="sim-card" style="--c:var(--col-pink)">
+          <div class="sim-card-name">Noxim</div>
+          <ul>
+            <li>Built on SystemC</li>
+            <li>Designed for fast cycle-accurate NoC performance studies</li>
+            <li>Parameters specified via CLI or config files</li>
+            <li>Good for synthetic traffic, parameter configs, and basic congestion/routing studies</li>
+          </ul>
+        </div>
+        <div class="sim-card" style="--c:var(--col-orange)">
+          <div class="sim-card-name">BookSim</div>
+          <ul>
+            <li>C++ standalone NoC simulator</li>
+            <li>Focus on detailed router micro-architecture</li>
+            <li>Extremely flexible with topology, routing, traffic patterns, router internals, and traffic manager configuration</li>
+            <li>Validated against RTL router models</li>
+          </ul>
+        </div>
+        <div class="sim-card" style="--c:var(--col-yellow)">
+          <div class="sim-card-name">Garnet (gem5)</div>
+          <ul>
+            <li>Not a standalone NoC tool</li>
+            <li>NoC component inside gem5's Ruby memory system and full-system simulator</li>
+            <li>Provides cycle-accurate NoC modeling within a complete system with cache coherence, CPU cores, memory</li>
+            <li>NoC traffic arises from real execution, not just synthetic packets</li>
+          </ul>
+        </div>
+        <div class="sim-card" style="--c:var(--col-green)">
+          <div class="sim-card-name">Nirgam</div>
+          <ul>
+            <li>Built on SystemC</li>
+            <li>Discrete-event, cycle-accurate simulator</li>
+            <li>Good for routing studies across multiple topologies</li>
+            <li>Includes mesh, torus, irregular topologies, and plug-in support for custom routers</li>
+          </ul>
+        </div>
+        <div class="sim-card" style="--c:var(--col-blue)">
+          <div class="sim-card-name">Tejas</div>
+          <ul>
+            <li>Built in Java</li>
+            <li>Versatile micro-architectural simulator rather than a standalone NoC-only tool</li>
+            <li>Includes a generic NoC model that can connect cores, cache banks, directories, and memory controllers inside a multicore memory system simulation</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── VIEW 1: COMPARISON OF NoC SIMULATORS ── -->
+    <div id="view-1" class="canvas-view">
+      <div class="table-panel">
+        <div class="cmp-table-wrap">
+          <table class="cmp-table cmp-table-cols">
+            <thead>
+              <tr><th>Feature</th><th>Noxim</th><th>BookSim / BookSim 2.0</th><th>Garnet (gem5)</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Language</td><td>SystemC (C++)</td><td>C++</td><td>C++ (inside gem5)</td></tr>
+              <tr><td>Simulation Type</td><td>Cycle-accurate</td><td>Cycle-accurate</td><td>gem5 has two modes; only Garnet is cycle-accurate</td></tr>
+              <tr><td>Integration w/ Full System</td><td class="cell-no">✗ Standalone</td><td class="cell-no">✗ Standalone</td><td class="cell-yes">✓ Integrated with gem5 full system</td></tr>
+              <tr><td>Topology Support</td><td>Mesh, torus, butterfly, and baseline topologies</td><td>Mesh, torus, flattened networks, custom</td><td>Generally mesh; custom topologies possible</td></tr>
+              <tr><td>Routing Algorithms</td><td>Supports configurables (e.g., XY, random, adaptive)</td><td>DOR Adaptive, Valiant and easy to add custom</td><td>Configurable, integration with gem5 network configs allows adaptive/detour</td></tr>
+              <tr><td>Router Details</td><td>Implements basic routers with VCs and buffers</td><td>Detailed pipeline stages, allocators, VC arbitration</td><td>Detailed router microarchitecture with pipeline, VC allocation, switch allocation, crossbar</td></tr>
+              <tr><td>Synthetic vs. Real Workloads</td><td>Synthetic traffic</td><td>Synthetic traffic, trace-driven simulation</td><td>NoC receives traffic from actual instruction execution</td></tr>
+              <tr><td>Traffic Gen. &amp; Experiment Mgmt.</td><td>Scriptable config-file driven experiments</td><td>Scriptable config-file driven experiments</td><td>Experiments controlled through gem5 scripts</td></tr>
+              <tr><td>Power/Area Modeling</td><td>Basic energy and power metrics</td><td>Does not include power/area models</td><td>Supports power/area modeling via McPAT and DSENT integration</td></tr>
+              <tr><td>Full CPU Model</td><td class="cell-no">✗</td><td class="cell-no">✗</td><td class="cell-yes">✓</td></tr>
+              <tr><td>Memory System</td><td class="cell-no">✗</td><td class="cell-no">✗</td><td class="cell-yes">✓</td></tr>
+              <tr><td>Cache Coherence</td><td class="cell-no">✗</td><td class="cell-no">✗</td><td class="cell-yes">✓</td></tr>
+              <tr><td>Scalability</td><td>Around 256 nodes</td><td>Up to ~1,000 nodes</td><td>~64–256 nodes</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── VIEW 2: SIMULATOR ACCURACY MODELS ── -->
+    <div id="view-2" class="canvas-view">
+      <div class="table-panel" data-topic="def">
+        <div class="cmp-table-wrap">
+          <table class="cmp-table cmp-table-lg">
+            <thead>
+              <tr><th class="cell-blue">Aspect</th><th class="cell-blue">Functional-Accurate</th><th class="cell-blue">Cycle-Approximate</th><th class="cell-blue">Cycle-Accurate</th></tr>
+            </thead>
+            <tbody>
+              <tr><td class="cell-blue">Definition</td><td class="cell-orange">Models correct data flow and protocol semantics without detailed timing</td><td class="cell-orange">Models timing behavior with parameterized delays and resource contention</td><td class="cell-orange">Models exact pipeline stages and state transitions cycle-by-cycle</td></tr>
+              <tr><td class="cell-blue">Time Representation</td><td class="cell-red">Abstract delays or event ordering only</td><td class="cell-orange">Approximate cycle counts with high-level resource modeling</td><td class="cell-green">Exact clock cycles with per-stage pipeline progression</td></tr>
+              <tr><td class="cell-blue">Buffer Modeling</td><td class="cell-orange">Often infinite queues</td><td class="cell-orange">Finite buffers with occupancy tracking</td><td class="cell-orange">Finite buffers with per-stage registers</td></tr>
+              <tr><td class="cell-blue">Contention Handling</td><td class="cell-red">Sequential processing</td><td class="cell-orange">Simplified arbitration</td><td class="cell-orange">Detailed arbiters (round-robin, priority) with exact conflict resolution</td></tr>
+              <tr><td class="cell-blue">Pipeline Detail</td><td class="cell-red">No pipeline (instant routing decision)</td><td class="cell-orange">Single-stage delay (e.g., "Router = 3 cycles")</td><td class="cell-orange">Multi-stage, 5+ cycles with dependencies</td></tr>
+              <tr><td class="cell-blue">Credit Flow Control</td><td class="cell-red">Not modeled (assumes infinite bandwidth)</td><td class="cell-orange">Simplified: packet-level credits</td><td class="cell-orange">Detailed: flit-level credits with precise round-trip delay</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="table-panel" data-topic="perf">
+        <div class="cmp-table-wrap">
+          <table class="cmp-table cmp-table-lg">
+            <thead>
+              <tr><th class="cell-blue">Aspect</th><th class="cell-blue">Functional-Accurate</th><th class="cell-blue">Cycle-Approximate</th><th class="cell-blue">Cycle-Accurate</th></tr>
+            </thead>
+            <tbody>
+              <tr><td class="cell-blue">Simulation Speed</td><td class="cell-green">Fastest (100×–1000× vs. cycle-accurate)</td><td class="cell-orange">Fast (10×–50× vs. cycle-accurate)</td><td class="cell-red">Slowest</td></tr>
+              <tr><td class="cell-blue">Metrics Available</td><td class="cell-red">Protocol correctness, hop count, message counts</td><td class="cell-green">Latency, throughput, buffer utilization, link utilization</td><td class="cell-green">All approximate metrics, pipeline stall, head-of-line blocking etc.</td></tr>
+              <tr><td class="cell-blue">Development Effort</td><td class="cell-green">Low (Python, C++)</td><td class="cell-orange">Medium (C++ event engine)</td><td class="cell-red">High (complex state machines)</td></tr>
+              <tr><td class="cell-blue">Accuracy vs. RTL</td><td class="cell-red">N/A (no timing)</td><td class="cell-orange">80–95% for latency/throughput</td><td class="cell-green">95–99% (matches microarchitecture)</td></tr>
+              <tr><td class="cell-blue">Best Use Cases</td><td class="cell-orange">Protocol validation, algorithm exploration</td><td class="cell-green">Performance optimization, design space exploration, bottleneck identification</td><td class="cell-orange">Hardware verification, precise QoS analysis, comparing to real silicon</td></tr>
+              <tr><td class="cell-blue">Example Tools</td><td class="cell-orange">Python SimPy, SystemC TLM-2.0</td><td class="cell-orange">ARM Socrates Perf Models</td><td class="cell-orange">BookSim, Garnet, Noxim, Tejas</td></tr>
+              <tr><td class="cell-blue">CHI Protocol Modeling</td><td class="cell-orange">State transitions only (I→S→M)</td><td class="cell-orange">State transitions + approximate snoop/response latency</td><td class="cell-green">State transitions + exact credit wait, snoop propagation delay</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── VIEW 3: PROGRAMMING LANGUAGES (C++ vs SystemC) ── -->
+    <div id="view-3" class="canvas-view">
+      <div class="table-panel" data-topic="core">
+        <div class="cmp-table-wrap">
+          <table class="cmp-table cmp-table-lg">
+            <thead>
+              <tr><th class="cell-blue">Feature</th><th class="cell-blue">Custom C++ Framework</th><th class="cell-blue">SystemC</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Primary Use Case</td><td class="cell-orange">High-performance architectural modeling, rapid prototyping, and large-scale exploration</td><td class="cell-orange">Hardware verification, mixed-language simulation (RTL + C++), and precise timing analysis</td></tr>
+              <tr><td>Simulation Performance</td><td class="cell-orange">High. Can be optimized for specific abstractions. Easy to multi-thread</td><td class="cell-red">Low to Moderate. Standard kernel is single-threaded. Context switching overhead for thousands of processes</td></tr>
+              <tr><td>Concurrency Model</td><td class="cell-orange">Manual. Through implementation of an event loop</td><td class="cell-green">Native. sc_thread and sc_method provide hardware-like concurrency out of the box</td></tr>
+              <tr><td>Timing Accuracy</td><td class="cell-green">Flexible. User-defined cycles. Can skip empty cycles easily. Best for Cycle-Approximate, Functional Models</td><td class="cell-orange">Rigid. Enforces strict delta-cycles and evaluation phases. Guarantees determinism but adds overhead. Best for Cycle-Accurate</td></tr>
+              <tr><td>Code Complexity</td><td class="cell-green">Low. Direct function calls</td><td class="cell-orange">High. Requires defining modules, ports, sockets, payloads, and phases</td></tr>
+              <tr><td>Learning Curve</td><td class="cell-green">Standard. Any C++ developer can understand it immediately</td><td class="cell-orange">Steep. Requires understanding the SystemC kernel scheduler, TLM phases, and specific macros</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="table-panel" data-topic="adv">
+        <div class="callout-bubble"><strong>C++</strong> is identified based on requirements.</div>
+        <div class="cmp-table-wrap">
+          <table class="cmp-table cmp-table-lg">
+            <thead>
+              <tr><th class="cell-blue">Feature</th><th class="cell-blue">Custom C++ Framework</th><th class="cell-blue">SystemC</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Scalability (Node Count)</td><td class="cell-green">Excellent. Suitable for 100+ node meshes if designed with efficient data structures</td><td class="cell-red">Limited. Simulation speed drops drastically with high node counts due to scheduling overhead</td></tr>
+              <tr><td>Interoperability</td><td class="cell-green">High. Easier to combine with frontend. Also makes it easier to use Python configuration scripts</td><td class="cell-orange">Good. Native integration with RTL simulators (ModelSim, VCS) and UVM testbenches</td></tr>
+              <tr><td>Deadlock Debugging</td><td class="cell-red">Harder. You must manually track message dependencies to find cycles</td><td class="cell-orange">Easier. Provides standard tracing (VCD, sc_trace) and a structured kernel which helps to inspect signals/events</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="reco-box">
+          <div class="reco-box-title">Recommendation</div>
+          <ul>
+            <li><strong>Custom C++</strong> if goal is speed and scale (e.g., running millions of cycles on a 64-node NoC to get latency numbers).</li>
+            <li><strong>SystemC</strong> if goal is standardization and verification (e.g., building a Golden Model to verify the actual Verilog implementation of the NoC).</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── VIEW 4: HIERARCHICAL VIEW OF THE PROPOSED SIMULATOR SYSTEM ── -->
+    <div id="view-4" class="canvas-view">
+      <div class="hier-img-wrap">
+        <img class="hier-img" src="../assets/Screenshot%202026-07-27%20110121.png"
+          alt="Hierarchical view of the proposed simulator system — a top-down tree (System → Interconnect(NoC)/IO/Memory/Processor → Router/Protocol/Devices → CHI/AXI/ACE and HN/RN/SN/Others) alongside a layered System/Controller/Interconnect stack.">
+      </div>
+    </div>
+
+    <!-- ── VIEW 5: MODULES OF THE PROPOSED SIMULATOR SYSTEM ── -->
+    <div id="view-5" class="canvas-view">
+      <div class="mod-card-grid">
+        <div class="mod-card" style="--c:var(--col-blue)">
+          <div class="mod-card-name">Simulation Kernel</div>
+          <div class="mod-card-tag">System Functionalities</div>
+          <div class="mod-card-desc">Coordinates simulation time, schedules events, and manages interactions between all components.</div>
+        </div>
+        <div class="mod-card" style="--c:var(--col-green)">
+          <div class="mod-card-name">Protocol Layer</div>
+          <div class="mod-card-tag">CHI Transactions</div>
+          <div class="mod-card-desc">Implements CHI-style message semantics, transaction ordering, and network-level state transitions.</div>
+        </div>
+        <div class="mod-card" style="--c:var(--col-purple)">
+          <div class="mod-card-name">Network Fabric</div>
+          <div class="mod-card-tag">Interconnect/NoC</div>
+          <div class="mod-card-desc">Models routers, links, virtual channels, and flow-control mechanisms in a configurable manner.</div>
+        </div>
+        <div class="mod-card" style="--c:var(--col-orange)">
+          <div class="mod-card-name">Devices &amp; Endpoints</div>
+          <div class="mod-card-tag">RNF, SNF, HNF and Other Devices</div>
+          <div class="mod-card-desc">Represents RN-F and SN-F nodes, handling request generation, responses, and interface-level behavior.</div>
+        </div>
+        <div class="mod-card" style="--c:var(--col-yellow)">
+          <div class="mod-card-name">Config &amp; Experimentation</div>
+          <div class="mod-card-tag">Traffic Generation &amp; Test Cases</div>
+          <div class="mod-card-desc">Provides flexible setup for topology, protocol parameters, traffic patterns, and experiment scenarios.</div>
+        </div>
+        <div class="mod-card" style="--c:var(--col-pink)">
+          <div class="mod-card-name">Performance Analysis</div>
+          <div class="mod-card-tag">Metrics, Tracing &amp; Validation</div>
+          <div class="mod-card-desc">Collects metrics such as latency, throughput, and congestion, and provides traces for debugging and validation.</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="now-band">
+    <div id="band-body"><!-- populated dynamically by app.js --></div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════
+     CONTROL BAR (FOOTER)
+══════════════════════════════════════════════════════════════ -->
+  <footer id="control-bar">
+    <div class="prog-row">
+      <div class="prog-pips" id="prog-pips"></div>
+      <div class="prog-lbl" id="prog-lbl">
+        Step <span id="prog-num">1</span> of <span id="prog-total">6</span> &nbsp;·&nbsp;
+        <span id="prog-name">Existing NoC Simulators</span>
+      </div>
+    </div>
+    <div class="ctrl-btns">
+      <button class="ctrl-btn reset-btn" id="btn-reset" onclick="App.reset()">↺ Reset</button>
+      <button class="ctrl-btn prev-btn" id="btn-prev" onclick="App.prev()">⬅ Prev</button>
+      <button class="ctrl-btn play-btn" id="btn-play" onclick="App.togglePlay()">▶ Play</button>
+      <button class="ctrl-btn next-btn" id="btn-next" onclick="App.next()">Next ➔</button>
+    </div>
+  </footer>
+  <script src="app.js"></script>
+</body>
+
+</html>

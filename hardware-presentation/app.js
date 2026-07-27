@@ -176,8 +176,9 @@ const STEPS = [
   }
 ];
 
-/* Neighbors in the master presentation sequence */
-const PREV_DECK_URL = "../index.html?end=1";
+/* Neighbors in the master presentation sequence — Prev now lands on the hub's
+   Quarterly Progress section (Recap's new successor), not the TOC directly. */
+const PREV_DECK_URL = "../index.html?show=progress";
 const NEXT_DECK_URL = "router-3d-explorer.html";
 
 /* Application State */
