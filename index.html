@@ -962,8 +962,18 @@
     <div class="content-sub">NoC Simulator · click any subtopic to jump straight there</div>
 
     <div class="deck-grid">
-      <!-- DECK 0 - PROGRESS REPORT -->
-      <div class="deck-block" style="grid-column: 1 / -1; --c: var(--col-cyan)">
+      <!-- DECK 0A - RECAP -->
+      <div class="deck-block" style="--c: var(--col-green)">
+        <a class="deck-hdr" href="recap-presentation/index.html">
+          <div class="deck-icon">&#8635;</div>
+          <div class="deck-hdr-text">
+            <div class="deck-name">RECAP</div>
+          </div>
+          <div class="deck-arrow">&rarr;</div>
+        </a>
+      </div>
+      <!-- DECK 0B - PROGRESS REPORT -->
+      <div class="deck-block" style="--c: var(--col-cyan)">
         <a class="deck-hdr" href="javascript:void(0)" onclick="Hub.show(3)">
           <div class="deck-icon">&#128202;</div>
           <div class="deck-hdr-text">
@@ -1278,10 +1288,17 @@
         document.querySelectorAll(".hub-page").forEach((el, i) => el.classList.toggle("active", i === idx));
       },
       next() {
+        /* idx 2 is the TOC — Right now steps into the Recap deck (a separate
+           page) instead of straight into Quarterly Progress, so Recap sits
+           between the TOC and Progress in the arrow-key sequence. */
+        if (this.idx === 2) { window.location.href = "recap-presentation/index.html"; return; }
         if (this.idx < 3) this.show(this.idx + 1);
         else window.location.href = NEXT_DECK_URL;
       },
       prev() {
+        /* idx 3 is Quarterly Progress — Left now returns into the Recap
+           deck's last slide instead of jumping straight to the TOC. */
+        if (this.idx === 3) { window.location.href = "recap-presentation/index.html?end=1"; return; }
         if (this.idx > 0) this.show(this.idx - 1);
         else window.location.href = PREV_DECK_URL;
       }
@@ -1292,10 +1309,15 @@
       else if (e.key === "ArrowLeft") { e.preventDefault(); Hub.prev(); }
     });
 
-    /* Arriving back from hardware-presentation's Prev at its very first step —
-       land on the last hub section (content/TOC) instead of the cover. */
+    /* Arriving back from the Recap deck's Prev at its very first slide —
+       land on the TOC instead of the cover. */
     if (new URLSearchParams(location.search).get("end") === "1") {
       Hub.show(2);
+    }
+    /* Arriving back from hardware-presentation's Prev at its very first step —
+       land on Quarterly Progress (its new predecessor in the sequence). */
+    else if (new URLSearchParams(location.search).get("show") === "progress") {
+      Hub.show(3);
     }
   </script>
 </body>
