@@ -178,7 +178,7 @@ const STEPS = [
 
 /* Neighbors in the master presentation sequence — Prev now lands on the hub's
    Quarterly Progress section (Recap's new successor), not the TOC directly. */
-const PREV_DECK_URL = "../index.html?show=progress";
+const PREV_DECK_URL = "../index.html";
 const NEXT_DECK_URL = "router-3d-explorer.html";
 
 /* Application State */
@@ -700,7 +700,7 @@ const App = {
     window.addEventListener("keydown", (e) => {
       if (document.getElementById("landing-view").style.display !== "none") {
         if (e.key === "ArrowRight") { e.preventDefault(); Landing.enter(0); }
-        else if (e.key === "ArrowLeft") { e.preventDefault(); window.location.href = "../index.html?end=1"; }
+        else if (e.key === "ArrowLeft") { e.preventDefault(); window.location.href = "../index.html"; }
         return;
       }
       if (e.key === "ArrowRight") this.next();

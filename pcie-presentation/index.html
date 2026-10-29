@@ -4,89 +4,344 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NoC Simulator — PCIe &amp; RN-I Bridge</title>
-<meta name="description" content="Interactive walkthrough of PCI Express fundamentals, the PCIe device hierarchy off the CHI mesh, RN-F vs RN-I node comparison, and the RN-I bridge's inbound/outbound request-response pipeline.">
+<meta name="description" content="PCIe &amp; RN-I Bridge — content to be added.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
 <style>
-  .br-box.act { fill: rgba(37,99,235,.12); stroke: var(--col-blue); stroke-width: 2.2; filter: drop-shadow(0 0 8px rgba(37,99,235,.35)); }
-  .br-box.act .br-box-title { fill: var(--col-blue); }
-  .br-box.act-chi { fill: rgba(124,58,237,.12); stroke: var(--col-purple); stroke-width: 2.2; filter: drop-shadow(0 0 8px rgba(124,58,237,.35)); }
-  .br-box.act-chi .br-box-title { fill: var(--col-purple); }
-  .br-ext.act { stroke-width: 2.6; filter: drop-shadow(0 0 10px rgba(37,99,235,.35)); }
+/* ================================================================
+   DESIGN TOKENS — PREMIUM LIGHT THEME (matches flit-presentation)
+================================================================ */
+:root {
+  --bg:       #f8fafc;
+  --s1:       #ffffff;
+  --s2:       #f1f5f9;
+  --s3:       #e2e8f0;
+  --b1:       #cbd5e1;
+  --b2:       #94a3b8;
 
-  .br-sig { opacity: .18; transition: opacity .3s; }
-  .br-sig.active { opacity: 1; animation: pcie-sig-flow .8s linear infinite; }
-  @keyframes pcie-sig-flow { to { stroke-dashoffset: -14; } }
-  .br-sig-lbl { font-family: 'Inter', sans-serif; font-size: 9px; font-weight: 700; fill: var(--col-blue); text-anchor: middle; opacity: 0; transition: opacity .3s; }
-  .br-sig-lbl.active { opacity: 1; }
+  --text:     #0f172a;
+  --muted:    #334155;
+  --dim:      #64748b;
 
-  .pcie-token { opacity: 0; transition: transform .55s ease-out, opacity .3s; }
-  .pcie-token.show { opacity: 1; }
-  .pcie-token-bg { fill: var(--col-blue); stroke: #1d4ed8; }
-  .pcie-token.is-chi .pcie-token-bg { fill: var(--col-purple); stroke: #6d28d9; }
-  .pcie-token-txt { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; fill: #fff; text-anchor: middle; dominant-baseline: middle; }
+  --col-cyan:   #0284c7;
+  --col-blue:   #2563eb;
+  --col-purple: #7c3aed;
+  --col-orange: #ea580c;
+  --col-green:  #16a34a;
+  --col-pink:   #db2777;
+  --col-yellow: #d97706;
+  --col-teal:   #0d9488;
+  --col-red:    #dc2626;
+
+  --nav-w:    260px;
+  --hdr-h:    54px;
+  --ctrl-h:   64px;
+  --r:        10px;
+  --rs:       6px;
+  --rxs:      4px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  display: grid;
+  grid-template-rows: var(--hdr-h) 1fr auto var(--ctrl-h);
+  grid-template-columns: var(--nav-w) 1fr;
+  grid-template-areas:
+    "hdr  hdr"
+    "nav  canvas"
+    "nav  band"
+    "ctrl ctrl";
+}
+
+/* ================================================================
+   HEADER
+================================================================ */
+#app-header {
+  grid-area: hdr;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 1.4rem; background: var(--s1); border-bottom: 1px solid var(--b1);
+  position: relative; z-index: 50; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+#app-header::after {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent 0%, var(--col-cyan) 20%, var(--col-blue) 50%, var(--col-purple) 80%, transparent 100%);
+  opacity: 0.7;
+}
+.brand { display: flex; align-items: center; gap: .6rem; }
+.brand-icon {
+  width: 30px; height: 30px; border-radius: 8px;
+  background: linear-gradient(135deg, var(--col-cyan), var(--col-blue));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; color: white; flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(2,132,199,0.3);
+}
+#app-header h1 { font-size: 1rem; font-weight: 700; letter-spacing: -.2px; color: var(--text); white-space: nowrap; }
+.chi-badge {
+  font-size: .63rem; font-weight: 700; text-transform: uppercase; letter-spacing: .8px;
+  color: var(--col-cyan); background: rgba(2,132,199,.08); border: 1px solid rgba(2,132,199,.25);
+  padding: 2px 8px; border-radius: 20px; white-space: nowrap;
+}
+.hdr-center { font-size: .78rem; color: var(--muted); font-weight: 500; font-family: 'JetBrains Mono', monospace; text-align: center; }
+.hdr-center span { color: var(--col-cyan); font-weight: 700; }
+.phase-pill {
+  display: flex; align-items: center; gap: .4rem; font-size: .7rem;
+  font-family: 'JetBrains Mono', monospace; color: var(--muted); font-weight: 600;
+  background: var(--s2); padding: 4px 10px; border-radius: 14px; border: 1px solid var(--b1); white-space: nowrap;
+}
+.phase-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--col-green); box-shadow: 0 0 6px var(--col-green); animation: phase-glow 2s ease-in-out infinite; }
+@keyframes phase-glow { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: .5; transform: scale(0.85); } }
+
+/* ================================================================
+   NAVIGATOR (LEFT)
+================================================================ */
+#stage-nav { grid-area: nav; background: var(--s1); border-right: 1px solid var(--b1); padding: 1rem .75rem .6rem; display: flex; flex-direction: column; gap: 4px; overflow: hidden; }
+.nav-group-label { font-size: .62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--dim); padding: 0 .5rem; margin-bottom: .5rem; }
+
+/* ================================================================
+   BACK TO MAIN MENU — consistent top-of-left-column position
+================================================================ */
+.back-menu-link {
+  display: block; text-align: center; text-decoration: none;
+  padding: .55rem .75rem; margin-bottom: 12px;
+  border: 1px solid var(--b1); border-radius: var(--rs);
+  background: var(--s2); color: var(--text); font-weight: 600;
+  font-family: 'Inter', sans-serif; font-size: .8rem;
+  transition: background .2s, border-color .2s;
+}
+.back-menu-link:hover { background: var(--s3); }
+
+/* ================================================================
+   FLOW SWITCHER — jump directly between the 4 peer flows
+================================================================ */
+.flow-switch {
+  display: flex; flex-direction: column; gap: 3px;
+  padding-bottom: .7rem; margin-bottom: .7rem;
+  border-bottom: 1px solid var(--b1);
+}
+.flow-switch-lbl {
+  font-size: .62rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1.5px; color: var(--dim);
+  padding: 0 .5rem; margin-bottom: .3rem;
+}
+.flow-switch-item {
+  display: flex; align-items: center; gap: .5rem;
+  padding: .4rem .6rem; border-radius: var(--rxs);
+  font-size: .74rem; font-weight: 600; text-decoration: none;
+  color: var(--muted); border: 1px solid transparent;
+  transition: all .18s;
+}
+.flow-switch-item::before {
+  content: ''; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--dot, var(--dim)); flex-shrink: 0;
+}
+.flow-switch-item:hover { background: var(--s2); border-color: var(--b1); color: var(--text); }
+.flow-switch-item.current {
+  color: var(--dot, var(--text)); font-weight: 700; cursor: default;
+  background: color-mix(in srgb, var(--dot, var(--dim)) 8%, transparent);
+  border-color: color-mix(in srgb, var(--dot, var(--dim)) 30%, transparent);
+  pointer-events: none;
+}
+.flow-switch-item.fs-blue   { --dot: var(--col-blue); }
+.flow-switch-item.fs-cyan   { --dot: var(--col-cyan); }
+.flow-switch-item.fs-purple { --dot: var(--col-purple); }
+.flow-switch-item.fs-orange { --dot: var(--col-orange); }
+.flow-switch-item.fs-teal   { --dot: var(--col-teal); }
+
+.nav-item {
+  display: flex; align-items: center; gap: .6rem; padding: .55rem .75rem; border-radius: var(--rs);
+  cursor: pointer; border: 1px solid transparent; background: transparent; color: var(--muted);
+  text-align: left; width: 100%; transition: background .2s, border-color .2s; font-family: 'Inter', sans-serif;
+}
+.nav-item:hover { background: var(--s2); }
+.nav-item.active { background: rgba(2,132,199,.08); border-color: rgba(2,132,199,.3); box-shadow: 0 1px 3px rgba(2,132,199,.1); }
+.nav-status-icon { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--b1); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; transition: all .3s; font-weight: 700; }
+.nav-item.active .nav-status-icon { border-color: var(--col-cyan); background: rgba(2,132,199,.15); }
+.nav-item.active .nav-status-icon::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--col-cyan); }
+.nav-text { flex: 1; min-width: 0; }
+.nav-num { font-size: .6rem; color: var(--dim); font-family: 'JetBrains Mono', monospace; font-weight: 600; margin-bottom: 1px; }
+.nav-name { font-size: .78rem; font-weight: 600; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nav-item.active .nav-name { color: var(--col-cyan); }
+.nav-color-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.nav-desc { font-size: .68rem; color: var(--dim); padding: 0 .75rem .5rem; margin-top: -6px; line-height: 1.4; }
+.nav-kbd-hint { margin-top: auto; padding-top: .6rem; font-size: .63rem; color: var(--dim); text-align: center; letter-spacing: .2px; }
+.kbd { display: inline-block; padding: 1px 5px; border-radius: 4px; background: var(--s2); border: 1px solid var(--b1); font-family: 'JetBrains Mono', monospace; font-size: .6rem; color: var(--muted); font-weight: 600; }
+
+/* ================================================================
+   MAIN CANVAS
+================================================================ */
+#main-canvas { grid-area: canvas; position: relative; overflow: hidden; background: var(--bg); }
+.page-view {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  padding: 1rem; opacity: 0; pointer-events: none; transform: scale(.96);
+  transition: opacity .4s, transform .4s;
+}
+.page-view.active { opacity: 1; pointer-events: auto; transform: scale(1); }
+
+/* ---- Shared styles for the architecture / API / run-flow / module slides ----
+   HTML slides size everything in em off --u so they scale with window height. */
+.slide { --u: clamp(12px, 1.85vh, 24px); font-size: var(--u); width: 100%; max-width: 1600px; }
+.fx { transition: opacity .35s, box-shadow .35s, border-color .35s; }
+.fx.idle { opacity: .38; }
+.fx.active { border-color: var(--c); box-shadow: 0 0 0 2px var(--c), 0 6px 22px color-mix(in srgb, var(--c) 22%, transparent); }
+.tech-badges { display: flex; flex-wrap: wrap; gap: .4em; }
+.tech { font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: .78em; padding: .22em .75em; border-radius: 20px; white-space: nowrap; color: var(--c); background: color-mix(in srgb, var(--c) 8%, transparent); border: 1px solid color-mix(in srgb, var(--c) 30%, transparent); }
+.nw { white-space: nowrap; }
+.st { font-weight: 700; font-size: .78em; white-space: nowrap; }
+.st.ok { color: var(--col-green); }
+.st.wip { color: var(--col-yellow); }
+.st.todo { color: var(--col-red); }
+
+/* ---- Blank placeholder page ---- */
+.flow-switch-item.fs-pink  { --dot: var(--col-pink); }
+.flow-switch-item.fs-green { --dot: var(--col-green); }
+.blank-card { text-align: center; padding: 4.5em 2em; border: 2px dashed var(--b2); border-radius: 1em; background: var(--s1); }
+.blank-ic { font-size: 3em; line-height: 1; color: var(--c); }
+.blank-t { margin-top: .4em; font-size: 2em; font-weight: 800; color: var(--text); }
+.blank-s { margin-top: .5em; font-family: 'JetBrains Mono', monospace; font-size: 1em; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--dim); }
+
+/* ================================================================
+   LANDING VIEW (title slide — shown first, on top of everything)
+================================================================ */
+#landing-view {
+  position: fixed; inset: 0; z-index: 500;
+  background: var(--bg);
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+  padding: 3rem 2rem; overflow-y: auto;
+}
+.landing-toc-link {
+  position: fixed; top: 1.5rem; left: 1.5rem; z-index: 501;
+  display: inline-flex; align-items: center; gap: .3rem;
+  text-decoration: none; color: var(--dim); font-size: .78rem; font-weight: 600;
+  padding: .45rem .8rem; border: 1px solid var(--b1); border-radius: var(--rs);
+  background: var(--bg);
+  transition: background .2s, border-color .2s, color .2s;
+}
+.landing-toc-link:hover { background: var(--s3); color: var(--text); }
+.landing-continue-row { display: flex; justify-content: center; width: 100%; }
+.landing-start-btn {
+  display: inline-flex; align-items: center; gap: .5rem;
+  padding: .85rem 1.8rem; border: none; border-radius: var(--rs); cursor: pointer;
+  font-family: 'Inter', sans-serif; font-size: .92rem; font-weight: 700; color: #fff;
+  background: linear-gradient(135deg, var(--col-cyan), var(--col-blue)); box-shadow: 0 2px 10px rgba(8,145,178,.3);
+  transition: all .18s;
+}
+.landing-start-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(37,99,235,.4); }
+.landing-inner { margin: auto 0; max-width: 95%; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 2.4rem; }
+.landing-title-block { text-align: center; }
+.landing-title { font-size: 2.6rem; font-weight: 800; letter-spacing: -1px; color: var(--text); line-height: 1.15; }
+.landing-subtitle { margin-top: .6rem; font-size: .95rem; font-family: 'JetBrains Mono', monospace; color: var(--dim); font-weight: 500; letter-spacing: .3px; }
+.landing-list { width: 100%; display: grid; grid-template-columns: repeat(2, 1fr); gap: .8rem; }
+.landing-divider { grid-column: 1 / -1; width: 100%; display: flex; align-items: center; gap: .8rem; color: var(--dim); font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+.landing-divider::before, .landing-divider::after { content: ''; flex: 1; height: 1px; background: var(--b1); }
+@media (max-width: 720px) {
+  .landing-list { grid-template-columns: 1fr; }
+}
+.landing-card {
+  display: flex; align-items: center; gap: 1rem; width: 100%;
+  padding: 1.1rem 1.3rem; background: var(--s1); border: 1px solid var(--b1); border-radius: var(--r);
+  text-decoration: none; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  transition: all .18s;
+}
+.landing-card.wide { grid-column: 1 / -1; }
+.landing-card.archive { background: var(--s2); border-style: dashed; box-shadow: none; }
+.landing-card.archive .landing-card-name { color: var(--muted); }
+.landing-card.archive .landing-card-desc { color: var(--dim); }
+.archive-tag { margin-left: .6rem; vertical-align: middle; font-family: 'JetBrains Mono', monospace; font-size: .7rem; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; color: var(--dim); border: 1px solid var(--b2); border-radius: 20px; padding: .15rem .6rem; }
+.landing-card:hover { border-color: var(--b2); box-shadow: 0 4px 14px rgba(0,0,0,0.08); transform: translateY(-1px); }
+.landing-card-icon { width: 44px; height: 44px; border-radius: 10px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #fff; }
+.landing-card-text { flex: 1; min-width: 0; }
+.landing-card-name { font-size: 1.4rem; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+.landing-card-desc { font-size: 1.1rem; color: var(--muted); line-height: 1.5; }
+.landing-card-arrow { font-size: 1.1rem; color: var(--b2); flex-shrink: 0; transition: transform .18s, color .18s; }
+.landing-card:hover .landing-card-arrow { color: var(--col-cyan); transform: translateX(3px); }
+
+/* ================================================================
+   NOW BAND (full-width, under canvas + details — the readable one)
+================================================================ */
+#now-band { grid-area: band; background: var(--s1); border-top: 1px solid var(--b1); border-bottom: 1px solid var(--b1); box-shadow: 0 1px 4px rgba(0,0,0,0.04); overflow: hidden; }
+#band-body { display: flex; align-items: center; gap: 1.1rem; padding: .85rem 1.6rem; border-left: 4px solid transparent; transition: opacity .15s; }
+#band-body.fading { opacity: 0; }
+
+.band-badge { flex-shrink: 0; display: inline-flex; align-items: center; gap: .35rem; padding: .3rem .8rem; border-radius: 20px; font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; border: 1px solid; white-space: nowrap; }
+.band-badge.c-cyan   { background: rgba(2,132,199,.08);  border-color: rgba(2,132,199,.3);  color: var(--col-cyan); }
+.band-badge.c-blue   { background: rgba(37,99,235,.08);  border-color: rgba(37,99,235,.3);  color: var(--col-blue); }
+.band-badge.c-purple { background: rgba(124,58,237,.08); border-color: rgba(124,58,237,.3); color: var(--col-purple); }
+.band-badge.c-orange { background: rgba(234,88,12,.08);  border-color: rgba(234,88,12,.3);  color: var(--col-orange); }
+.band-badge.c-green  { background: rgba(22,163,74,.08);  border-color: rgba(22,163,74,.3);  color: var(--col-green); }
+.band-badge.c-pink   { background: rgba(219,39,119,.08); border-color: rgba(219,39,119,.3);  color: var(--col-pink); }
+
+.band-title { flex-shrink: 0; font-size: 1.15rem; font-weight: 800; color: var(--text); white-space: nowrap; }
+.band-desc { flex: 1; min-width: 0; font-size: .92rem; color: var(--muted); line-height: 1.5; font-weight: 500; }
+
+/* ================================================================
+   CONTROL BAR (FOOTER)
+================================================================ */
+#control-bar { grid-area: ctrl; background: var(--s1); border-top: 1px solid var(--b1); display: flex; align-items: center; justify-content: space-between; padding: 0 1.4rem; gap: .75rem; box-shadow: 0 -1px 3px rgba(0,0,0,0.03); }
+.prog-row { display: flex; align-items: center; gap: .75rem; flex: 1; min-width: 0; }
+.prog-pips { display: flex; gap: .28rem; align-items: center; flex-wrap: wrap; }
+.pip { height: 5px; width: 20px; border-radius: 3px; background: var(--b1); transition: all .3s; }
+.pip.done { background: var(--col-green); }
+.pip.cur { background: var(--col-cyan); width: 34px; }
+.prog-lbl { font-size: .75rem; color: var(--muted); font-weight: 600; font-family: 'JetBrains Mono', monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.prog-lbl span { color: var(--col-cyan); font-weight: 700; }
+
+.ctrl-btns { display: flex; gap: .5rem; align-items: center; flex-shrink: 0; }
+.ctrl-btn { display: flex; align-items: center; justify-content: center; gap: .4rem; height: 36px; padding: 0 1.05rem; border: none; border-radius: var(--rs); font-family: 'Inter', sans-serif; font-size: .78rem; font-weight: 700; cursor: pointer; transition: all .18s; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.ctrl-btn:disabled { opacity: .3; cursor: not-allowed; }
+.reset-btn { background: var(--s2); border: 1px solid var(--b1); color: var(--muted); font-size: .72rem; padding: 0 .75rem; }
+.reset-btn:hover:not(:disabled) { background: var(--s3); color: var(--text); }
+.prev-btn { background: var(--s1); border: 1px solid var(--b1); color: var(--text); }
+.prev-btn:hover:not(:disabled) { background: var(--s2); border-color: var(--b2); }
+.play-btn { background: linear-gradient(135deg, var(--col-cyan), var(--col-blue)); color: white; min-width: 85px; box-shadow: 0 2px 8px rgba(2,132,199,0.3); }
+.play-btn:hover:not(:disabled) { box-shadow: 0 3px 12px rgba(2,132,199,0.45); transform: translateY(-1px); }
+.play-btn.playing { background: linear-gradient(135deg, var(--col-orange), #dc2626); box-shadow: 0 2px 8px rgba(234,88,12,0.3); }
+.next-btn { background: var(--col-cyan); color: white; box-shadow: 0 2px 8px rgba(2,132,199,0.3); }
+.next-btn:hover:not(:disabled) { background: var(--col-blue); box-shadow: 0 3px 12px rgba(37,99,235,0.45); transform: translateY(-1px); }
 </style>
 </head>
 <body>
 
-<!-- ══════════════════════════════════════════════════════════════
-     LANDING VIEW (Title Slide Modal)
-══════════════════════════════════════════════════════════════ -->
 <div id="landing-view">
   <a class="landing-toc-link" href="../index.html?end=1">← Table of Contents</a>
   <div class="landing-inner">
     <div class="landing-title-block">
-      <div class="landing-title">PCIe &amp; the RN-I Bridge</div>
+      <div class="landing-title">PCIe &amp; RN-I Bridge</div>
       <div class="landing-subtitle">C-DAC NoC Simulator</div>
     </div>
     <div class="landing-continue-row">
-      <button class="landing-start-btn" onclick="Landing.enter(0)">Start Presentation →</button>
+      <button class="landing-start-btn" onclick="Landing.enter()">Start Presentation →</button>
     </div>
     <div class="landing-list">
-      <div class="landing-card" onclick="Landing.enter(0)">
+      <div class="landing-card wide" onclick="Landing.enter()">
         <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-blue), var(--col-cyan))">⇄</div>
         <div class="landing-card-text">
-          <div class="landing-card-name">01. PCIe Overview &amp; Evolution</div>
-          <div class="landing-card-desc">Point-to-point serial vs legacy shared-bus PCI, and the 3-layer PCIe protocol stack.</div>
+          <div class="landing-card-name">PCIe &amp; RN-I Bridge</div>
+          <div class="landing-card-desc">Content to be added.</div>
         </div>
         <div class="landing-card-arrow">→</div>
       </div>
-      <div class="landing-card" onclick="Landing.enter(1)">
-        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-cyan), var(--col-blue))">⬡</div>
+      <div class="landing-divider">Last meeting</div>
+      <a class="landing-card archive wide" href="archive/index.html">
+        <div class="landing-card-icon" style="background:var(--b2)">↺</div>
         <div class="landing-card-text">
-          <div class="landing-card-name">02. PCIe Hierarchy &amp; Operations</div>
-          <div class="landing-card-desc">The device tree from CHI mesh → RN-I → Root Complex → switches, bridges, and endpoints.</div>
+          <div class="landing-card-name">Archive: PCIe &amp; RN-I Bridge <span class="archive-tag">Presented July 2026</span></div>
+          <div class="landing-card-desc">PCIe fundamentals, the device hierarchy, RN-F vs RN-I, and the RN-I bridge pipeline. Not part of this walkthrough.</div>
         </div>
-        <div class="landing-card-arrow">→</div>
-      </div>
-      <div class="landing-card" onclick="Landing.enter(2)">
-        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-purple), var(--col-pink))">⚖</div>
-        <div class="landing-card-text">
-          <div class="landing-card-name">03. Request Node Comparison: RN-F vs RN-I</div>
-          <div class="landing-card-desc">Fully-coherent CPU clusters vs I/O bridge controllers, across 7 architectural axes.</div>
-        </div>
-        <div class="landing-card-arrow">→</div>
-      </div>
-      <div class="landing-card" onclick="Landing.enter(3)">
-        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-orange), var(--col-yellow))">⇄</div>
-        <div class="landing-card-text">
-          <div class="landing-card-name">04. RN-I Bridge: Full Request-Response Pipeline</div>
-          <div class="landing-card-desc">The complete 11-step round-trip — PCIe TLP inbound (Steps 1–6) and CHI response outbound (Steps 7–11).</div>
-        </div>
-        <div class="landing-card-arrow">→</div>
-      </div>
-      <div class="landing-card" onclick="Landing.enter(4)">
-        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-pink), var(--col-purple))">⚙</div>
-        <div class="landing-card-text">
-          <div class="landing-card-name">05. Address Translation &amp; Ordering Enforcement</div>
-          <div class="landing-card-desc">How RN-I resolves PCIe addresses and preserves PCIe ordering over an out-of-order mesh.</div>
-        </div>
-        <div class="landing-card-arrow">→</div>
-      </div>
-
+        <div class="landing-card-arrow">↗</div>
+      </a>
       <div class="landing-divider">Other Presentations</div>
+      <a class="landing-card" href="../quarterly-presentation/index.html">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-cyan), var(--col-blue))">&#128202;</div>
+        <div class="landing-card-text">
+          <div class="landing-card-name">Quarterly Progress Report</div>
+        </div>
+        <div class="landing-card-arrow">↗</div>
+      </a>
       <a class="landing-card" href="../hardware-presentation/index.html">
         <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-purple), var(--col-blue))">⬡</div>
         <div class="landing-card-text">
@@ -101,369 +356,85 @@
         </div>
         <div class="landing-card-arrow">↗</div>
       </a>
-      <a class="landing-card" href="../sdlc-presentation/index.html">
-        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-orange), var(--col-yellow))">☑</div>
+      <a class="landing-card" href="../testing-presentation/index.html">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-teal), var(--col-green))">✓</div>
         <div class="landing-card-text">
-          <div class="landing-card-name">Software Development Lifecycle</div>
+          <div class="landing-card-name">Testing &amp; Verification</div>
         </div>
         <div class="landing-card-arrow">↗</div>
       </a>
-      <a class="landing-card" href="../verification-presentation/index.html">
-        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-teal), var(--col-cyan))">✓</div>
+      <a class="landing-card" href="../repo-presentation/index.html">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-purple), var(--col-orange))">⇆</div>
         <div class="landing-card-text">
-          <div class="landing-card-name">Verification &amp; Validation</div>
+          <div class="landing-card-name">Repository, CI/CD &amp; Documentation</div>
+        </div>
+        <div class="landing-card-arrow">↗</div>
+      </a>
+      <a class="landing-card" href="../mesh-presentation/index.html">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-orange), var(--col-pink))">⊞</div>
+        <div class="landing-card-text">
+          <div class="landing-card-name">Internal Mesh &amp; Node Architecture</div>
+        </div>
+        <div class="landing-card-arrow">↗</div>
+      </a>
+      <a class="landing-card" href="../timeline-presentation/index.html">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-pink), var(--col-orange))">⏱</div>
+        <div class="landing-card-text">
+          <div class="landing-card-name">Project Timeline</div>
         </div>
         <div class="landing-card-arrow">↗</div>
       </a>
     </div>
   </div>
 </div>
-<!-- ══════════════════════════════════════════════════════════════
-     HEADER BAR
-══════════════════════════════════════════════════════════════ -->
 <header id="app-header">
   <div class="brand">
     <div class="brand-icon">⇄</div>
     <h1>NoC Simulator — PCIe &amp; RN-I Bridge</h1>
-    <span class="chi-badge">CHI-Based NoC Simulator</span>
+    <span class="chi-badge">Placeholder</span>
   </div>
-  <div class="hdr-center" id="hdr-stage-info" style="display:none;"></div>
+  <div class="hdr-center" id="hdr-stage-info">
+    Step <span id="hdr-num">1</span> of <span id="hdr-total">1</span>
+    &nbsp;·&nbsp;
+    <span id="hdr-name">Content to be added</span>
+  </div>
   <div class="phase-pill" id="phase-pill">
     <span class="phase-dot"></span>
-    <span>PCIe I/O Bridging</span>
+    <span id="phase-text">PCIe</span>
   </div>
 </header>
-<!-- ══════════════════════════════════════════════════════════════
-     LEFT NAVIGATOR
-══════════════════════════════════════════════════════════════ -->
-<nav id="stage-nav" aria-label="PCIe & RN-I Bridge Presentation Pages">
+<nav id="stage-nav" aria-label="Presentation pages">
   <a href="javascript:void(0)" class="back-menu-link" onclick="Landing.show()">← Back to Main Menu</a>
-  <div class="nav-group-label">PCIe Pages</div>
+  <div class="flow-switch">
+    <div class="flow-switch-lbl">Switch Flow</div>
+    <a class="flow-switch-item fs-blue current" href="index.html?flow=deck">PCIe &amp; RN-I Bridge</a>
+    <a class="flow-switch-item fs-purple" href="../repo-presentation/index.html">Repo, CI/CD &amp; Docs ↗</a>
+    <a class="flow-switch-item fs-pink" href="../timeline-presentation/index.html">Project Timeline ↗</a>
+  </div>
+  <div class="nav-group-label">Presentation Pages</div>
   <button class="nav-item active" id="nav-0" onclick="App.goToPage(0)">
     <div class="nav-status-icon" id="nav-st-0"></div>
-    <div class="nav-text"><div class="nav-num">01</div><div class="nav-name">PCIe Overview &amp; Evolution</div></div>
+    <div class="nav-text"><div class="nav-num">01</div><div class="nav-name">Content to be added</div></div>
     <div class="nav-color-dot" style="background:var(--col-blue)"></div>
-  </button>
-  <button class="nav-item" id="nav-1" onclick="App.goToPage(1)">
-    <div class="nav-status-icon" id="nav-st-1"></div>
-    <div class="nav-text"><div class="nav-num">02</div><div class="nav-name">PCIe Hierarchy &amp; Operations</div></div>
-    <div class="nav-color-dot" style="background:var(--col-cyan)"></div>
-  </button>
-  <button class="nav-item" id="nav-2" onclick="App.goToPage(2)">
-    <div class="nav-status-icon" id="nav-st-2"></div>
-    <div class="nav-text"><div class="nav-num">03</div><div class="nav-name">RN-F vs RN-I</div></div>
-    <div class="nav-color-dot" style="background:var(--col-purple)"></div>
-  </button>
-  <button class="nav-item" id="nav-3" onclick="App.goToPage(3)">
-    <div class="nav-status-icon" id="nav-st-3"></div>
-    <div class="nav-text"><div class="nav-num">04</div><div class="nav-name">RN-I Bridge Pipeline</div></div>
-    <div class="nav-color-dot" style="background:var(--col-orange)"></div>
-  </button>
-  <button class="nav-item" id="nav-4" onclick="App.goToPage(4)">
-    <div class="nav-status-icon" id="nav-st-4"></div>
-    <div class="nav-text"><div class="nav-num">05</div><div class="nav-name">Address Translation &amp; Ordering</div></div>
-    <div class="nav-color-dot" style="background:var(--col-pink)"></div>
   </button>
   <div class="nav-kbd-hint">
     <span class="kbd">←</span><span class="kbd">→</span> navigate &nbsp;·&nbsp;
     <span class="kbd">Space</span> play
   </div>
 </nav>
-<!-- ══════════════════════════════════════════════════════════════
-     MAIN CANVAS (Interactive Views)
-══════════════════════════════════════════════════════════════ -->
 <main id="main-canvas">
-  <div id="canvas-header" class="canvas-header"></div>
-  <!-- ── VIEW 0: PCIe OVERVIEW & EVOLUTION ── -->
-  <div id="view-0" class="canvas-view active">
-    <div class="focusable" data-topic="physical" style="width:100%; display:flex; justify-content:center;">
-      <div class="compare-panel">
-        <div class="compare-col" style="--c:var(--col-purple)">
-          <div class="compare-hdr">
-            <div class="compare-hdr-title">PCI / PCI-X</div>
-            <div class="compare-hdr-sub">Parallel Shared Bus Architecture</div>
-          </div>
-          <div class="compare-devices">
-            <div class="compare-device">Device 1</div>
-            <div class="compare-device">Device 2</div>
-            <div class="compare-device">Device 3</div>
-          </div>
-          <div class="compare-arrows" style="display: flex; gap: .5rem; width: 100%; justify-content: center; margin-top: -0.1rem; margin-bottom: -0.1rem;">
-            <div style="flex: 1; max-width: 120px; text-align: center; color: #ef4444; font-size: 1.4rem; line-height: 1;">↓</div>
-            <div style="flex: 1; max-width: 120px; text-align: center; color: #3b82f6; font-size: 1.4rem; line-height: 1;">↓</div>
-            <div style="flex: 1; max-width: 120px; text-align: center; color: #eab308; font-size: 1.4rem; line-height: 1;">↓</div>
-          </div>
-          <div class="compare-bus">Shared Parallel Bus Lines (PCI Host Bridge)<br><span style="font-size: 0.65rem; font-weight: normal;">(Data, Address, Control Lines Shared Across All Devices)</span></div>
-          <div style="text-align: center; color: #334155; font-size: 1.4rem; line-height: 1; margin-top: -0.1rem; margin-bottom: -0.1rem;">↓</div>
-          <div style="display: flex; align-items: center; justify-content: center; width: 100%;">
-            <div style="color: #334155; font-size: 1.5rem; margin-right: 0.4rem; font-weight: bold;">↔</div>
-            <div class="compare-ctrl" style="flex: 1; margin: 0;">PCI BUS CONTROLLER<br><span style="font-weight:400;font-size:.68rem;">(Host Bridge / Southbridge)</span></div>
-            <div style="color: #334155; font-size: 1.5rem; margin-left: 0.4rem; font-weight: bold;">↔</div>
-          </div>
-          <div class="compare-note"><strong style="color: #1e293b;">PARALLEL CONNECTION</strong><br>All devices share the same bus width.<br>Bus speed limited by slowest device.</div>
-        </div>
-        <div class="compare-col" style="--c:var(--col-blue)">
-          <div class="compare-hdr">
-            <div class="compare-hdr-title">PCIe (PCI Express)</div>
-            <div class="compare-hdr-sub">Point-to-Point Serial Architecture</div>
-          </div>
-          <div class="compare-devices">
-            <div class="compare-device">Device 1</div>
-            <div class="compare-device">Device 2</div>
-          </div>
-          <div class="compare-arrows" style="display: flex; gap: .5rem; width: 100%; justify-content: center; margin-top: -0.1rem; margin-bottom: -0.1rem;">
-            <div style="flex: 1; max-width: 120px; text-align: center; color: #334155; font-size: 1.4rem; line-height: 1;">↓</div>
-            <div style="flex: 1; max-width: 120px; text-align: center; color: #334155; font-size: 1.4rem; line-height: 1;">↓</div>
-          </div>
-          <div class="compare-bus">PCIe Switch</div>
-          <div style="text-align: center; color: #334155; font-size: 1.4rem; line-height: 1; margin-top: -0.1rem; margin-bottom: -0.1rem;">↓</div>
-          <div style="display: flex; align-items: center; justify-content: center; width: 100%;">
-            <div style="color: #334155; font-size: 1.5rem; margin-right: 0.4rem; font-weight: bold;">↔</div>
-            <div class="compare-ctrl" style="flex: 1; margin: 0;">PCIe ROOT COMPLEX<br><span style="font-weight:400;font-size:.68rem;">(Host Bus Controller)</span></div>
-            <div style="color: #334155; font-size: 1.5rem; margin-left: 0.4rem; font-weight: bold;">↔</div>
-          </div>
-          <div class="compare-note"><strong style="color: #1e293b;">SERIAL CONNECTION</strong><br>Dedicated point-to-point serial lanes.<br>Independent bandwidth via central switch routing.</div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <!-- ── VIEW 1: PCIe HIERARCHY & OPERATIONS ── -->
-  <div id="view-1" class="canvas-view">
-    <div style="width:100%; height:100%; min-height:0; display:flex; justify-content:center; margin-bottom:.5rem;">
-      <svg id="pcie-tree-svg" viewBox="0 0 1000 740" style="width:100%; height:100%; max-height:100%;" xmlns="http://www.w3.org/2000/svg" aria-label="PCIe tree topology integrated into the CHI mesh">
-        <defs>
-          <marker id="arrow" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto-start-reverse">
-            <path d="M0,0 L0,6 L6,3 z" fill="#333"/>
-          </marker>
-        </defs>
-        <!-- CPU CLUSTER (TOP) -->
-        <g class="pt-group focusable" data-topic="tree">
-          <!-- Yellow box expanded to contain RN-I (bottom at y=318) -->
-          <rect x="230" y="15" width="420" height="303" rx="0" fill="#fdfde8" stroke="#a3a375" stroke-width="1"/>
-        </g>
-        <!-- CHI MESH & ROUTERS -->
-        <g class="pt-group focusable" data-topic="tree">
-          <path d="M 415,100 L 485,100" stroke="#333" stroke-width="1.5" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
-          <path d="M 415,180 L 485,180" stroke="#333" stroke-width="1.5" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
-          <path d="M 380,120 L 380,160" stroke="#333" stroke-width="1.5" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
-          <path d="M 520,120 L 520,160" stroke="#333" stroke-width="1.5" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
-          <text x="450" y="145" font-weight="700" font-size="11" text-anchor="middle" fill="#333">CHI Based NoC</text>
-          <rect x="345" y="80" width="70" height="40" rx="4" fill="#fbcfe8" stroke="#db2777"/>
-          <text x="380" y="105" text-anchor="middle" font-weight="600" font-size="13">R00</text>
-          <rect x="485" y="80" width="70" height="40" rx="4" fill="#fbcfe8" stroke="#db2777"/>
-          <text x="520" y="105" text-anchor="middle" font-weight="600" font-size="13">R01</text>
-          <rect x="345" y="160" width="70" height="40" rx="4" fill="#fbcfe8" stroke="#db2777"/>
-          <text x="380" y="185" text-anchor="middle" font-weight="600" font-size="13">R10</text>
-          <rect x="485" y="160" width="70" height="40" rx="4" fill="#fbcfe8" stroke="#db2777"/>
-          <text x="520" y="185" text-anchor="middle" font-weight="600" font-size="13">R11</text>
-        </g>
-        <!-- CPU Nodes, RN-F / HN-F / SN-F -->
-        <g class="pt-group focusable" data-topic="tree">
-          <!-- CPU0 (OUTSIDE box, top-left) → RN-F (inside box) → R00 top-left corner -->
-          <rect x="118" y="27" width="54" height="20" rx="3" fill="#a5f3fc" stroke="#0891b2"/>
-          <text x="145" y="41" text-anchor="middle" font-size="11" font-weight="600">CPU0</text>
-          <rect x="248" y="58" width="40" height="18" rx="3" fill="#f0abfc" stroke="#c026d3"/>
-          <text x="268" y="71" text-anchor="middle" font-size="10" font-weight="600">RN-F</text>
-          <path d="M 172,37 L 248,67" fill="none" stroke="#555" stroke-width="1.2"/>
-          <path d="M 288,67 L 345,80" fill="none" stroke="#555" stroke-width="1.2"/>
-          <!-- CPU2 (OUTSIDE box, top-right) → RN-F (inside box) → R01 top-right corner -->
-          <rect x="660" y="27" width="54" height="20" rx="3" fill="#a5f3fc" stroke="#0891b2"/>
-          <text x="687" y="41" text-anchor="middle" font-size="11" font-weight="600">CPU2</text>
-          <rect x="572" y="58" width="40" height="18" rx="3" fill="#f0abfc" stroke="#c026d3"/>
-          <text x="592" y="71" text-anchor="middle" font-size="10" font-weight="600">RN-F</text>
-          <path d="M 660,37 L 612,67" fill="none" stroke="#555" stroke-width="1.2"/>
-          <path d="M 572,67 L 555,80" fill="none" stroke="#555" stroke-width="1.2"/>
-          <!-- CPU1 (OUTSIDE box, left) → RN-F (inside box) → R00 bottom-left corner -->
-          <rect x="118" y="111" width="54" height="20" rx="3" fill="#a5f3fc" stroke="#0891b2"/>
-          <text x="145" y="125" text-anchor="middle" font-size="11" font-weight="600">CPU1</text>
-          <rect x="248" y="111" width="40" height="18" rx="3" fill="#f0abfc" stroke="#c026d3"/>
-          <text x="268" y="124" text-anchor="middle" font-size="10" font-weight="600">RN-F</text>
-          <path d="M 172,121 L 248,120" fill="none" stroke="#555" stroke-width="1.2"/>
-          <path d="M 288,120 L 345,120" fill="none" stroke="#555" stroke-width="1.2"/>
-          <!-- CPU3 (OUTSIDE box, left) → RN-F (inside box) → R10 bottom-left corner -->
-          <rect x="118" y="190" width="54" height="20" rx="3" fill="#a5f3fc" stroke="#0891b2"/>
-          <text x="145" y="204" text-anchor="middle" font-size="11" font-weight="600">CPU3</text>
-          <rect x="248" y="190" width="40" height="18" rx="3" fill="#f0abfc" stroke="#c026d3"/>
-          <text x="268" y="203" text-anchor="middle" font-size="10" font-weight="600">RN-F</text>
-          <path d="M 172,200 L 248,199" fill="none" stroke="#555" stroke-width="1.2"/>
-          <path d="M 288,199 L 345,200" fill="none" stroke="#555" stroke-width="1.2"/>
-          <!-- HN-F (INSIDE box) → connected from R11 right corner -->
-          <rect x="565" y="170" width="42" height="20" rx="3" fill="#bbf7d0" stroke="#16a34a"/>
-          <text x="586" y="184" text-anchor="middle" font-size="10" font-weight="600">HN-F</text>
-          <path d="M 555,180 L 565,180" fill="none" stroke="#555" stroke-width="1.2"/>
-          <!-- SN-F (INSIDE box) → connected from R10 bottom-right corner -->
-          <rect x="375" y="214" width="40" height="18" rx="3" fill="#bfdbfe" stroke="#2563eb"/>
-          <text x="395" y="227" text-anchor="middle" font-size="10" font-weight="600">SN-F</text>
-          <path d="M 415,200 L 415,214 L 415,223" fill="none" stroke="#555" stroke-width="1.2"/>
-          <!-- Memory (OUTSIDE box, below y=318) connected from SN-F -->
-          <path d="M 395,232 L 350,265 L 350,320" fill="none" stroke="#555" stroke-width="1.2"/>
-          <rect x="318" y="320" width="64" height="20" rx="3" fill="#c7d2fe" stroke="#4f46e5"/>
-          <text x="350" y="334" text-anchor="middle" font-size="10" font-weight="600">Memory</text>
-        </g>
-        <!-- RN-I — INSIDE box, directly below R11, connected from R11 bottom-centre -->
-        <g class="pt-group focusable" data-topic="tree">
-          <!-- Straight line from R11 bottom-centre (520,200) down to RN-I top -->
-          <path d="M 520,200 L 520,248" fill="none" stroke="#555" stroke-width="1.5" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
-          <!-- RN-I box directly below R11 (centre x=520 matches R11) -->
-          <rect x="480" y="248" width="80" height="40" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
-          <text x="520" y="273" text-anchor="middle" font-weight="700" font-size="14" fill="#166534">RN - I</text>
-          <!-- Line from RN-I bottom down to Root Complex (RC top at y=350, RC spans x=230-670) -->
-          <path d="M 520,288 L 520,350" fill="none" stroke="#555" stroke-width="1.5" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
-        </g>
-        <!-- Root Complex -->
-        <g class="pt-group focusable" data-topic="tree comp_rc">
-          <rect x="230" y="350" width="440" height="70" rx="10" fill="#1e40af" stroke="#1e3a8a"/>
-          <text x="450" y="390" text-anchor="middle" font-weight="700" font-size="18" fill="#ffffff">Root Complex (RC)</text>
-        </g>
-        <!-- Root Ports (Inside RC) -->
-        <g class="pt-group focusable" data-topic="tree comp_rp">
-          <rect x="260" y="405" width="40" height="15" fill="#3b82f6" rx="2" stroke="#1e40af"/>
-          <rect x="430" y="405" width="40" height="15" fill="#3b82f6" rx="2" stroke="#1e40af"/>
-          <rect x="610" y="405" width="40" height="15" fill="#3b82f6" rx="2" stroke="#1e40af"/>
-          <text x="280" y="416" text-anchor="middle" font-size="8" fill="#fff" font-weight="600">RP 0</text>
-          <text x="450" y="416" text-anchor="middle" font-size="8" fill="#fff" font-weight="600">RP 1</text>
-          <text x="630" y="416" text-anchor="middle" font-size="8" fill="#fff" font-weight="600">RP 2</text>
-        </g>
-        <!-- PCIe Links and Background -->
-        <g class="pt-group focusable" data-topic="tree lane_pair lane_agg lane_scale">
-          <rect x="20" y="500" width="960" height="230" rx="30" fill="#f3f4f6" stroke="#d1d5db" opacity="0.7"/>
-          <path d="M 280,420 L 280,513" fill="none" stroke="#1e40af" stroke-width="2"/>
-          <path d="M 450,420 L 480,515" fill="none" stroke="#1e40af" stroke-width="2"/>
-          <path d="M 630,420 L 720,515" fill="none" stroke="#1e40af" stroke-width="2"/>
-          <text x="275" y="470" text-anchor="end" font-size="13" fill="#1e40af">PCIe Link</text>
-          <text x="465" y="470" text-anchor="end" font-size="13" fill="#1e40af">PCIe Link</text>
-          <text x="655" y="470" text-anchor="end" font-size="13" fill="#1e40af">PCIe Link</text>
-          <path d="M 235,565 L 190,565" fill="none" stroke="#16a34a" stroke-width="2"/>
-          <path d="M 255,600 L 210,645" fill="none" stroke="#16a34a" stroke-width="2"/>
-          <path d="M 305,600 L 350,645" fill="none" stroke="#16a34a" stroke-width="2"/>
-          <text x="210" y="560" text-anchor="middle" font-size="11" fill="#16a34a">PCIe</text>
-          <text x="220" y="620" text-anchor="middle" font-size="11" fill="#16a34a">PCIe</text>
-          <text x="340" y="620" text-anchor="middle" font-size="11" fill="#16a34a">PCIe</text>
-        </g>
-        <!-- PCIe Switch -->
-        <g class="pt-group focusable" data-topic="tree comp_sw">
-          <circle cx="280" cy="565" r="52" fill="#16a34a" stroke="#14532d"/>
-          <text x="280" y="558" text-anchor="middle" font-weight="700" font-size="17" fill="#ffffff">PCIe</text>
-          <text x="280" y="581" text-anchor="middle" font-weight="700" font-size="17" fill="#ffffff">Switch</text>
-        </g>
-        <!-- PCIe Endpoints -->
-        <g class="pt-group focusable" data-topic="tree comp_ep">
-          <rect x="70" y="540" width="150" height="52" rx="8" fill="#d97706" stroke="#92400e"/>
-          <text x="145" y="562" text-anchor="middle" font-weight="700" font-size="15" fill="#ffffff">PCIe Endpoint</text>
-          <text x="145" y="580" text-anchor="middle" font-size="12" fill="#fef3c7">(e.g., GPU)</text>
-          <rect x="90" y="642" width="150" height="38" rx="6" fill="#d97706" stroke="#92400e"/>
-          <text x="165" y="665" text-anchor="middle" font-weight="700" font-size="15" fill="#ffffff">PCIe Endpoint</text>
-          <rect x="300" y="642" width="150" height="50" rx="6" fill="#ea580c" stroke="#9a3412"/>
-          <text x="375" y="664" text-anchor="middle" font-weight="700" font-size="15" fill="#ffffff">Legacy PCIe</text>
-          <text x="375" y="681" text-anchor="middle" font-size="12" fill="#ffedd5">Endpoint</text>
-          <rect x="420" y="515" width="150" height="64" rx="8" fill="#d97706" stroke="#92400e"/>
-          <text x="495" y="538" text-anchor="middle" font-weight="700" font-size="15" fill="#ffffff">PCIe Endpoint</text>
-          <text x="495" y="556" text-anchor="middle" font-size="12" fill="#fef3c7">(e.g., NVMe SSD /</text>
-          <text x="495" y="570" text-anchor="middle" font-size="12" fill="#fef3c7">NIC)</text>
-        </g>
-        <!-- PCIe Bridge and Legacy Bus -->
-        <g class="pt-group focusable" data-topic="tree comp_ep comp_sw">
-          <rect x="645" y="515" width="150" height="62" rx="8" fill="#7e22ce" stroke="#4c1d95"/>
-          <text x="720" y="538" text-anchor="middle" font-weight="700" font-size="16" fill="#ffffff">PCIe Bridge</text>
-          <text x="720" y="557" text-anchor="middle" font-size="12" fill="#e9d5ff">To PCI / PCI-X</text>
-          <path d="M 720,577 L 720,630" fill="none" stroke="#7e22ce" stroke-width="2"/>
-          <text x="732" y="608" font-size="12" fill="#7e22ce">PCI/PCI-X</text>
-          <rect x="595" y="630" width="250" height="30" rx="4" fill="#a855f7" stroke="#6b21a8"/>
-          <text x="720" y="650" text-anchor="middle" font-weight="700" font-size="14" fill="#ffffff">PCI / PCI-X Legacy Bus</text>
-          <path d="M 655,660 L 655,688" fill="none" stroke="#a855f7" stroke-width="2"/>
-          <path d="M 785,660 L 785,688" fill="none" stroke="#a855f7" stroke-width="2"/>
-          <rect x="615" y="688" width="90" height="32" rx="6" fill="#d8b4fe" stroke="#9333ea"/>
-          <text x="660" y="702" text-anchor="middle" font-size="11" fill="#4c1d95">Legacy PCI</text>
-          <text x="660" y="714" text-anchor="middle" font-size="11" fill="#4c1d95">Device</text>
-          <rect x="745" y="688" width="90" height="32" rx="6" fill="#d8b4fe" stroke="#9333ea"/>
-          <text x="790" y="702" text-anchor="middle" font-size="11" fill="#4c1d95">Legacy PCI</text>
-          <text x="790" y="714" text-anchor="middle" font-size="11" fill="#4c1d95">Device</text>
-        </g>
-      </svg>
-    </div>
-  </div>
-  <!-- ── VIEW 2: REQUEST NODE COMPARISON: RN-F vs RN-I ── -->
-  <div id="view-2" class="canvas-view">
-    <div class="focusable" data-topic="table" style="width:100%; display:flex; justify-content:center;">
-      <div class="data-table">
-        <div class="data-table-hdr"><div>Feature</div><div>RN-F — Fully Coherent</div><div>RN-I — I/O</div></div>
-        <div class="data-table-row"><div class="dt-feature">Full Name</div><div class="dt-rnf">Request Node – Fully Coherent</div><div class="dt-rni">Request Node – I/O</div></div>
-        <div class="data-table-row"><div class="dt-feature">Connected Device</div><div class="dt-rnf">CPU Cluster (CPU Core &amp; Cache subsystem)</div><div class="dt-rni">I/O Subsystems (PCIe RC, DMA, Ethernet)</div></div>
-        <div class="data-table-row"><div class="dt-feature">Has Local Cache?</div><div class="dt-rnf">Yes (L1 / L2)</div><div class="dt-rni">No</div></div>
-        <div class="data-table-row"><div class="dt-feature">Cache Coherency</div><div class="dt-rnf">Fully Coherent</div><div class="dt-rni">Supports coherent or non-coherent I/O</div></div>
-        <div class="data-table-row"><div class="dt-feature">Generates CHI Requests</div><div class="dt-rnf">Yes (native CPU memory transactions)</div><div class="dt-rni">Yes (protocol bridge — PCIe TLP → CHI Flit)</div></div>
-        <div class="data-table-row"><div class="dt-feature">Typical Transactions</div><div class="dt-rnf">Loads &amp; Stores (Read and Write)</div><div class="dt-rni">DMA Reads / Writes from peripherals</div></div>
-        <div class="data-table-row"><div class="dt-feature">Performs Cache Operations</div><div class="dt-rnf">Yes (Clean, Invalidate, Evict)</div><div class="dt-rni">No</div></div>
-      </div>
-    </div>
-  </div>
-  <!-- ── VIEW 3: RN-I BRIDGE — FULL REQUEST-RESPONSE PIPELINE ── -->
-  <div id="view-3" class="canvas-view" style="display: flex; align-items: center; justify-content: center; position: relative;">
-    <svg id="bridge-walk-svg" viewBox="0 0 900 460" xmlns="http://www.w3.org/2000/svg" aria-label="RN-I bridge animated crossing" style="width: 100%; max-width: 1650px; height: auto;">
-      <defs>
-        <marker id="arrowhead" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="var(--b2)"/></marker>
-      </defs>
-      <rect x="195" y="20" width="510" height="410" rx="14" class="br-outer"/>
-      <text x="450" y="40" class="br-outer-lbl">RN-I (Request Node – I/O) Bridge</text>
-      <g id="box-ext"><rect x="20" y="150" width="140" height="160" rx="10" class="br-ext"/><text x="90" y="222" class="br-ext-lbl">External<tspan x="90" dy="14">PCIe Device</tspan></text></g>
-      <g id="box-mesh"><rect x="740" y="150" width="140" height="160" rx="10" class="br-ext" style="fill:#fef2f2;stroke:#b91c1c"/><text x="810" y="222" class="br-ext-lbl" style="fill:#7f1d1d">Local Mesh<tspan x="810" dy="14">Router</tspan></text></g>
-      <g id="box-rx"><rect x="225" y="70" width="140" height="50" rx="8" class="br-box"/><text x="295" y="90" class="br-box-title">PCIe RX Port</text><text x="295" y="104" class="br-box-sub">TLP Capture &amp; Buffer</text></g>
-      <g id="box-req"><rect x="400" y="70" width="150" height="50" rx="8" class="br-box"/><text x="475" y="90" class="br-box-title">Request Processing</text><text x="475" y="104" class="br-box-sub">Decode + Translate Addr</text></g>
-      <g id="box-chitx"><rect x="585" y="70" width="105" height="50" rx="8" class="br-box"/><text x="637" y="90" class="br-box-title">CHI TX I/F</text><text x="637" y="104" class="br-box-sub">Flit Packetizer</text></g>
-      <g id="box-ibt"><rect x="400" y="150" width="150" height="44" rx="8" class="br-box" style="fill:#eff6ff"/><text x="475" y="168" class="br-box-title">Inbound Tracker</text><text x="475" y="182" class="br-box-sub">Allocate ID &amp; Log</text></g>
-      <g id="box-obt"><rect x="400" y="222" width="150" height="44" rx="8" class="br-box" style="fill:#eff6ff"/><text x="475" y="240" class="br-box-title">Outbound Tracker</text><text x="475" y="254" class="br-box-sub">Match ID &amp; Free</text></g>
-      <g id="box-resp"><rect x="400" y="296" width="150" height="50" rx="8" class="br-box"/><text x="475" y="316" class="br-box-title">Response Processing</text><text x="475" y="330" class="br-box-sub">Match ID &amp; Synthesize</text></g>
-      <g id="box-chirx"><rect x="585" y="296" width="105" height="50" rx="8" class="br-box"/><text x="637" y="316" class="br-box-title">CHI RX I/F</text><text x="637" y="330" class="br-box-sub">Depacketizer</text></g>
-      <g id="box-tx"><rect x="225" y="296" width="140" height="50" rx="8" class="br-box"/><text x="295" y="316" class="br-box-title">PCIe TX Port</text><text x="295" y="330" class="br-box-sub">Completion TLP Gen</text></g>
-      <path d="M160,225 L225,95" class="br-arrow"/>
-      <path d="M365,95 L400,95" class="br-arrow"/>
-      <path d="M550,95 L585,95" class="br-arrow"/>
-      <path d="M690,95 L740,200" class="br-arrow"/>
-      <path d="M585,321 L550,321" class="br-arrow"/>
-      <path d="M400,321 L365,321" class="br-arrow"/>
-      <path d="M225,321 L160,250" class="br-arrow"/>
-      <path d="M740,255 L690,321" class="br-arrow"/>
-      <path id="sig-alloc" d="M475,120 L475,150" class="br-sig"/>
-      <text id="sig-alloc-lbl" x="500" y="138" class="br-sig-lbl">Allocate</text>
-      <path id="sig-sync" d="M475,194 L475,222" class="br-sig"/>
-      <text id="sig-sync-lbl" x="530" y="210" class="br-sig-lbl">Sync Queue State</text>
-      <path id="sig-free" d="M475,266 L475,296" class="br-sig"/>
-      <text id="sig-free-lbl" x="512" y="283" class="br-sig-lbl">Lookup &amp; Free</text>
-      <!-- Traveling token -->
-      <g id="pcie-token" class="pcie-token" transform="translate(55,219)">
-        <rect width="70" height="22" rx="6" class="pcie-token-bg"/>
-        <text id="pcie-token-label" x="35" y="12" class="pcie-token-txt">TLP</text>
-      </g>
-    </svg>
-  </div>
-  <!-- ── VIEW 4: ADDRESS TRANSLATION & ORDERING ENFORCEMENT ── -->
-  <div id="view-4" class="canvas-view">
-    <div class="dual-col-panel">
-      <div class="focusable dual-col" data-topic="translation">
-        <div class="dual-col-hdr">Address Translation</div>
-        <ul class="bullet-list">
-          <li>PCIe devices send memory requests using their own address space (a PCIe bus address or I/O Virtual Address) — not the actual system memory address.</li>
-          <li>The CHI-based NoC and system memory use System Physical Addresses, so they cannot directly understand the address sent by the PCIe device.</li>
-          <li>RN-I checks the incoming address and, if required, works with the <strong>IOMMU</strong> or an address translation table to find the corresponding System Physical Address.</li>
-          <li>The translated physical address is inserted into the CHI request, ensuring it is routed to the correct destination within the CHI-based NoC.</li>
-          <li>This translation lets PCIe devices and the CHI-based NoC communicate correctly, even though they use different address spaces.</li>
-        </ul>
-      </div>
-      <div class="focusable dual-col" data-topic="ordering">
-        <div class="dual-col-hdr">Ordering Enforcement</div>
-        <ul class="bullet-list">
-          <li><strong>Tracks outstanding PCIe requests</strong> to identify which ones have ordering dependencies.</li>
-          <li><strong>Translates requests into CHI transactions</strong>, understanding the ordering rules PCIe requires.</li>
-          <li><strong>Delays dependent requests</strong> — or holds responses/completions — when necessary to avoid violating order.</li>
-          <li><strong>Reorders CHI responses</strong> so PCIe completions are returned in the correct protocol-defined order.</li>
-          <li><strong>Balances performance and correctness</strong> — ordering is preserved only when necessary, letting independent transactions execute in parallel.</li>
-        </ul>
+  <div id="page-blank" class="page-view active">
+    <div class="slide">
+      <div class="blank-card" style="--c:var(--col-blue)">
+        <div class="blank-ic">⇄</div>
+        <div class="blank-t">PCIe &amp; RN-I Bridge</div>
+        <div class="blank-s">Content to be added</div>
       </div>
     </div>
   </div>
 </main>
 <!-- ══════════════════════════════════════════════════════════════
-     NOW BAND (readable description)
+     NOW BAND (full-width, readable explanation)
 ══════════════════════════════════════════════════════════════ -->
 <div id="now-band">
   <div id="band-body"><!-- populated by JS --></div>
@@ -475,8 +446,8 @@
   <div class="prog-row">
     <div class="prog-pips" id="prog-pips"></div>
     <div class="prog-lbl" id="prog-lbl">
-      Step <span id="prog-num">1</span> of <span id="prog-total">6</span> &nbsp;·&nbsp;
-      <span id="prog-name">PCIe Overview &amp; Evolution</span>
+      Step <span id="prog-num">1</span> of <span id="prog-total">10</span> &nbsp;·&nbsp;
+      <span id="prog-name">NoC Configuration</span>
     </div>
   </div>
   <div class="ctrl-btns">
@@ -486,6 +457,140 @@
     <button class="ctrl-btn next-btn"  id="btn-next"  onclick="App.next()">Next ➔</button>
   </div>
 </footer>
-<script src="app.js"></script>
+<script>
+/* ================================================================
+   STEP DATA — placeholder until this section's content is written
+================================================================ */
+const BLANK_STEPS = [
+  { num:1, name:"Content to be added", badge:"PCIe", badgeColor:"blue",
+    desc:"The slides for this section will be added here." },
+];
+const PAGES = [
+  { id:"blank", label:"Content to be added", steps: BLANK_STEPS, render: () => {} },
+];
+/* Neighbors in the master presentation sequence */
+const PREV_DECK_URL = "../mesh-presentation/index.html?end=1";
+const NEXT_DECK_URL = "../timeline-presentation/index.html";
+/* ================================================================
+   RENDER HELPERS
+================================================================ */
+function renderPips(total, current) {
+  const wrap = document.getElementById("prog-pips");
+  wrap.innerHTML = "";
+  for (let i = 0; i < total; i++) {
+    const p = document.createElement("div");
+    p.className = "pip" + (i < current ? " done" : i === current ? " cur" : "");
+    wrap.appendChild(p);
+  }
+}
+function renderDetails(step) {
+  const band = document.getElementById("band-body");
+  band.style.borderLeftColor = `var(--col-${step.badgeColor})`;
+  band.innerHTML = `
+    <div class="band-title">${step.num}. ${step.name}</div>
+    <div class="band-desc">${step.desc}</div>`;
+}
+/* ================================================================
+   APP STATE MACHINE
+================================================================ */
+const App = {
+  page: 0,
+  step: 0,
+  playing: false,
+  playTimer: null,
+  goToPage(idx) {
+    this.stopPlay();
+    this.page = idx;
+    this.step = 0;
+    this.render();
+  },
+  next() {
+    const steps = PAGES[this.page].steps;
+    if (this.step < steps.length - 1) { this.step++; this.render(); }
+    else if (this.page < PAGES.length - 1) { this.page++; this.step = 0; this.render(); }
+    else { window.location.href = NEXT_DECK_URL; }
+  },
+  prev() {
+    if (this.step > 0) { this.step--; this.render(); }
+    else if (this.page > 0) { this.page--; this.step = PAGES[this.page].steps.length - 1; this.render(); }
+    else { window.location.href = PREV_DECK_URL; }
+  },
+  reset() {
+    this.stopPlay();
+    this.page = 0;
+    this.step = 0;
+    this.render();
+  },
+  togglePlay() {
+    if (this.playing) { this.stopPlay(); return; }
+    this.playing = true;
+    const btn = document.getElementById("btn-play");
+    btn.classList.add("playing");
+    btn.textContent = "⏸ Pause";
+    this.playTimer = setInterval(() => {
+      const s = PAGES[this.page].steps;
+      if (this.step < s.length - 1) { this.step++; this.render(); }
+      else if (this.page < PAGES.length - 1) { this.page++; this.step = 0; this.render(); }
+      else { this.stopPlay(); }
+    }, 2200);
+  },
+  stopPlay() {
+    this.playing = false;
+    if (this.playTimer) clearInterval(this.playTimer);
+    const btn = document.getElementById("btn-play");
+    if (btn) { btn.classList.remove("playing"); btn.textContent = "▶ Play"; }
+  },
+  render() {
+    document.querySelectorAll(".nav-item").forEach((el, i) => el.classList.toggle("active", i === this.page));
+    document.querySelectorAll(".page-view").forEach((el, i) => el.classList.toggle("active", i === this.page));
+    const steps = PAGES[this.page].steps;
+    PAGES[this.page].render(this.step);
+    const s = steps[this.step];
+    const isVeryLastStep = (this.page === PAGES.length - 1) && (this.step === steps.length - 1);
+    document.getElementById("hdr-num").textContent = this.step + 1;
+    document.getElementById("hdr-total").textContent = steps.length;
+    document.getElementById("hdr-name").textContent = s.name;
+    document.getElementById("phase-text").textContent = s.badge;
+    renderPips(steps.length, this.step);
+    document.getElementById("prog-num").textContent = this.step + 1;
+    document.getElementById("prog-total").textContent = steps.length;
+    document.getElementById("prog-name").textContent = s.name;
+    renderDetails(s);
+    document.getElementById("btn-next").textContent = isVeryLastStep ? "Next Deck ➔" : "Next ➔";
+    document.getElementById("btn-prev").disabled = false;
+  }
+};
+/* ================================================================
+   LANDING VIEW
+================================================================ */
+const Landing = {
+  show() {
+    App.stopPlay();
+    document.getElementById("landing-view").style.display = "flex";
+  },
+  hide() {
+    document.getElementById("landing-view").style.display = "none";
+  },
+  enter() {
+    this.hide();
+    App.goToPage(0);
+  }
+};
+document.addEventListener("keydown", (e) => {
+  if (document.getElementById("landing-view").style.display !== "none") {
+    if (e.code === "ArrowRight") { e.preventDefault(); Landing.enter(); }
+    else if (e.code === "ArrowLeft") { e.preventDefault(); window.location.href = "../index.html?end=1"; }
+    return;
+  }
+  if (e.code === "ArrowRight") { App.next(); }
+  else if (e.code === "ArrowLeft") { App.prev(); }
+  else if (e.code === "Space") { e.preventDefault(); App.togglePlay(); }
+});
+App.render();
+const _urlParams = new URLSearchParams(location.search);
+if (_urlParams.get("end") === "1" || _urlParams.get("page") !== null || _urlParams.get("flow") === "deck") {
+  Landing.hide();
+}
+</script>
 </body>
 </html>

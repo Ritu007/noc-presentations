@@ -1,359 +1,638 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tentative Timeline for NoC Simulator Development (2026)</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg: #f8fafc;
-      --text: #0f172a;
-      
-      /* Legend Colors */
-      --c-purple: #c4b5fd;
-      --c-green: #86efac;
-      --c-yellow: #fde047;
-      --c-red: #fca5a5;
-      --c-blue: #93c5fd;
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NoC Simulator — Project Timeline</title>
+<meta name="description" content="Tentative timeline for NoC simulator development in 2026: exploration, design, module development, GUI and documentation.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ================================================================
+   DESIGN TOKENS — PREMIUM LIGHT THEME (matches flit-presentation)
+================================================================ */
+:root {
+  --bg:       #f8fafc;
+  --s1:       #ffffff;
+  --s2:       #f1f5f9;
+  --s3:       #e2e8f0;
+  --b1:       #cbd5e1;
+  --b2:       #94a3b8;
 
-      /* Header Colors */
-      --h-main: #60a5fa;
-      --h-dec: #e2e8f0; 
-      --h-q1: #dcfce7;
-      --h-q2: #bfdbfe;
-      --h-q3: #fbcfe8;
-      --h-q4: #e5e7eb;
-    }
-    
-    body {
-      font-family: 'Inter', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      margin: 0;
-      padding: 2rem;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
+  --text:     #0f172a;
+  --muted:    #334155;
+  --dim:      #64748b;
 
-    .back-link {
-      align-self: flex-start;
-      margin-bottom: 1.5rem;
-      font-size: .9rem;
-      font-weight: 600;
-      color: #334155;
-      text-decoration: none;
-      transition: color .2s;
-    }
-    .back-link:hover {
-      color: #0284c7;
-    }
+  --col-cyan:   #0284c7;
+  --col-blue:   #2563eb;
+  --col-purple: #7c3aed;
+  --col-orange: #ea580c;
+  --col-green:  #16a34a;
+  --col-pink:   #db2777;
+  --col-yellow: #d97706;
+  --col-teal:   #0d9488;
+  --col-red:    #dc2626;
 
-    table {
-      border-collapse: collapse;
-      width: 100%;
-      max-width: 1400px;
-      background: #fff;
-      font-size: 0.85rem;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    }
-    
-    th, td {
-      border: 1px solid #64748b;
-      padding: 0.4rem 0.5rem;
-      text-align: center;
-    }
+  --nav-w:    260px;
+  --hdr-h:    54px;
+  --ctrl-h:   64px;
+  --r:        10px;
+  --rs:       6px;
+  --rxs:      4px;
+}
 
-    .row-text {
-      text-align: left;
-      font-weight: 500;
-      white-space: nowrap;
-    }
-    
-    .sno {
-      width: 40px;
-    }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  display: grid;
+  grid-template-rows: var(--hdr-h) 1fr auto var(--ctrl-h);
+  grid-template-columns: var(--nav-w) 1fr;
+  grid-template-areas:
+    "hdr  hdr"
+    "nav  canvas"
+    "nav  band"
+    "ctrl ctrl";
+}
 
-    /* Headers */
-    .title-row th {
-      background: var(--h-main);
-      font-size: 1.4rem;
-      padding: 0.8rem;
-    }
+/* ================================================================
+   HEADER
+================================================================ */
+#app-header {
+  grid-area: hdr;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 1.4rem; background: var(--s1); border-bottom: 1px solid var(--b1);
+  position: relative; z-index: 50; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+#app-header::after {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent 0%, var(--col-cyan) 20%, var(--col-blue) 50%, var(--col-purple) 80%, transparent 100%);
+  opacity: 0.7;
+}
+.brand { display: flex; align-items: center; gap: .6rem; }
+.brand-icon {
+  width: 30px; height: 30px; border-radius: 8px;
+  background: linear-gradient(135deg, var(--col-cyan), var(--col-blue));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; color: white; flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(2,132,199,0.3);
+}
+#app-header h1 { font-size: 1rem; font-weight: 700; letter-spacing: -.2px; color: var(--text); white-space: nowrap; }
+.chi-badge {
+  font-size: .63rem; font-weight: 700; text-transform: uppercase; letter-spacing: .8px;
+  color: var(--col-cyan); background: rgba(2,132,199,.08); border: 1px solid rgba(2,132,199,.25);
+  padding: 2px 8px; border-radius: 20px; white-space: nowrap;
+}
+.hdr-center { font-size: .78rem; color: var(--muted); font-weight: 500; font-family: 'JetBrains Mono', monospace; text-align: center; }
+.hdr-center span { color: var(--col-cyan); font-weight: 700; }
+.phase-pill {
+  display: flex; align-items: center; gap: .4rem; font-size: .7rem;
+  font-family: 'JetBrains Mono', monospace; color: var(--muted); font-weight: 600;
+  background: var(--s2); padding: 4px 10px; border-radius: 14px; border: 1px solid var(--b1); white-space: nowrap;
+}
+.phase-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--col-green); box-shadow: 0 0 6px var(--col-green); animation: phase-glow 2s ease-in-out infinite; }
+@keyframes phase-glow { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: .5; transform: scale(0.85); } }
 
-    .quarter-row th {
-      font-weight: 600;
-    }
-    .q-dec { background: var(--h-dec); }
-    .q-q1 { background: var(--h-q1); }
-    .q-q2 { background: var(--h-q2); }
-    .q-q3 { background: var(--h-q3); }
-    .q-q4 { background: var(--h-q4); }
-    
-    .module-dev {
-      background: #ffffff;
-      font-size: 1.1rem;
-      font-weight: 700;
-    }
+/* ================================================================
+   NAVIGATOR (LEFT)
+================================================================ */
+#stage-nav { grid-area: nav; background: var(--s1); border-right: 1px solid var(--b1); padding: 1rem .75rem .6rem; display: flex; flex-direction: column; gap: 4px; overflow: hidden; }
+.nav-group-label { font-size: .62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--dim); padding: 0 .5rem; margin-bottom: .5rem; }
 
-    /* Gantt Blocks */
-    .block {
-      border: 1px solid #475569;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 500;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      box-sizing: border-box;
-      padding: 0.2rem;
-    }
-    
-    .b-green { background: var(--c-green); }
-    .b-yellow { background: var(--c-yellow); }
-    .b-blue { background: var(--c-blue); }
-    .b-purple { background: var(--c-purple); }
-    .b-red { background: var(--c-red); }
+/* ================================================================
+   BACK TO MAIN MENU — consistent top-of-left-column position
+================================================================ */
+.back-menu-link {
+  display: block; text-align: center; text-decoration: none;
+  padding: .55rem .75rem; margin-bottom: 12px;
+  border: 1px solid var(--b1); border-radius: var(--rs);
+  background: var(--s2); color: var(--text); font-weight: 600;
+  font-family: 'Inter', sans-serif; font-size: .8rem;
+  transition: background .2s, border-color .2s;
+}
+.back-menu-link:hover { background: var(--s3); }
 
-    /* For cells that just have a block, remove padding to fill */
-    .p-0 {
-      padding: 0 !important;
-    }
+/* ================================================================
+   FLOW SWITCHER — jump directly between the 4 peer flows
+================================================================ */
+.flow-switch {
+  display: flex; flex-direction: column; gap: 3px;
+  padding-bottom: .7rem; margin-bottom: .7rem;
+  border-bottom: 1px solid var(--b1);
+}
+.flow-switch-lbl {
+  font-size: .62rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1.5px; color: var(--dim);
+  padding: 0 .5rem; margin-bottom: .3rem;
+}
+.flow-switch-item {
+  display: flex; align-items: center; gap: .5rem;
+  padding: .4rem .6rem; border-radius: var(--rxs);
+  font-size: .74rem; font-weight: 600; text-decoration: none;
+  color: var(--muted); border: 1px solid transparent;
+  transition: all .18s;
+}
+.flow-switch-item::before {
+  content: ''; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--dot, var(--dim)); flex-shrink: 0;
+}
+.flow-switch-item:hover { background: var(--s2); border-color: var(--b1); color: var(--text); }
+.flow-switch-item.current {
+  color: var(--dot, var(--text)); font-weight: 700; cursor: default;
+  background: color-mix(in srgb, var(--dot, var(--dim)) 8%, transparent);
+  border-color: color-mix(in srgb, var(--dot, var(--dim)) 30%, transparent);
+  pointer-events: none;
+}
+.flow-switch-item.fs-blue   { --dot: var(--col-blue); }
+.flow-switch-item.fs-cyan   { --dot: var(--col-cyan); }
+.flow-switch-item.fs-purple { --dot: var(--col-purple); }
+.flow-switch-item.fs-orange { --dot: var(--col-orange); }
+.flow-switch-item.fs-teal   { --dot: var(--col-teal); }
 
-    .legend-container {
-      margin-top: 2rem;
-      display: flex;
-      justify-content: center;
-    }
+.nav-item {
+  display: flex; align-items: center; gap: .6rem; padding: .55rem .75rem; border-radius: var(--rs);
+  cursor: pointer; border: 1px solid transparent; background: transparent; color: var(--muted);
+  text-align: left; width: 100%; transition: background .2s, border-color .2s; font-family: 'Inter', sans-serif;
+}
+.nav-item:hover { background: var(--s2); }
+.nav-item.active { background: rgba(2,132,199,.08); border-color: rgba(2,132,199,.3); box-shadow: 0 1px 3px rgba(2,132,199,.1); }
+.nav-status-icon { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--b1); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; transition: all .3s; font-weight: 700; }
+.nav-item.active .nav-status-icon { border-color: var(--col-cyan); background: rgba(2,132,199,.15); }
+.nav-item.active .nav-status-icon::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--col-cyan); }
+.nav-text { flex: 1; min-width: 0; }
+.nav-num { font-size: .6rem; color: var(--dim); font-family: 'JetBrains Mono', monospace; font-weight: 600; margin-bottom: 1px; }
+.nav-name { font-size: .78rem; font-weight: 600; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nav-item.active .nav-name { color: var(--col-cyan); }
+.nav-color-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.nav-desc { font-size: .68rem; color: var(--dim); padding: 0 .75rem .5rem; margin-top: -6px; line-height: 1.4; }
+.nav-kbd-hint { margin-top: auto; padding-top: .6rem; font-size: .63rem; color: var(--dim); text-align: center; letter-spacing: .2px; }
+.kbd { display: inline-block; padding: 1px 5px; border-radius: 4px; background: var(--s2); border: 1px solid var(--b1); font-family: 'JetBrains Mono', monospace; font-size: .6rem; color: var(--muted); font-weight: 600; }
 
-    .legend-table {
-      width: 300px;
-      border-collapse: collapse;
-      font-size: 0.85rem;
-    }
-    .legend-table td {
-      border: 1px solid #475569;
-      padding: 0.4rem 0.8rem;
-      text-align: left;
-      font-weight: 500;
-    }
-    .legend-color {
-      width: 60px;
-    }
+/* ================================================================
+   MAIN CANVAS
+================================================================ */
+#main-canvas { grid-area: canvas; position: relative; overflow: hidden; background: var(--bg); }
+.page-view {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  padding: 1rem; opacity: 0; pointer-events: none; transform: scale(.96);
+  transition: opacity .4s, transform .4s;
+}
+.page-view.active { opacity: 1; pointer-events: auto; transform: scale(1); }
 
-    .nav-row {
-      display: flex;
-      justify-content: space-between;
-      width: 100%;
-      max-width: 1400px;
-      margin-bottom: 1.5rem;
-    }
-    
-    .nav-btn {
-      font-size: .9rem;
-      font-weight: 600;
-      color: #334155;
-      text-decoration: none;
-      transition: color .2s;
-      padding: 0.5rem 1rem;
-      border-radius: 6px;
-      background: #e2e8f0;
-    }
-    .nav-btn:hover {
-      background: #cbd5e1;
-      color: #0f172a;
-    }
-    .nav-btn.primary {
-      background: #60a5fa;
-      color: #fff;
-    }
-    .nav-btn.primary:hover {
-      background: #3b82f6;
-      color: #fff;
-    }
-  </style>
+/* ---- Shared styles for the architecture / API / run-flow / module slides ----
+   HTML slides size everything in em off --u so they scale with window height. */
+.slide { --u: clamp(12px, 1.85vh, 24px); font-size: var(--u); width: 100%; max-width: 1600px; }
+.fx { transition: opacity .35s, box-shadow .35s, border-color .35s; }
+.fx.idle { opacity: .38; }
+.fx.active { border-color: var(--c); box-shadow: 0 0 0 2px var(--c), 0 6px 22px color-mix(in srgb, var(--c) 22%, transparent); }
+.tech-badges { display: flex; flex-wrap: wrap; gap: .4em; }
+.tech { font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: .78em; padding: .22em .75em; border-radius: 20px; white-space: nowrap; color: var(--c); background: color-mix(in srgb, var(--c) 8%, transparent); border: 1px solid color-mix(in srgb, var(--c) 30%, transparent); }
+.nw { white-space: nowrap; }
+.st { font-weight: 700; font-size: .78em; white-space: nowrap; }
+.st.ok { color: var(--col-green); }
+.st.wip { color: var(--col-yellow); }
+.st.todo { color: var(--col-red); }
+
+/* ---- Blank placeholder page ---- */
+.flow-switch-item.fs-pink  { --dot: var(--col-pink); }
+.flow-switch-item.fs-green { --dot: var(--col-green); }
+/* ---- Project timeline (Gantt) ---- */
+.tl { --u: clamp(10px, 1.62vh, 19px); font-size: var(--u); width: 100%; height: 100%; max-width: 1700px; display: flex; flex-direction: column; gap: .6em; }
+.tl-title { background: #6fa8dc; color: #fff; text-align: center; font-weight: 700; font-size: 1.7em; padding: .3em 0; border: 1px solid #5b8fc2; border-radius: .25em .25em 0 0; letter-spacing: .3px; }
+table.gantt { flex: 1; width: 100%; border-collapse: collapse; table-layout: fixed; background: #fff; margin-top: -.6em; }
+.gantt col.c-no { width: 3.6%; } .gantt col.c-task { width: 31%; } .gantt col.c-dec { width: 6.4%; } .gantt col.c-m { width: 4.75%; }
+.gantt th, .gantt td { border: 1px solid #b7bdc6; text-align: center; padding: .1em .35em; line-height: 1.2; }
+.gantt thead th { background: #fff; font-weight: 600; height: 2em; }
+.gantt thead .q1 { background: #d9ead3; } .gantt thead .q2 { background: #a4c2f4; } .gantt thead .q3 { background: #ead1dc; } .gantt thead .q4 { background: #b7b7b7; }
+.gantt td.no { color: var(--muted); }
+.gantt td.task { font-weight: 500; color: var(--text); }
+.gantt tr.sec td { font-weight: 800; font-size: 1.15em; height: 1.9em; background: #f3f6fa; }
+.bar.done { background: #93c47d; } .bar.go { background: #ffe599; } .bar.todo { background: #d9d2e9; } .bar.given { background: #ea9999; } .bar.recv { background: #a4c2f4; }
+td.bar { font-weight: 500; color: var(--text); font-size: .98em; }
+.tl-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: .5em 1.8em; font-size: .95em; color: var(--muted); font-weight: 500; }
+.tl-legend span { display: inline-flex; align-items: center; gap: .55em; }
+.tl-legend .sw { width: 2.2em; height: 1.1em; border: 1px solid #b7bdc6; display: inline-block; }
+
+/* ================================================================
+   LANDING VIEW (title slide — shown first, on top of everything)
+================================================================ */
+#landing-view {
+  position: fixed; inset: 0; z-index: 500;
+  background: var(--bg);
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+  padding: 3rem 2rem; overflow-y: auto;
+}
+.landing-toc-link {
+  position: fixed; top: 1.5rem; left: 1.5rem; z-index: 501;
+  display: inline-flex; align-items: center; gap: .3rem;
+  text-decoration: none; color: var(--dim); font-size: .78rem; font-weight: 600;
+  padding: .45rem .8rem; border: 1px solid var(--b1); border-radius: var(--rs);
+  background: var(--bg);
+  transition: background .2s, border-color .2s, color .2s;
+}
+.landing-toc-link:hover { background: var(--s3); color: var(--text); }
+.landing-continue-row { display: flex; justify-content: center; width: 100%; }
+.landing-start-btn {
+  display: inline-flex; align-items: center; gap: .5rem;
+  padding: .85rem 1.8rem; border: none; border-radius: var(--rs); cursor: pointer;
+  font-family: 'Inter', sans-serif; font-size: .92rem; font-weight: 700; color: #fff;
+  background: linear-gradient(135deg, var(--col-cyan), var(--col-blue)); box-shadow: 0 2px 10px rgba(8,145,178,.3);
+  transition: all .18s;
+}
+.landing-start-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(37,99,235,.4); }
+.landing-inner { margin: auto 0; max-width: 95%; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 2.4rem; }
+.landing-title-block { text-align: center; }
+.landing-title { font-size: 2.6rem; font-weight: 800; letter-spacing: -1px; color: var(--text); line-height: 1.15; }
+.landing-subtitle { margin-top: .6rem; font-size: .95rem; font-family: 'JetBrains Mono', monospace; color: var(--dim); font-weight: 500; letter-spacing: .3px; }
+.landing-list { width: 100%; display: grid; grid-template-columns: repeat(2, 1fr); gap: .8rem; }
+.landing-divider { grid-column: 1 / -1; width: 100%; display: flex; align-items: center; gap: .8rem; color: var(--dim); font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+.landing-divider::before, .landing-divider::after { content: ''; flex: 1; height: 1px; background: var(--b1); }
+@media (max-width: 720px) {
+  .landing-list { grid-template-columns: 1fr; }
+}
+.landing-card {
+  display: flex; align-items: center; gap: 1rem; width: 100%;
+  padding: 1.1rem 1.3rem; background: var(--s1); border: 1px solid var(--b1); border-radius: var(--r);
+  text-decoration: none; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  transition: all .18s;
+}
+.landing-card.wide { grid-column: 1 / -1; }
+.landing-card.archive { background: var(--s2); border-style: dashed; box-shadow: none; }
+.landing-card.archive .landing-card-name { color: var(--muted); }
+.landing-card.archive .landing-card-desc { color: var(--dim); }
+.archive-tag { margin-left: .6rem; vertical-align: middle; font-family: 'JetBrains Mono', monospace; font-size: .7rem; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; color: var(--dim); border: 1px solid var(--b2); border-radius: 20px; padding: .15rem .6rem; }
+.landing-card:hover { border-color: var(--b2); box-shadow: 0 4px 14px rgba(0,0,0,0.08); transform: translateY(-1px); }
+.landing-card-icon { width: 44px; height: 44px; border-radius: 10px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #fff; }
+.landing-card-text { flex: 1; min-width: 0; }
+.landing-card-name { font-size: 1.4rem; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+.landing-card-desc { font-size: 1.1rem; color: var(--muted); line-height: 1.5; }
+.landing-card-arrow { font-size: 1.1rem; color: var(--b2); flex-shrink: 0; transition: transform .18s, color .18s; }
+.landing-card:hover .landing-card-arrow { color: var(--col-cyan); transform: translateX(3px); }
+
+/* ================================================================
+   NOW BAND (full-width, under canvas + details — the readable one)
+================================================================ */
+#now-band { grid-area: band; background: var(--s1); border-top: 1px solid var(--b1); border-bottom: 1px solid var(--b1); box-shadow: 0 1px 4px rgba(0,0,0,0.04); overflow: hidden; }
+#band-body { display: flex; align-items: center; gap: 1.1rem; padding: .85rem 1.6rem; border-left: 4px solid transparent; transition: opacity .15s; }
+#band-body.fading { opacity: 0; }
+
+.band-badge { flex-shrink: 0; display: inline-flex; align-items: center; gap: .35rem; padding: .3rem .8rem; border-radius: 20px; font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; border: 1px solid; white-space: nowrap; }
+.band-badge.c-cyan   { background: rgba(2,132,199,.08);  border-color: rgba(2,132,199,.3);  color: var(--col-cyan); }
+.band-badge.c-blue   { background: rgba(37,99,235,.08);  border-color: rgba(37,99,235,.3);  color: var(--col-blue); }
+.band-badge.c-purple { background: rgba(124,58,237,.08); border-color: rgba(124,58,237,.3); color: var(--col-purple); }
+.band-badge.c-orange { background: rgba(234,88,12,.08);  border-color: rgba(234,88,12,.3);  color: var(--col-orange); }
+.band-badge.c-green  { background: rgba(22,163,74,.08);  border-color: rgba(22,163,74,.3);  color: var(--col-green); }
+.band-badge.c-pink   { background: rgba(219,39,119,.08); border-color: rgba(219,39,119,.3);  color: var(--col-pink); }
+
+.band-title { flex-shrink: 0; font-size: 1.15rem; font-weight: 800; color: var(--text); white-space: nowrap; }
+.band-desc { flex: 1; min-width: 0; font-size: .92rem; color: var(--muted); line-height: 1.5; font-weight: 500; }
+
+/* ================================================================
+   CONTROL BAR (FOOTER)
+================================================================ */
+#control-bar { grid-area: ctrl; background: var(--s1); border-top: 1px solid var(--b1); display: flex; align-items: center; justify-content: space-between; padding: 0 1.4rem; gap: .75rem; box-shadow: 0 -1px 3px rgba(0,0,0,0.03); }
+.prog-row { display: flex; align-items: center; gap: .75rem; flex: 1; min-width: 0; }
+.prog-pips { display: flex; gap: .28rem; align-items: center; flex-wrap: wrap; }
+.pip { height: 5px; width: 20px; border-radius: 3px; background: var(--b1); transition: all .3s; }
+.pip.done { background: var(--col-green); }
+.pip.cur { background: var(--col-cyan); width: 34px; }
+.prog-lbl { font-size: .75rem; color: var(--muted); font-weight: 600; font-family: 'JetBrains Mono', monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.prog-lbl span { color: var(--col-cyan); font-weight: 700; }
+
+.ctrl-btns { display: flex; gap: .5rem; align-items: center; flex-shrink: 0; }
+.ctrl-btn { display: flex; align-items: center; justify-content: center; gap: .4rem; height: 36px; padding: 0 1.05rem; border: none; border-radius: var(--rs); font-family: 'Inter', sans-serif; font-size: .78rem; font-weight: 700; cursor: pointer; transition: all .18s; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.ctrl-btn:disabled { opacity: .3; cursor: not-allowed; }
+.reset-btn { background: var(--s2); border: 1px solid var(--b1); color: var(--muted); font-size: .72rem; padding: 0 .75rem; }
+.reset-btn:hover:not(:disabled) { background: var(--s3); color: var(--text); }
+.prev-btn { background: var(--s1); border: 1px solid var(--b1); color: var(--text); }
+.prev-btn:hover:not(:disabled) { background: var(--s2); border-color: var(--b2); }
+.play-btn { background: linear-gradient(135deg, var(--col-cyan), var(--col-blue)); color: white; min-width: 85px; box-shadow: 0 2px 8px rgba(2,132,199,0.3); }
+.play-btn:hover:not(:disabled) { box-shadow: 0 3px 12px rgba(2,132,199,0.45); transform: translateY(-1px); }
+.play-btn.playing { background: linear-gradient(135deg, var(--col-orange), #dc2626); box-shadow: 0 2px 8px rgba(234,88,12,0.3); }
+.next-btn { background: var(--col-cyan); color: white; box-shadow: 0 2px 8px rgba(2,132,199,0.3); }
+.next-btn:hover:not(:disabled) { background: var(--col-blue); box-shadow: 0 3px 12px rgba(37,99,235,0.45); transform: translateY(-1px); }
+</style>
 </head>
 <body>
 
-  <div class="nav-row">
-    <a href="../index.html" class="nav-btn">← Back to Main Menu</a>
-    <a href="../thank-you/index.html" class="nav-btn primary">Next →</a>
+<div id="landing-view">
+  <a class="landing-toc-link" href="../index.html?end=1">← Table of Contents</a>
+  <div class="landing-inner">
+    <div class="landing-title-block">
+      <div class="landing-title">Project Timeline</div>
+      <div class="landing-subtitle">NoC Simulator Development</div>
+    </div>
+    <div class="landing-continue-row">
+      <button class="landing-start-btn" onclick="Landing.enter()">Start Presentation →</button>
+    </div>
+    <div class="landing-list">
+      <div class="landing-card wide" onclick="Landing.enter()">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-pink), var(--col-orange))">⏱</div>
+        <div class="landing-card-text">
+          <div class="landing-card-name">Project Timeline</div>
+          <div class="landing-card-desc">The tentative timeline for NoC simulator development in 2026: what is completed, ongoing and still to come.</div>
+        </div>
+        <div class="landing-card-arrow">→</div>
+      </div>
+      <div class="landing-divider">Last meeting</div>
+      <a class="landing-card archive wide" href="archive/index.html">
+        <div class="landing-card-icon" style="background:var(--b2)">↺</div>
+        <div class="landing-card-text">
+          <div class="landing-card-name">Archive: Project Timeline <span class="archive-tag">Presented July 2026</span></div>
+          <div class="landing-card-desc">Tentative timeline and Gantt chart for the NoC Simulator development in 2026. Not part of this walkthrough.</div>
+        </div>
+        <div class="landing-card-arrow">↗</div>
+      </a>
+      <div class="landing-divider">Other Presentations</div>
+      <a class="landing-card" href="../quarterly-presentation/index.html">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-cyan), var(--col-blue))">&#128202;</div>
+        <div class="landing-card-text">
+          <div class="landing-card-name">Quarterly Progress Report</div>
+        </div>
+        <div class="landing-card-arrow">↗</div>
+      </a>
+      <a class="landing-card" href="../hardware-presentation/index.html">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-purple), var(--col-blue))">⬡</div>
+        <div class="landing-card-text">
+          <div class="landing-card-name">Hardware Architecture &amp; Router Design</div>
+        </div>
+        <div class="landing-card-arrow">↗</div>
+      </a>
+      <a class="landing-card" href="../presentation/index.html">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-cyan), var(--col-blue))">⬡</div>
+        <div class="landing-card-text">
+          <div class="landing-card-name">Software Development Progress</div>
+        </div>
+        <div class="landing-card-arrow">↗</div>
+      </a>
+      <a class="landing-card" href="../testing-presentation/index.html">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-teal), var(--col-green))">✓</div>
+        <div class="landing-card-text">
+          <div class="landing-card-name">Testing &amp; Verification</div>
+        </div>
+        <div class="landing-card-arrow">↗</div>
+      </a>
+      <a class="landing-card" href="../repo-presentation/index.html">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-purple), var(--col-orange))">⇆</div>
+        <div class="landing-card-text">
+          <div class="landing-card-name">Repository, CI/CD &amp; Documentation</div>
+        </div>
+        <div class="landing-card-arrow">↗</div>
+      </a>
+      <a class="landing-card" href="../mesh-presentation/index.html">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-orange), var(--col-pink))">⊞</div>
+        <div class="landing-card-text">
+          <div class="landing-card-name">Internal Mesh &amp; Node Architecture</div>
+        </div>
+        <div class="landing-card-arrow">↗</div>
+      </a>
+      <a class="landing-card" href="../pcie-presentation/index.html">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-blue), var(--col-cyan))">⇄</div>
+        <div class="landing-card-text">
+          <div class="landing-card-name">PCIe &amp; RN-I Bridge</div>
+        </div>
+        <div class="landing-card-arrow">↗</div>
+      </a>
+    </div>
   </div>
-
-  <table>
-    <tr class="title-row">
-      <th colspan="15">Tentative Timeline for NoC Simulator Development (2026)</th>
-    </tr>
-    <tr class="quarter-row">
-      <th class="sno" style="color:#2563eb;text-decoration:underline;">S.No</th>
-      <th>Task/Quarter</th>
-      <th class="q-dec">Dec, 2025</th>
-      <th class="q-q1" colspan="3">Q1</th>
-      <th class="q-q2" colspan="3">Q2</th>
-      <th class="q-q3" colspan="3">Q3</th>
-      <th class="q-q4" colspan="3">Q4</th>
-    </tr>
-    
-    <!-- Row 1 -->
-    <tr>
-      <td>1</td>
-      <td class="row-text">Exploration of existing NoC Simulators</td>
-      <td class="p-0 b-green" colspan="4"></td>
-      <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-    </tr>
-    <!-- Row 2 -->
-    <tr>
-      <td>2</td>
-      <td class="row-text">Baseline NoC Simulator and CHI Protocol understanding</td>
-      <td class="p-0 b-green" colspan="5"></td>
-      <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-    </tr>
-    <!-- Row 3 -->
-    <tr>
-      <td>3</td>
-      <td class="row-text">Understanding of CHI node Functionalities (RN, HN, SN)</td>
-      <td></td>
-      <td class="p-0 b-green" colspan="4"></td>
-      <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-    </tr>
-    <!-- Row 4 -->
-    <tr>
-      <td>4</td>
-      <td class="row-text">High Level System design</td>
-      <td></td>
-      <td class="p-0 b-yellow" colspan="9"><div class="block b-yellow">High level system design for CHI based Router Mesh</div></td>
-      <td></td><td></td><td></td>
-    </tr>
-    <!-- Row 5 -->
-    <tr>
-      <td>5</td>
-      <td class="row-text">RN-F Architecture Specifications</td>
-      <td></td><td></td>
-      <td class="p-0 b-blue" colspan="2"></td>
-      <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-    </tr>
-    <!-- Row 6 -->
-    <tr>
-      <td>6</td>
-      <td class="row-text">SN-F Architecture Specifications</td>
-      <td></td><td></td>
-      <td class="p-0 b-blue" colspan="2"></td>
-      <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-    </tr>
-    <!-- Row 7 -->
-    <tr>
-      <td>7</td>
-      <td class="row-text">HN-F Architecture Specifications</td>
-      <td></td><td></td>
-      <td></td><td></td>
-      <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-    </tr>
-
-    <!-- Subheader -->
-    <tr>
-      <td colspan="15" class="module-dev">Module Development</td>
-    </tr>
-
-    <!-- Row 8 -->
-    <tr>
-      <td>8</td>
-      <td class="row-text">Network Fabric</td>
-      <td></td>
-      <td class="p-0 b-green" colspan="6"><div class="block b-green" style="white-space:normal;line-height:1.2;">Router Architectural Design (Finalized the router<br>specifications in collaboration with the C-DAC<br>Hyderabad team)</div></td>
-      <td class="p-0 b-yellow" colspan="3"><div class="block b-yellow">Implementation</div></td>
-      <td></td><td></td><td></td>
-    </tr>
-    <!-- Row 9 -->
-    <tr>
-      <td>9</td>
-      <td class="row-text">Protocol Layer Module</td>
-      <td></td><td></td><td></td><td></td>
-      <td class="p-0 b-yellow" colspan="6"><div class="block b-yellow">Design</div></td>
-      <td class="p-0 b-purple" colspan="3"><div class="block b-purple">Implementation</div></td>
-    </tr>
-    <!-- Row 10 -->
-    <tr>
-      <td>10</td>
-      <td class="row-text">Devices and Endpoint nodes (HN-F, RN-F, SN-F)</td>
-      <td></td><td></td><td></td><td></td><td></td>
-      <td class="p-0 b-yellow" colspan="5"><div class="block b-yellow">Design</div></td>
-      <td class="p-0 b-purple" colspan="3"><div class="block b-purple">Implementation</div></td>
-    </tr>
-    <!-- Row 11 -->
-    <tr>
-      <td>11</td>
-      <td class="row-text">Configuration Module</td>
-      <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-      <td class="p-0 b-yellow" colspan="6"><div class="block b-yellow">Design and Implementation</div></td>
-    </tr>
-    <!-- Row 12 -->
-    <tr>
-      <td>12</td>
-      <td class="row-text">Performance Analyzer Module</td>
-      <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-      <td class="p-0 b-purple" colspan="6"><div class="block b-purple">Design and Implementation</div></td>
-    </tr>
-    <!-- Row 13 -->
-    <tr>
-      <td>13</td>
-      <td class="row-text">Simulation Kernel</td>
-      <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-      <td class="p-0 b-yellow" colspan="6"><div class="block b-yellow">Design and Implementation</div></td>
-    </tr>
-    <!-- Row 14 -->
-    <tr>
-      <td>14</td>
-      <td class="row-text">GUI Designing</td>
-      <td></td>
-      <td class="p-0 b-yellow" colspan="12"><div class="block b-yellow">Design &amp; Implementation</div></td>
-    </tr>
-    <!-- Row 15 -->
-    <tr>
-      <td>15</td>
-      <td class="row-text">Backend Integration with GUI</td>
-      <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-      <td class="p-0 b-purple" colspan="6"><div class="block b-purple">Implementation</div></td>
-    </tr>
-    <!-- Row 16 -->
-    <tr>
-      <td>16</td>
-      <td class="row-text">RN-I Architecture Specifications</td>
-      <td></td><td></td><td></td><td></td>
-      <td class="p-0 b-yellow" colspan="7"></td>
-      <td></td><td></td>
-    </tr>
-    <!-- Row 17 -->
-    <tr>
-      <td>17</td>
-      <td class="row-text">Complete System Documentation</td>
-      <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-      <td class="p-0 b-yellow" colspan="6"></td>
-    </tr>
-  </table>
-
-  <div class="legend-container">
-    <table class="legend-table">
-      <tr><td class="legend-color b-purple"></td><td>Task to be Completed</td></tr>
-      <tr><td class="legend-color b-green"></td><td>Completed Task</td></tr>
-      <tr><td class="legend-color b-yellow"></td><td>Ongoing Task</td></tr>
-      <tr><td class="legend-color b-red"></td><td>To be given by NoC Team</td></tr>
-      <tr><td class="legend-color b-blue"></td><td>Received From NoC Team</td></tr>
-    </table>
+</div>
+<header id="app-header">
+  <div class="brand">
+    <div class="brand-icon">⏱</div>
+    <h1>NoC Simulator — Project Timeline</h1>
+    <span class="chi-badge">2026</span>
   </div>
-
-  <script>
-    document.addEventListener('keydown', function(event) {
-      if (event.key === 'ArrowRight') {
-        window.location.href = '../thank-you/index.html';
-      } else if (event.key === 'ArrowLeft') {
-        window.location.href = '../index.html';
-      }
-    });
-  </script>
+  <div class="hdr-center" id="hdr-stage-info">
+    Step <span id="hdr-num">1</span> of <span id="hdr-total">1</span>
+    &nbsp;·&nbsp;
+    <span id="hdr-name">Project Timeline (2026)</span>
+  </div>
+  <div class="phase-pill" id="phase-pill">
+    <span class="phase-dot"></span>
+    <span id="phase-text">Timeline</span>
+  </div>
+</header>
+<nav id="stage-nav" aria-label="Presentation pages">
+  <a href="javascript:void(0)" class="back-menu-link" onclick="Landing.show()">← Back to Main Menu</a>
+  <div class="flow-switch">
+    <div class="flow-switch-lbl">Switch Flow</div>
+    <a class="flow-switch-item fs-pink current" href="index.html?flow=deck">Project Timeline</a>
+    <a class="flow-switch-item fs-blue" href="../pcie-presentation/index.html">PCIe &amp; RN-I Bridge ↗</a>
+    <a class="flow-switch-item fs-green" href="../thank-you/index.html">Thank You ↗</a>
+  </div>
+  <div class="nav-group-label">Presentation Pages</div>
+  <button class="nav-item active" id="nav-0" onclick="App.goToPage(0)">
+    <div class="nav-status-icon" id="nav-st-0"></div>
+    <div class="nav-text"><div class="nav-num">01</div><div class="nav-name">Project Timeline</div></div>
+    <div class="nav-color-dot" style="background:var(--col-pink)"></div>
+  </button>
+  <div class="nav-kbd-hint">
+    <span class="kbd">←</span><span class="kbd">→</span> navigate &nbsp;·&nbsp;
+    <span class="kbd">Space</span> play
+  </div>
+</nav>
+<main id="main-canvas">
+  <div id="page-timeline" class="page-view active">
+    <div class="tl">
+      <div class="tl-title">Tentative Timeline for NoC Simulator Development (2026)</div>
+      <table class="gantt">
+        <colgroup><col class="c-no"><col class="c-task"><col class="c-dec"><col span="12" class="c-m"></colgroup>
+        <thead>
+          <tr><th class="no">S.No</th><th>Task / Quarter</th><th>Dec, 2025</th>
+            <th colspan="3" class="q q1">Q1</th><th colspan="3" class="q q2">Q2</th><th colspan="3" class="q q3">Q3</th><th colspan="3" class="q q4">Q4</th></tr>
+        </thead>
+        <tbody>
+<tr><td class="no">1</td><td class="task">Exploration of existing NoC Simulators</td><td class="bar done" colspan="4"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="no">2</td><td class="task">Baseline NoC Simulator and CHI Protocol understanding</td><td class="bar done" colspan="5"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="no">3</td><td class="task">Understanding of CHI node Functionalities (RN, HN, SN)</td><td></td><td class="bar done" colspan="4"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="no">4</td><td class="task">High Level System design</td><td></td><td class="bar done" colspan="9">High level system design for CHI based Router Mesh</td><td></td><td></td><td></td></tr>
+<tr><td class="no">5</td><td class="task">RN-F Architecture Specifications</td><td></td><td></td><td class="bar recv" colspan="1"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="no">6</td><td class="task">SN-F Architecture Specifications</td><td></td><td></td><td class="bar recv" colspan="1"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="no">7</td><td class="task">HN-F Architecture Specifications</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr class="sec"><td colspan="15">Module Development</td></tr>
+<tr><td class="no">8</td><td class="task">Network Fabric</td><td></td><td class="bar done" colspan="6">Router Architectural Design (finalized the router specifications in collaboration with the C-DAC Hyderabad team)</td><td class="bar done" colspan="3">Architecture Design &amp; Implementation</td><td></td><td></td><td></td></tr>
+<tr><td class="no">9</td><td class="task">Protocol Layer Module</td><td></td><td></td><td></td><td></td><td class="bar go" colspan="6">Design</td><td class="bar todo" colspan="3">Implementation</td></tr>
+<tr><td class="no">10</td><td class="task">Devices and Endpoint nodes (HN-F, RN-F, SN-F)</td><td></td><td></td><td></td><td></td><td></td><td class="bar go" colspan="5">Design</td><td class="bar todo" colspan="3">Implementation</td></tr>
+<tr><td class="no">11</td><td class="task">Configuration Module</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="bar go" colspan="6">Design and Implementation</td></tr>
+<tr><td class="no">12</td><td class="task">Performance Analyzer Module</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="bar todo" colspan="6">Design and Implementation</td></tr>
+<tr><td class="no">13</td><td class="task">Simulation Kernel</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="bar go" colspan="6">Design and Implementation</td></tr>
+<tr><td class="no">14</td><td class="task">GUI Designing</td><td></td><td class="bar go" colspan="12">Design &amp; Implementation</td></tr>
+<tr><td class="no">15</td><td class="task">Backend Integration with GUI</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="bar todo" colspan="6">Implementation</td></tr>
+<tr><td class="no"></td><td class="task">RN-I Architecture Specifications</td><td></td><td></td><td></td><td></td><td></td><td class="bar go" colspan="8"></td></tr>
+<tr><td class="no">16</td><td class="task">Complete System Documentation</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="bar go" colspan="6"></td></tr>
+        </tbody>
+      </table>
+      <div class="tl-legend">
+        <span><i class="sw bar done"></i>Completed Task</span>
+        <span><i class="sw bar go"></i>Ongoing Task</span>
+        <span><i class="sw bar todo"></i>Task to be Completed</span>
+        <span><i class="sw bar given"></i>To be given by NoC Team</span>
+        <span><i class="sw bar recv"></i>Received From NoC Team</span>
+      </div>
+    </div>
+  </div>
+</main>
+<!-- ══════════════════════════════════════════════════════════════
+     NOW BAND (full-width, readable explanation)
+══════════════════════════════════════════════════════════════ -->
+<div id="now-band">
+  <div id="band-body"><!-- populated by JS --></div>
+</div>
+<!-- ══════════════════════════════════════════════════════════════
+     CONTROL BAR
+══════════════════════════════════════════════════════════════ -->
+<footer id="control-bar">
+  <div class="prog-row">
+    <div class="prog-pips" id="prog-pips"></div>
+    <div class="prog-lbl" id="prog-lbl">
+      Step <span id="prog-num">1</span> of <span id="prog-total">1</span> &nbsp;·&nbsp;
+      <span id="prog-name">Project Timeline</span>
+    </div>
+  </div>
+  <div class="ctrl-btns">
+    <button class="ctrl-btn reset-btn" id="btn-reset" onclick="App.reset()">↺ Reset</button>
+    <button class="ctrl-btn prev-btn"  id="btn-prev"  onclick="App.prev()" disabled>⬅ Prev</button>
+    <button class="ctrl-btn play-btn"  id="btn-play"  onclick="App.togglePlay()">▶ Play</button>
+    <button class="ctrl-btn next-btn"  id="btn-next"  onclick="App.next()">Next ➔</button>
+  </div>
+</footer>
+<script>
+/* ================================================================
+   STEP DATA — one finished view; with no `desc` the bottom band is hidden to give the chart the room
+================================================================ */
+const TIMELINE_STEPS = [
+  { num:1, name:"Tentative Timeline for NoC Simulator Development (2026)", badge:"2026", badgeColor:"pink", desc:"" },
+];
+const PAGES = [
+  { id:"timeline", label:"Project Timeline", steps: TIMELINE_STEPS, render: () => {} },
+];
+/* Neighbors in the master presentation sequence */
+const PREV_DECK_URL = "../pcie-presentation/index.html?end=1";
+const NEXT_DECK_URL = "../thank-you/index.html";
+/* ================================================================
+   RENDER HELPERS
+================================================================ */
+function renderPips(total, current) {
+  const wrap = document.getElementById("prog-pips");
+  wrap.innerHTML = "";
+  for (let i = 0; i < total; i++) {
+    const p = document.createElement("div");
+    p.className = "pip" + (i < current ? " done" : i === current ? " cur" : "");
+    wrap.appendChild(p);
+  }
+}
+function renderDetails(step) {
+  const band = document.getElementById("band-body");
+  band.style.borderLeftColor = `var(--col-${step.badgeColor})`;
+  band.innerHTML = `
+    <div class="band-title">${step.num}. ${step.name}</div>
+    <div class="band-desc">${step.desc}</div>`;
+}
+/* ================================================================
+   APP STATE MACHINE
+================================================================ */
+const App = {
+  page: 0,
+  step: 0,
+  playing: false,
+  playTimer: null,
+  goToPage(idx) {
+    this.stopPlay();
+    this.page = idx;
+    this.step = 0;
+    this.render();
+  },
+  next() {
+    const steps = PAGES[this.page].steps;
+    if (this.step < steps.length - 1) { this.step++; this.render(); }
+    else if (this.page < PAGES.length - 1) { this.page++; this.step = 0; this.render(); }
+    else { window.location.href = NEXT_DECK_URL; }
+  },
+  prev() {
+    if (this.step > 0) { this.step--; this.render(); }
+    else if (this.page > 0) { this.page--; this.step = PAGES[this.page].steps.length - 1; this.render(); }
+    else { window.location.href = PREV_DECK_URL; }
+  },
+  reset() {
+    this.stopPlay();
+    this.page = 0;
+    this.step = 0;
+    this.render();
+  },
+  togglePlay() {
+    if (this.playing) { this.stopPlay(); return; }
+    this.playing = true;
+    const btn = document.getElementById("btn-play");
+    btn.classList.add("playing");
+    btn.textContent = "⏸ Pause";
+    this.playTimer = setInterval(() => {
+      const s = PAGES[this.page].steps;
+      if (this.step < s.length - 1) { this.step++; this.render(); }
+      else if (this.page < PAGES.length - 1) { this.page++; this.step = 0; this.render(); }
+      else { this.stopPlay(); }
+    }, 2200);
+  },
+  stopPlay() {
+    this.playing = false;
+    if (this.playTimer) clearInterval(this.playTimer);
+    const btn = document.getElementById("btn-play");
+    if (btn) { btn.classList.remove("playing"); btn.textContent = "▶ Play"; }
+  },
+  render() {
+    document.querySelectorAll(".nav-item").forEach((el, i) => el.classList.toggle("active", i === this.page));
+    document.querySelectorAll(".page-view").forEach((el, i) => el.classList.toggle("active", i === this.page));
+    const steps = PAGES[this.page].steps;
+    PAGES[this.page].render(this.step);
+    const s = steps[this.step];
+    const isVeryLastStep = (this.page === PAGES.length - 1) && (this.step === steps.length - 1);
+    document.getElementById("hdr-num").textContent = this.step + 1;
+    document.getElementById("hdr-total").textContent = steps.length;
+    document.getElementById("hdr-name").textContent = s.name;
+    document.getElementById("phase-text").textContent = s.badge;
+    renderPips(steps.length, this.step);
+    document.getElementById("prog-num").textContent = this.step + 1;
+    document.getElementById("prog-total").textContent = steps.length;
+    document.getElementById("prog-name").textContent = s.name;
+    renderDetails(s);
+    document.getElementById("now-band").style.display = s.desc ? "" : "none";
+    document.getElementById("btn-next").textContent = isVeryLastStep ? "Next Deck ➔" : "Next ➔";
+    document.getElementById("btn-prev").disabled = false;
+  }
+};
+/* ================================================================
+   LANDING VIEW
+================================================================ */
+const Landing = {
+  show() {
+    App.stopPlay();
+    document.getElementById("landing-view").style.display = "flex";
+  },
+  hide() {
+    document.getElementById("landing-view").style.display = "none";
+  },
+  enter() {
+    this.hide();
+    App.goToPage(0);
+  }
+};
+document.addEventListener("keydown", (e) => {
+  if (document.getElementById("landing-view").style.display !== "none") {
+    if (e.code === "ArrowRight") { e.preventDefault(); Landing.enter(); }
+    else if (e.code === "ArrowLeft") { e.preventDefault(); window.location.href = "../index.html?end=1"; }
+    return;
+  }
+  if (e.code === "ArrowRight") { App.next(); }
+  else if (e.code === "ArrowLeft") { App.prev(); }
+  else if (e.code === "Space") { e.preventDefault(); App.togglePlay(); }
+});
+App.render();
+const _urlParams = new URLSearchParams(location.search);
+if (_urlParams.get("end") === "1" || _urlParams.get("page") !== null || _urlParams.get("flow") === "deck") {
+  Landing.hide();
+}
+</script>
 </body>
 </html>

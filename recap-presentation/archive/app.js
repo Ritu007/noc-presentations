@@ -4,7 +4,7 @@
    the simulator landscape survey and the design decisions that followed
    from it, before handing off into the Hardware Architecture deck. Being
    a short recap, it opens straight on slide 1 — no landing/title screen.
-   Engine mirrors sdlc-presentation/app.js (topicOrder/setTopic), plus a
+   Engine mirrors repo-presentation/archive/app.js (topicOrder/setTopic), plus a
    small custom table-panel sync for the two dense pages (Accuracy Models,
    Programming Languages) that each split their content across two tables
    instead of using the dim-in-place vv-focusable pattern.
@@ -105,8 +105,9 @@ const STEPS = [
 
 /* Neighbors in the master presentation sequence — this deck sits between the
    hub TOC and the hub's Quarterly Progress section (not another deck page). */
-const PREV_DECK_URL = "../index.html?end=1";
-const NEXT_DECK_URL = "../index.html?show=progress";
+/* Archive: both ends of this deck return to the Recap landing page (not onward into the next deck). */
+const PREV_DECK_URL = "../index.html";
+const NEXT_DECK_URL = "../index.html";
 
 /* Application State */
 const App = {

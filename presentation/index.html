@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NoC Simulator — Software Development Progress</title>
-<meta name="description" content="Interactive walkthrough of the NoC Simulator's system architecture (Frontend/Backend, API boundary) and the per-cycle Event Scheduler execution order.">
+<meta name="description" content="Interactive walkthrough of the NoC Simulator's software stack (React GUI, Drogon API server, C++ Core), the simulation run flow, and backend module status.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -32,6 +32,7 @@
   --col-pink:   #db2777;
   --col-yellow: #d97706;
   --col-teal:   #0d9488;
+  --col-red:    #dc2626;
 
   --nav-w:    260px;
   --hdr-h:    54px;
@@ -181,89 +182,162 @@ body {
 }
 .page-view.active { opacity: 1; pointer-events: auto; transform: scale(1); }
 
-#arch-svg { width: 100%; height: 100%; max-width: none; max-height: 100%; }
+/* ---- Shared styles for the architecture / API / run-flow / module slides ----
+   HTML slides size everything in em off --u so they scale with window height. */
+.slide { --u: clamp(12px, 1.85vh, 24px); font-size: var(--u); width: 100%; max-width: 1600px; }
+.fx { transition: opacity .35s, box-shadow .35s, border-color .35s; }
+.fx.idle { opacity: .38; }
+.fx.active { border-color: var(--c); box-shadow: 0 0 0 2px var(--c), 0 6px 22px color-mix(in srgb, var(--c) 22%, transparent); }
+.tech-badges { display: flex; flex-wrap: wrap; gap: .4em; }
+.tech { font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: .78em; padding: .22em .75em; border-radius: 20px; white-space: nowrap; color: var(--c); background: color-mix(in srgb, var(--c) 8%, transparent); border: 1px solid color-mix(in srgb, var(--c) 30%, transparent); }
+.nw { white-space: nowrap; }
+.st { font-weight: 700; font-size: .78em; white-space: nowrap; }
+.st.ok { color: var(--col-green); }
+.st.wip { color: var(--col-yellow); }
+.st.todo { color: var(--col-red); }
 
-/* ---- Architecture SVG elements ---- */
-.band-box { fill: var(--s2); fill-opacity: .4; stroke: var(--b1); stroke-width: 1.3; }
-.phase-lbl { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 12px; fill: var(--dim); text-anchor: middle; letter-spacing: .5px; }
-.lane-lbl { font-family: 'Inter', sans-serif; font-weight: 800; font-size: 14px; letter-spacing: 1.6px; text-transform: uppercase; }
-.lane-lbl.fe { fill: var(--col-cyan); }
-.lane-lbl.if { fill: var(--col-blue); }
-.lane-lbl.be { fill: var(--col-purple); }
+/* ---- Page 1: System Architecture (3 lanes) ---- */
+.arch-slide { --u: clamp(12px, 1.7vh, 22px); display: flex; flex-direction: column; }
+.lane { background: var(--s1); border: 1.5px solid var(--b1); border-radius: .9em; padding: .8em 1em .95em; }
+.lane-head { display: flex; align-items: center; justify-content: space-between; gap: 1em; flex-wrap: wrap; margin-bottom: .7em; }
+.lane-name { font-weight: 800; font-size: 1.05em; letter-spacing: 1.4px; text-transform: uppercase; color: var(--c); }
+.blocks { display: grid; grid-template-columns: repeat(var(--n, 4), 1fr); gap: .7em; }
+.blk { position: relative; border-radius: .6em; padding: .65em .85em; background: color-mix(in srgb, var(--c) 5%, var(--s1)); border: 1px solid color-mix(in srgb, var(--c) 28%, var(--b1)); }
+.blk-t { font-weight: 700; font-size: 1.08em; color: var(--text); }
+.blk-d { font-size: .9em; color: var(--muted); margin-top: .25em; line-height: 1.4; }
+.link { position: relative; height: 2.7em; display: flex; align-items: center; justify-content: center; transition: opacity .35s; }
+.link::before { content: ''; position: absolute; left: 50%; top: .15em; bottom: .15em; border-left: 2px dashed var(--b2); transition: border-color .3s; }
+.link-lbl { position: relative; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: .82em; color: var(--dim); background: var(--bg); border: 1px solid var(--b1); border-radius: 20px; padding: .2em .9em; transition: color .3s, border-color .3s; }
+.link.active::before, .link.done::before { border-left-style: solid; border-color: var(--col-blue); }
+.link.active .link-lbl { color: var(--col-blue); border-color: var(--col-blue); }
+.link.idle { opacity: .38; }
 
-.grp-cyan   { --c: var(--col-cyan); }
-.grp-blue   { --c: var(--col-blue); }
-.grp-purple { --c: var(--col-purple); }
-.grp-orange { --c: var(--col-orange); }
-.grp-green  { --c: var(--col-green); }
+/* ---- Page 2: API & Drogon (3 pillars) ---- */
+.pillars { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1em; align-items: stretch; }
+.pillar { display: flex; flex-direction: column; background: var(--s1); border: 1.5px solid var(--b1); border-radius: .9em; overflow: hidden; }
+.pillar-hdr { background: var(--c); color: #fff; padding: .8em 1.1em; }
+.pillar-hdr h3 { font-size: 1.3em; font-weight: 800; }
+.pillar-hdr p { font-size: .88em; opacity: .92; margin-top: .15em; }
+.pillar-body { flex: 1; padding: 1em 1.1em 1.1em; display: flex; flex-direction: column; justify-content: space-evenly; gap: .9em; color: var(--muted); line-height: 1.4; }
+.pillar-body code { font-family: 'JetBrains Mono', monospace; font-size: .88em; color: var(--c); }
+.mode-hd { display: flex; align-items: center; gap: .7em; flex-wrap: wrap; margin-bottom: .3em; }
+.mode-cap { font-size: .92em; color: var(--muted); }
+.api-svg { width: 100%; height: auto; display: block; }
+.api-svg .abox { fill: var(--s1); stroke-width: 2; }
+.api-svg .abox-t { font-family: 'Inter', sans-serif; font-weight: 800; font-size: 14px; text-anchor: middle; dominant-baseline: central; }
+.api-svg .alb { font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 11px; fill: var(--dim); text-anchor: middle; }
+.api-svg .amsg { fill: none; stroke-width: 2.2; }
+.api-svg .amsg.ret { stroke-dasharray: 6 4; }
+.api-svg .tube { fill: color-mix(in srgb, var(--col-blue) 7%, var(--s1)); stroke: var(--col-blue); stroke-width: 1.6; stroke-dasharray: 3 4; }
+.api-svg .pushdot { fill: var(--col-blue); opacity: 0; }
+.pillar.active .api-anim { animation: dash-flow .8s linear infinite; stroke-dasharray: 7 5; }
+.pillar.active .amsg.ret.api-anim { stroke-dasharray: 6 4; }
+.pillar.active .pushdot { animation: ws-push 2.1s linear infinite; }
+.pillar.active .pushdot:nth-of-type(2) { animation-delay: .7s; }
+.pillar.active .pushdot:nth-of-type(3) { animation-delay: 1.4s; }
+@keyframes ws-push { 0% { transform: translateX(0); opacity: 0; } 12% { opacity: 1; } 88% { opacity: 1; } 100% { transform: translateX(-190px); opacity: 0; } }
+.srv-strip { font-family: 'JetBrains Mono', monospace; font-size: .82em; color: var(--dim); text-align: center; background: var(--s2); border-radius: .5em; padding: .5em .7em; }
+.routes { display: flex; flex-direction: column; gap: .5em; }
+.rt { display: flex; align-items: center; gap: .6em; padding: .65em .8em; border: 1.5px solid var(--b1); border-radius: .55em; background: var(--s1); font-family: 'JetBrains Mono', monospace; font-size: .86em; transition: background .3s, border-color .3s; }
+.rt .verb { font-weight: 800; color: var(--c); min-width: 3.1em; }
+.rt .path { flex: 1; color: var(--text); font-weight: 600; }
+.rt .arr { color: var(--dim); }
+.rt .fn { font-weight: 700; color: var(--c); }
+.pillar.active .rt { animation: rt-hit 4.8s ease-in-out infinite; }
+.pillar.active .rt:nth-child(2) { animation-delay: 1.2s; }
+.pillar.active .rt:nth-child(3) { animation-delay: 2.4s; }
+.pillar.active .rt:nth-child(4) { animation-delay: 3.6s; }
+@keyframes rt-hit { 0%, 22% { background: color-mix(in srgb, var(--c) 14%, var(--s1)); border-color: var(--c); } 28%, 100% { background: var(--s1); border-color: var(--b1); } }
+.why { list-style: none; display: flex; flex-direction: column; gap: 1.1em; counter-reset: w; }
+.why li { counter-increment: w; position: relative; padding-left: 2.6em; }
+.why li::before { content: counter(w); position: absolute; left: 0; top: .1em; width: 1.8em; height: 1.8em; border-radius: 50%; background: var(--c); color: #fff; font-weight: 800; font-family: 'JetBrains Mono', monospace; display: flex; align-items: center; justify-content: center; }
+.why b { display: block; font-size: 1.15em; color: var(--text); }
+.why span { font-size: .95em; }
 
-.step-node .box { fill: var(--s1); stroke: var(--b1); stroke-width: 1.6; transition: all .35s; }
-.step-node .num-badge circle { fill: var(--s2); stroke: var(--b1); stroke-width: 1.4; transition: all .3s; }
-.step-node .num-badge text { font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 12px; fill: var(--dim); text-anchor: middle; dominant-baseline: central; transition: fill .3s; }
-.step-node .title { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 14px; fill: var(--dim); text-anchor: middle; transition: fill .3s; }
-.step-node .sub { font-family: 'JetBrains Mono', monospace; font-weight: 500; font-size: 11px; fill: var(--b2); text-anchor: middle; transition: fill .3s; }
-
-.step-node.idle .box { opacity: .55; }
-.step-node.idle .num-badge { opacity: .8; }
-
-.step-node.active .box { stroke: var(--c); stroke-width: 2.6; filter: drop-shadow(0 0 10px var(--c)); fill: var(--s2); opacity: 1; }
-.step-node.active .num-badge circle { fill: var(--c); stroke: var(--c); }
-.step-node.active .num-badge text { fill: #fff; }
-.step-node.active .title { fill: var(--c); }
-.step-node.active .sub { fill: var(--muted); }
-
-.step-node.done .box { stroke: var(--c); stroke-width: 1.5; opacity: .85; }
-.step-node.done .num-badge circle { fill: var(--col-green); stroke: var(--col-green); }
-.step-node.done .num-badge text { fill: #fff; }
-.step-node.done .title { fill: var(--muted); }
-.step-node.done .sub { fill: var(--dim); }
-
-.step-node.drill .box { cursor: pointer; }
-.step-node.drill { cursor: pointer; }
-.step-node.drill .box:hover, .step-node.drill:hover .box { stroke-width: 2.6; filter: drop-shadow(0 0 8px var(--c)); }
-.drill-hint { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 10px; fill: var(--col-orange); text-anchor: middle; }
-
-.flow-arrow { stroke: var(--b1); stroke-width: 2; fill: none; marker-end: url(#arrow-head-dim); transition: stroke .3s; }
-.flow-arrow.lit { stroke: var(--b2); marker-end: url(#arrow-head-lit); }
-
-.api-arrow { stroke: var(--b1); stroke-width: 2; stroke-dasharray: 7 5; fill: none; opacity: .55; marker-end: url(#arrow-head-dim); transition: stroke .3s, opacity .3s; }
-.api-arrow.active { stroke: var(--col-cyan); opacity: 1; marker-end: url(#arrow-head-cyan); animation: dash-flow .8s linear infinite; }
-.api-arrow.done { stroke: var(--col-blue); opacity: .75; marker-end: url(#arrow-head-blue); }
+/* ---- Page 3: Simulation run flow (SVG sequence diagram) ---- */
+#flow-svg { width: 100%; height: 100%; max-height: 100%; }
+.seq-lane-box { stroke-width: 1.8; fill: var(--s1); }
+.seq-lane-lbl { font-family: 'Inter', sans-serif; font-weight: 800; font-size: 15px; text-anchor: middle; }
+.seq-lane-sub { font-family: 'JetBrains Mono', monospace; font-weight: 500; font-size: 11px; text-anchor: middle; fill: var(--dim); }
+.seq-life { stroke: var(--b1); stroke-width: 1.6; stroke-dasharray: 5 6; }
+.seq { transition: opacity .35s; }
+.seq.idle { opacity: .22; }
+.seq.done { opacity: .85; }
+.seq .note { fill: var(--s1); stroke: var(--c); stroke-width: 1.6; transition: all .3s; }
+.seq .note-t { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 13px; fill: var(--text); text-anchor: middle; }
+.seq .note-s { font-family: 'JetBrains Mono', monospace; font-weight: 500; font-size: 10.5px; fill: var(--muted); text-anchor: middle; }
+.seq .msg { fill: none; stroke: var(--c); stroke-width: 2; }
+.seq .msg.ret { stroke-dasharray: 6 4; }
+.seq .msg-lbl { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 11px; fill: var(--c); text-anchor: middle; }
+.seq .msg-sub { font-family: 'JetBrains Mono', monospace; font-weight: 500; font-size: 10px; fill: var(--muted); text-anchor: middle; }
+.seq .pill-note { font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 10.5px; fill: var(--dim); text-anchor: middle; font-style: italic; }
+.seq.active .note { fill: color-mix(in srgb, var(--c) 8%, var(--s1)); stroke-width: 2.8; filter: drop-shadow(0 0 8px var(--c)); }
+.seq.active .msg:not(.ret) { animation: dash-flow .8s linear infinite; stroke-dasharray: 7 5; }
+.seq.active .msg.ret { animation: dash-flow .8s linear infinite; }
+.seq .bl { --c: var(--col-blue); }
+.seq .badge circle { fill: var(--c); }
+.seq .badge text { font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 12px; fill: #fff; text-anchor: middle; dominant-baseline: central; }
 @keyframes dash-flow { to { stroke-dashoffset: -24; } }
-.api-arrow-lbl { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; fill: var(--col-cyan); text-anchor: middle; opacity: 0; transition: opacity .3s; }
 
-/* ---- Event Scheduler page ---- */
-.sched-wrap { width: 100%; max-width: 1480px; display: flex; flex-direction: column; gap: 1.1rem; }
-.sched-cols { display: flex; align-items: stretch; gap: .35rem; }
-.sched-col { flex: 1; min-width: 0; background: var(--s1); border: 1px solid var(--b1); border-radius: var(--r); overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.03); display: flex; flex-direction: column; transition: box-shadow .3s; }
-.sched-col-hdr { padding: .75rem .6rem; text-align: center; font-weight: 700; font-size: 1rem; color: #fff; letter-spacing: .2px; }
-.sched-col.active { box-shadow: 0 0 0 2px var(--gc, var(--b2)), 0 4px 14px rgba(0,0,0,.08); }
-.sched-rows { display: flex; flex-direction: column; flex: 1; }
-.sched-row { display: flex; gap: .7rem; padding: 1.1rem .8rem; border-bottom: 1px solid var(--b1); opacity: .4; transition: all .3s; align-items: center; flex: 1; }
-.sched-row:last-child { border-bottom: none; }
-.sched-row.active { opacity: 1; background: var(--s2); box-shadow: inset 3px 0 0 var(--gc); }
-.sched-row.done { opacity: .85; }
-.sr-icon { width: 30px; height: 30px; border-radius: 50%; background: var(--s2); border: 1px solid var(--b1); font-size: .95rem; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-family: 'JetBrains Mono', monospace; color: var(--muted); transition: all .25s; }
-.sched-row.active .sr-icon { background: var(--gc); border-color: var(--gc); color: #fff; }
-.sched-row.done .sr-icon { background: var(--col-green); border-color: var(--col-green); color: #fff; }
-.sr-txt { min-width: 0; }
-.sr-name { font-size: 1.12rem; font-weight: 700; color: var(--text); }
-.sr-desc { font-size: .96rem; color: var(--muted); margin-top: 3px; line-height: 1.4; }
-.sched-row.active .sr-name { color: var(--gc); }
-.sched-arrow { display: flex; align-items: center; justify-content: center; font-size: 1.05rem; color: var(--b2); flex-shrink: 0; width: 18px; font-weight: 700; }
+/* ---- Page 4: Backend module scorecard ---- */
+.cards6 { display: grid; grid-template-columns: repeat(3, 1fr); gap: .8em; align-items: stretch; }
+@media (max-width: 1000px) { .cards6 { grid-template-columns: repeat(2, 1fr); } .pillars { grid-template-columns: 1fr; } }
+.modules-slide { --u: clamp(10.5px, 1.5vh, 19px); }
+@media (min-height: 950px) { .modules-slide { --u: clamp(10.5px, 1.75vh, 22px); } }
+.legend { display: flex; justify-content: center; gap: 1.6em; margin-bottom: .6em; font-size: .85em; color: var(--muted); }
+.mcard { display: flex; flex-direction: column; background: var(--s1); border: 1.5px solid var(--b1); border-radius: .9em; overflow: hidden; }
+.mcard-hdr { padding: .6em 1em .55em; border-bottom: 3px solid var(--c); background: color-mix(in srgb, var(--c) 6%, var(--s1)); }
+.mcard-hdr h3 { font-size: 1.12em; font-weight: 800; color: var(--text); line-height: 1.25; }
+.mcard-hdr .st { display: block; margin-top: .25em; font-size: .82em; }
+.mrows { display: flex; flex-direction: column; padding: .35em 1em .5em; }
+.mrow { display: flex; align-items: baseline; gap: .6em; padding: .26em 0 .26em calc(var(--l, 0) * 1.2em); }
+.mrow[style*="--l:0"] + .mrow[style*="--l:0"] { border-top: 1px dashed var(--b1); }
+.mn { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: .88em; color: var(--text); white-space: nowrap; }
+.mrow[style*="--l:0"] .mn { color: var(--c); }
+.mrow:not([style*="--l:0"]) .mn::before { content: '└ '; color: var(--b2); font-weight: 400; }
+.mnote { flex: 1; min-width: 0; font-size: .8em; color: var(--dim); line-height: 1.3; }
+.st.ret { color: var(--dim); }
 
-.sched-col.fabric { gap: 0; }
-.sched-subgroup { display: flex; flex-direction: column; flex: 1; }
-.sched-subgroup + .sched-subgroup { border-top: 2px solid var(--b1); }
-.sched-subgroup-hdr { padding: .45rem .6rem; text-align: center; font-weight: 700; font-size: .85rem; letter-spacing: .3px; text-transform: uppercase; color: #fff; }
-.sched-subgroup.active .sched-subgroup-hdr { box-shadow: inset 0 0 0 2px rgba(255,255,255,.5); }
-
-.loop-wrap { display: flex; flex-direction: column; align-items: center; gap: .15rem; }
-.loop-svg { width: 100%; height: 34px; display: block; }
-.loop-path { fill: none; stroke: var(--b2); stroke-width: 2; stroke-dasharray: 6 4; }
-.loop-lbl { font-family: 'JetBrains Mono', monospace; font-size: .95rem; font-weight: 700; color: var(--dim); letter-spacing: .4px; transition: color .3s; }
-.loop-lbl.active { color: var(--col-orange); }
-
+/* ---- Page 5: Simulation coverage (SVG: mesh + nodes + Traffic Manager + Perf Analyzer) ---- */
+#cov-svg { width: 100%; height: 100%; max-height: 100%; }
+#cov-svg .cv { transition: opacity .35s; }
+#cov-svg .cv.idle { opacity: .16; }
+#cov-svg .cv.cv-hid.idle { opacity: 0; }
+#cov-svg text { font-family: 'JetBrains Mono', monospace; }
+.cv-h { font-family: 'Inter', sans-serif !important; font-weight: 800; font-size: 14px; letter-spacing: 1.6px; }
+.cv-sub { font-weight: 500; font-size: 10.5px; fill: var(--dim); }
+.cv-tm-frame { fill: color-mix(in srgb, var(--col-cyan) 4%, var(--s1)); stroke: var(--col-cyan); stroke-width: 2.2; stroke-dasharray: 10 6; }
+.cv-g2.active .cv-tm-frame { stroke-width: 3; animation: dash-flow 1.2s linear infinite; }
+.cv-link { stroke: var(--col-blue); stroke-width: 1.5; }
+.cv-g0.active .cv-link { stroke-dasharray: 7 5; animation: dash-flow .8s linear infinite; }
+.cv-router { fill: color-mix(in srgb, var(--col-blue) 9%, var(--s1)); stroke: var(--col-blue); stroke-width: 2; }
+.cv-g0.active .cv-router { filter: drop-shadow(0 0 5px var(--col-blue)); }
+.cv-rt { font-weight: 800; font-size: 15px; fill: var(--col-blue); text-anchor: middle; dominant-baseline: central; }
+.cv-stub { stroke: var(--col-purple); stroke-width: 2; }
+.cv-port { fill: var(--col-purple); stroke: var(--s1); stroke-width: 1.2; }
+.cv-node { fill: color-mix(in srgb, var(--col-purple) 12%, var(--s1)); stroke: var(--col-purple); stroke-width: 2; }
+.cv-g1.active .cv-node { filter: drop-shadow(0 0 5px var(--col-purple)); }
+.cv-nd { font-weight: 800; font-size: 10px; fill: var(--col-purple); text-anchor: middle; dominant-baseline: central; }
+.cv-ring { fill: none; stroke: var(--col-cyan); stroke-width: 2; opacity: 0; }
+.cv-g2.active .cv-ring { animation: cv-pulse 1.4s ease-in-out infinite; }
+@keyframes cv-pulse { 0%, 100% { opacity: .15; } 50% { opacity: 1; } }
+.cv-bus { fill: none; stroke: var(--col-teal); stroke-width: 2.2; stroke-dasharray: 5 4; }
+.cv-g3.active .cv-bus { animation: dash-flow .8s linear infinite; }
+.cv-probe { fill: var(--col-teal); stroke: var(--s1); stroke-width: 1.5; }
+.cv-pa { fill: var(--s1); stroke: var(--col-teal); stroke-width: 2; }
+.cv-g3.active .cv-pa { stroke-width: 3; filter: drop-shadow(0 0 7px var(--col-teal)); }
+.cv-prow { fill: color-mix(in srgb, var(--col-teal) 8%, var(--s1)); stroke: color-mix(in srgb, var(--col-teal) 40%, var(--b1)); stroke-width: 1.2; }
+.cv-prow.todo, .cv-gh-box { fill: var(--s2); stroke: var(--b2); stroke-dasharray: 4 3; }
+.cv-pn { font-weight: 700; font-size: 12.5px; fill: var(--text); }
+.cv-prow.todo + .cv-pn { fill: var(--dim); }
+.cv-pnote { font-weight: 500; font-size: 10px; fill: var(--muted); }
+.cv-ok { font-weight: 800; font-size: 16px; fill: var(--col-green); text-anchor: middle; }
+.cv-no { font-weight: 700; font-size: 10px; fill: var(--col-red); text-anchor: middle; }
+.cv-gh-box { fill: color-mix(in srgb, var(--col-orange) 4%, var(--s1)); stroke: var(--col-orange); stroke-width: 2; }
+.cv-gh-ring { fill: none; stroke: var(--col-orange); stroke-width: 2; stroke-dasharray: 4 3; }
+.cv-gh-dot { fill: none; stroke: var(--col-orange); stroke-width: 2; }
+.cv-gn { font-weight: 700; font-size: 12.5px; fill: var(--text); }
+.cv-leg { font-weight: 500; font-size: 11px; fill: var(--muted); }
 /* ================================================================
    LANDING VIEW (title slide — shown first, on top of everything)
 ================================================================ */
@@ -307,6 +381,11 @@ body {
   text-decoration: none; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
   transition: all .18s;
 }
+.landing-card.wide { grid-column: 1 / -1; }
+.landing-card.archive { background: var(--s2); border-style: dashed; box-shadow: none; }
+.landing-card.archive .landing-card-name { color: var(--muted); }
+.landing-card.archive .landing-card-desc { color: var(--dim); }
+.archive-tag { margin-left: .6rem; vertical-align: middle; font-family: 'JetBrains Mono', monospace; font-size: .7rem; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; color: var(--dim); border: 1px solid var(--b2); border-radius: 20px; padding: .15rem .6rem; }
 .landing-card:hover { border-color: var(--b2); box-shadow: 0 4px 14px rgba(0,0,0,0.08); transform: translateY(-1px); }
 .landing-card-icon { width: 44px; height: 44px; border-radius: 10px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #fff; }
 .landing-card-text { flex: 1; min-width: 0; }
@@ -372,38 +451,23 @@ body {
       <div class="landing-subtitle">NoC Simulator — Interactive Walkthroughs</div>
     </div>
     <div class="landing-continue-row">
-      <button class="landing-start-btn" onclick="Landing.enterArchitecture()">Start Presentation →</button>
+      <button class="landing-start-btn" onclick="Landing.enterFirst()">Start Presentation →</button>
     </div>
     <div class="landing-list">
-      <div class="landing-card" onclick="Landing.enterArchitecture()">
+      <div class="landing-card wide" onclick="Landing.enterFirst()">
         <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-cyan), var(--col-blue))">⬡</div>
         <div class="landing-card-text">
-          <div class="landing-card-name">System Architecture &amp; Execution Flow</div>
-          <div class="landing-card-desc">Frontend configuration through the backend engine and back — including a drill-down into the per-cycle Event Scheduler.</div>
+          <div class="landing-card-name">Simulation Coverage, Architecture &amp; API Integration</div>
+          <div class="landing-card-desc">How much of the hardware is simulated today, then the React GUI, Drogon API server and C++ Core: how a run flows through them and where each backend module stands.</div>
         </div>
         <div class="landing-card-arrow">→</div>
       </div>
-      <a class="landing-card" href="flit-lifecycle.html">
-        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-cyan), var(--col-blue))">◆</div>
+      <div class="landing-divider">Last meeting</div>
+      <a class="landing-card archive wide" href="archive/index.html">
+        <div class="landing-card-icon" style="background:var(--b2)">↺</div>
         <div class="landing-card-text">
-          <div class="landing-card-name">Flit Lifecycle</div>
-          <div class="landing-card-desc">Trace a single flit end-to-end from TM creation to retirement.</div>
-        </div>
-        <div class="landing-card-arrow">↗</div>
-      </a>
-      <a class="landing-card" href="router-pipeline.html">
-        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-purple), var(--col-pink))">◆</div>
-        <div class="landing-card-text">
-          <div class="landing-card-name">Router Pipeline</div>
-          <div class="landing-card-desc">Cycle-accurate look at the 5-stage (EVAL/UPD) router execution.</div>
-        </div>
-        <div class="landing-card-arrow">↗</div>
-      </a>
-      <a class="landing-card" href="chi-channel-architecture.html">
-        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-orange), var(--col-yellow))">◆</div>
-        <div class="landing-card-text">
-          <div class="landing-card-name">CHI Channel &amp; Flit Details</div>
-          <div class="landing-card-desc">How the 4 CHI channels multiplex onto the shared router core.</div>
+          <div class="landing-card-name">Archive: Last Meeting's Slides <span class="archive-tag">Presented July 2026</span></div>
+          <div class="landing-card-desc">System Architecture &amp; Event Scheduler, Flit Lifecycle, Router Pipeline, and CHI Channels. Not part of this walkthrough.</div>
         </div>
         <div class="landing-card-arrow">↗</div>
       </a>
@@ -415,17 +479,24 @@ body {
         </div>
         <div class="landing-card-arrow">↗</div>
       </a>
-      <a class="landing-card" href="../verification-presentation/index.html">
-        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-teal), var(--col-cyan))">✓</div>
+      <a class="landing-card" href="../testing-presentation/index.html">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-teal), var(--col-green))">✓</div>
         <div class="landing-card-text">
-          <div class="landing-card-name">Verification &amp; Validation</div>
+          <div class="landing-card-name">Testing &amp; Verification</div>
         </div>
         <div class="landing-card-arrow">↗</div>
       </a>
-      <a class="landing-card" href="../sdlc-presentation/index.html">
-        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-orange), var(--col-yellow))">☑</div>
+      <a class="landing-card" href="../repo-presentation/index.html">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-purple), var(--col-orange))">⇆</div>
         <div class="landing-card-text">
-          <div class="landing-card-name">Software Development Lifecycle</div>
+          <div class="landing-card-name">Repository, CI/CD &amp; Documentation</div>
+        </div>
+        <div class="landing-card-arrow">↗</div>
+      </a>
+      <a class="landing-card" href="../mesh-presentation/index.html">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-orange), var(--col-pink))">⊞</div>
+        <div class="landing-card-text">
+          <div class="landing-card-name">Internal Mesh &amp; Node Architecture</div>
         </div>
         <div class="landing-card-arrow">↗</div>
       </a>
@@ -466,22 +537,34 @@ body {
   <div class="flow-switch">
     <div class="flow-switch-lbl">Switch Flow</div>
     <a class="flow-switch-item fs-blue current" href="index.html?flow=architecture">System Architecture</a>
-    <a class="flow-switch-item fs-cyan" href="flit-lifecycle.html">Flit Lifecycle</a>
-    <a class="flow-switch-item fs-purple" href="router-pipeline.html">Router Pipeline</a>
-    <a class="flow-switch-item fs-orange" href="chi-channel-architecture.html">CHI Channels</a>
-    <a class="flow-switch-item fs-teal" href="../verification-presentation/index.html">Verification & Validation ↗</a>
+    <a class="flow-switch-item fs-teal" href="../testing-presentation/index.html">Testing & Verification ↗</a>
     <a class="flow-switch-item fs-pink" href="../pcie-presentation/index.html">PCIe & RN-I Bridge ↗</a>
   </div>
   <div class="nav-group-label">Presentation Pages</div>
   <button class="nav-item active" id="nav-0" onclick="App.goToPage(0)">
     <div class="nav-status-icon" id="nav-st-0"></div>
-    <div class="nav-text"><div class="nav-num">01</div><div class="nav-name">System Architecture</div></div>
-    <div class="nav-color-dot" style="background:var(--col-cyan)"></div>
+    <div class="nav-text"><div class="nav-num">01</div><div class="nav-name">Simulation Coverage</div></div>
+    <div class="nav-color-dot" style="background:var(--col-orange)"></div>
   </button>
   <button class="nav-item" id="nav-1" onclick="App.goToPage(1)">
     <div class="nav-status-icon" id="nav-st-1"></div>
-    <div class="nav-text"><div class="nav-num">02</div><div class="nav-name">Event Scheduler</div></div>
-    <div class="nav-color-dot" style="background:var(--col-purple)"></div>
+    <div class="nav-text"><div class="nav-num">02</div><div class="nav-name">System Architecture</div></div>
+    <div class="nav-color-dot" style="background:var(--col-cyan)"></div>
+  </button>
+  <button class="nav-item" id="nav-2" onclick="App.goToPage(2)">
+    <div class="nav-status-icon" id="nav-st-2"></div>
+    <div class="nav-text"><div class="nav-num">03</div><div class="nav-name">API &amp; Drogon Server</div></div>
+    <div class="nav-color-dot" style="background:var(--col-blue)"></div>
+  </button>
+  <button class="nav-item" id="nav-3" onclick="App.goToPage(3)">
+    <div class="nav-status-icon" id="nav-st-3"></div>
+    <div class="nav-text"><div class="nav-num">04</div><div class="nav-name">Simulation Run Flow</div></div>
+    <div class="nav-color-dot" style="background:var(--col-green)"></div>
+  </button>
+  <button class="nav-item" id="nav-4" onclick="App.goToPage(4)">
+    <div class="nav-status-icon" id="nav-st-4"></div>
+    <div class="nav-text"><div class="nav-num">05</div><div class="nav-name">Backend Module Status</div></div>
+    <div class="nav-color-dot" style="background:var(--col-teal)"></div>
   </button>
   <div class="nav-kbd-hint">
     <span class="kbd">←</span><span class="kbd">→</span> navigate &nbsp;·&nbsp;
@@ -492,166 +575,357 @@ body {
      MAIN CANVAS
 ══════════════════════════════════════════════════════════════ -->
 <main id="main-canvas">
-  <!-- ── PAGE 1: SYSTEM ARCHITECTURE ── -->
-  <div id="page-architecture" class="page-view active">
-    <svg id="arch-svg" viewBox="0 0 1100 500" xmlns="http://www.w3.org/2000/svg" aria-label="NoC Simulator system architecture flow">
+  <!-- ── PAGE 1: SIMULATION COVERAGE (5 steps) ── -->
+  <div id="page-coverage" class="page-view active">
+    <svg id="cov-svg" viewBox="0 0 1200 560" xmlns="http://www.w3.org/2000/svg" aria-label="How much of the hardware is simulated today">
       <defs>
-        <marker id="arrow-head-dim" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-          <path d="M0,0 L10,5 L0,10 z" fill="#cbd5e1"/>
-        </marker>
-        <marker id="arrow-head-lit" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-          <path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/>
-        </marker>
-        <marker id="arrow-head-cyan" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-          <path d="M0,0 L10,5 L0,10 z" fill="#0284c7"/>
-        </marker>
-        <marker id="arrow-head-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-          <path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/>
-        </marker>
+        <marker id="m-teal" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0d9488"/></marker>
       </defs>
-      <!-- ═══ BAND 1: FRONTEND ═══ -->
-      <rect class="band-box" x="20" y="36" width="1060" height="150" rx="14"/>
-      <text class="lane-lbl fe" x="40" y="58">Frontend</text>
-      <text class="phase-lbl" x="202" y="76">Phase 1 · Configuration</text>
-      <text class="phase-lbl" x="550" y="76">Phase 2 · Performance Analysis</text>
-      <g class="step-node grp-cyan idle" id="node-1" transform="translate(40,86)">
-        <rect class="box" width="150" height="72" rx="10"/>
-        <text class="title" x="75" y="30">NoC Configuration</text>
-        <text class="sub" x="75" y="48">Configuration Form</text>
-        <g class="num-badge" transform="translate(0,0)"><circle r="11"/><text>1</text></g>
+      <!-- Traffic Manager: the layer that surrounds the mesh -->
+      <g class="cv cv-g2 idle">
+        <rect class="cv-tm-frame" x="16" y="12" width="780" height="536" rx="18"/>
+        <text class="cv-h" x="40" y="42" fill="#0284c7">TRAFFIC MANAGER</text>
+        <text class="cv-sub" x="40" y="60">decides when and where every node sends · 5 patterns · Bernoulli / on-off injection</text>
+        <text class="cv-sub" x="772" y="42" text-anchor="end" fill="#0284c7" style="font-weight:700;font-size:11px">▼ inject · ▲ eject</text>
       </g>
-      <g class="step-node grp-cyan idle" id="node-2" transform="translate(214,86)">
-        <rect class="box" width="150" height="72" rx="10"/>
-        <text class="title" x="75" y="30">NoC Editor</text>
-        <text class="sub" x="75" y="48">Visual Topology Canvas</text>
-        <g class="num-badge" transform="translate(0,0)"><circle r="11"/><text>2</text></g>
+      <!-- Mesh fabric: routers + links (built in JS) -->
+      <g class="cv cv-g0 idle"><g id="cv-links"></g><g id="cv-routers"></g></g>
+      <!-- Nodes attached to every router (built in JS) -->
+      <g class="cv cv-g1 idle" id="cv-nodes"></g>
+      <g class="cv cv-g2 idle" id="cv-rings"></g>
+      <!-- Performance Analyzer: probes on the mesh, a bus out, and the analyzer panel -->
+      <g class="cv cv-g3 idle">
+        <g id="cv-probes"></g>
+        <path class="cv-bus" d="M796,130 H828 V445 M796,235 H828 M796,340 H828 M796,445 H828"/>
+        <path class="cv-bus" d="M828,190 H854" marker-end="url(#m-teal)"/>
+        <circle class="cv-probe" cx="796" cy="130" r="4"/><circle class="cv-probe" cx="796" cy="235" r="4"/>
+        <circle class="cv-probe" cx="796" cy="340" r="4"/><circle class="cv-probe" cx="796" cy="445" r="4"/>
       </g>
-      <path class="flow-arrow" id="arrow-1-2" d="M194,122 L210,122"/>
-      <g class="step-node grp-cyan idle" id="node-3" transform="translate(388,86)">
-        <rect class="box" width="150" height="72" rx="10"/>
-        <text class="title" x="75" y="30">Test Case Creation</text>
-        <text class="sub" x="75" y="48">Test Case Builder</text>
-        <g class="num-badge" transform="translate(0,0)"><circle r="11"/><text>3</text></g>
+      <g class="cv cv-g3 idle">
+        <rect class="cv-pa" x="860" y="12" width="324" height="300" rx="14"/>
+        <text class="cv-h" x="880" y="40" fill="#0d9488">PERFORMANCE ANALYZER</text>
+        <text class="cv-sub" x="880" y="58">listens to flit events and router occupancy</text>
+        <line x1="876" y1="68" x2="1168" y2="68" stroke="#cbd5e1" stroke-width="1.2"/>
+        <rect class="cv-prow" x="876" y="80" width="292" height="36" rx="7"/>
+        <text class="cv-pn" x="890" y="96">FlitMetrics</text><text class="cv-pnote" x="890" y="109">events + report</text><text class="cv-ok" x="1150" y="104">✓</text>
+        <rect class="cv-prow" x="876" y="124" width="292" height="36" rx="7"/>
+        <text class="cv-pn" x="890" y="140">LatencyTimeline</text><text class="cv-pnote" x="890" y="153">live latency graph</text><text class="cv-ok" x="1150" y="148">✓</text>
+        <rect class="cv-prow" x="876" y="168" width="292" height="36" rx="7"/>
+        <text class="cv-pn" x="890" y="184">RouterOccupancyTimeline</text><text class="cv-pnote" x="890" y="197">buffer heatmap</text><text class="cv-ok" x="1150" y="192">✓</text>
+        <rect class="cv-prow todo" x="876" y="212" width="292" height="36" rx="7"/>
+        <text class="cv-pn" x="890" y="228">Throughput monitor</text><text class="cv-pnote" x="890" y="241">per-VC occupancy too</text><text class="cv-no" x="1148" y="234">to do</text>
+        <rect class="cv-prow todo" x="876" y="256" width="292" height="36" rx="7"/>
+        <text class="cv-pn" x="890" y="272">CSV / JSON export</text><text class="cv-pnote" x="890" y="285">results to file</text><text class="cv-no" x="1148" y="278">to do</text>
       </g>
-      <g class="step-node grp-cyan idle" id="node-4" transform="translate(562,86)">
-        <rect class="box" width="150" height="72" rx="10"/>
-        <text class="title" x="75" y="30">Run Simulation</text>
-        <text class="sub" x="75" y="48">Run Controller</text>
-        <g class="num-badge" transform="translate(0,0)"><circle r="11"/><text>4</text></g>
+      <!-- Not simulated yet -->
+      <g class="cv cv-g4 cv-hid idle" id="cv-ghost-rings"></g>
+      <g class="cv cv-g4 cv-hid idle">
+        <rect class="cv-gh-box" x="860" y="336" width="324" height="212" rx="14"/>
+        <text class="cv-h" x="880" y="364" fill="#ea580c">NOT SIMULATED YET</text>
+        <line x1="876" y1="374" x2="1168" y2="374" stroke="#cbd5e1" stroke-width="1.2"/>
+        <circle class="cv-gh-dot" cx="886" cy="396" r="4"/><text class="cv-gn" x="900" y="400">Node Layer: RN-F · HN-F · SN-F</text>
+        <text class="cv-pnote" x="900" y="414">replaces today's generic nodes (dashed rings)</text>
+        <circle class="cv-gh-dot" cx="886" cy="436" r="4"/><text class="cv-gn" x="900" y="440">CHI coherence + P-credits</text>
+        <text class="cv-pnote" x="900" y="454">needs the Node Layer first</text>
+        <circle class="cv-gh-dot" cx="886" cy="476" r="4"/><text class="cv-gn" x="900" y="480">Torus / ring topologies</text>
+        <text class="cv-pnote" x="900" y="494">mesh only today</text>
+        <circle class="cv-gh-dot" cx="886" cy="516" r="4"/><text class="cv-gn" x="900" y="520">Adaptive routing</text>
+        <text class="cv-pnote" x="900" y="534">XY only today</text>
       </g>
-      <path class="flow-arrow" id="arrow-3-4" d="M542,122 L558,122"/>
-      <g class="step-node grp-green idle" id="node-10" transform="translate(880,86)">
-        <rect class="box" width="170" height="72" rx="10"/>
-        <text class="title" x="85" y="30">Metrics &amp; Visualization</text>
-        <text class="sub" x="85" y="48">Metrics Dashboard</text>
-        <g class="num-badge" transform="translate(0,0)"><circle r="11"/><text>10</text></g>
+      <!-- Legend (always visible) -->
+      <g>
+        <rect class="cv-router" x="40" y="518" width="14" height="14" rx="3" style="stroke-width:1.5"/><text class="cv-leg" x="62" y="529">Router · 5-stage</text>
+        <circle class="cv-port" cx="196" cy="525" r="3.5"/><text class="cv-leg" x="206" y="529">Local port</text>
+        <rect class="cv-node" x="292" y="518" width="14" height="14" rx="3" style="stroke-width:1.5"/><text class="cv-leg" x="314" y="529">Node · generic endpoint</text>
+        <g class="cv-link-sw"><line class="cv-link" x1="486" y1="520.5" x2="510" y2="520.5"/><line class="cv-link" x1="486" y1="523.5" x2="510" y2="523.5"/><line class="cv-link" x1="486" y1="526.5" x2="510" y2="526.5"/><line class="cv-link" x1="486" y1="529.5" x2="510" y2="529.5"/></g>
+        <text class="cv-leg" x="518" y="529">Link · 4 CHI channels</text>
       </g>
-      <!-- ═══ BAND 2: INTERFACE ═══ -->
-      <rect class="band-box" x="20" y="200" width="1060" height="112" rx="14"/>
-      <text class="lane-lbl if" x="40" y="220">Interface · API Gateway</text>
-      <g class="step-node grp-blue idle" id="node-5" transform="translate(562,224)">
-        <rect class="box" width="150" height="72" rx="10"/>
-        <text class="title" x="75" y="30">API Call</text>
-        <text class="sub" x="75" y="48">Config Parameters</text>
-        <g class="num-badge" transform="translate(0,0)"><circle r="11"/><text>5</text></g>
-      </g>
-      <g class="step-node grp-blue idle" id="node-9" transform="translate(890,224)">
-        <rect class="box" width="150" height="72" rx="10"/>
-        <text class="title" x="75" y="30">API Call</text>
-        <text class="sub" x="75" y="48">Runtime Stats</text>
-        <g class="num-badge" transform="translate(0,0)"><circle r="11"/><text>9</text></g>
-      </g>
-      <text class="api-arrow-lbl" id="arrow-api-config-lbl" x="800" y="248">⇢ Config Parameters</text>
-      <text class="api-arrow-lbl" id="arrow-api-stats-lbl" x="800" y="270">Runtime Stats ⇢</text>
-      <!-- ═══ BAND 3: BACKEND ═══ -->
-      <rect class="band-box" x="20" y="330" width="1060" height="150" rx="14"/>
-      <text class="lane-lbl be" x="40" y="352">Backend Engine</text>
-      <text class="phase-lbl" x="714" y="370">Phase 1 · Construction</text>
-      <text class="phase-lbl" x="965" y="370">Phase 2 · Runtime</text>
-      <g class="step-node grp-purple idle" id="node-6" transform="translate(562,382)">
-        <rect class="box" width="150" height="72" rx="10"/>
-        <text class="title" x="75" y="30">Configuration Loader</text>
-        <text class="sub" x="75" y="48">Loads API parameters</text>
-        <g class="num-badge" transform="translate(0,0)"><circle r="11"/><text>6</text></g>
-      </g>
-      <g class="step-node grp-purple idle" id="node-7" transform="translate(736,382)">
-        <rect class="box" width="130" height="72" rx="10"/>
-        <text class="title" x="65" y="30">Initialization</text>
-        <text class="sub" x="65" y="48">Topology + Traffic Mgr</text>
-        <g class="num-badge" transform="translate(0,0)"><circle r="11"/><text>7</text></g>
-      </g>
-      <path class="flow-arrow" id="arrow-6-7" d="M716,418 L732,418"/>
-      <g class="step-node grp-orange idle drill" id="node-8" transform="translate(890,382)" onclick="App.goToPage(1)">
-        <title>Click to open the Event Scheduler</title>
-        <rect class="box" width="150" height="72" rx="10"/>
-        <text class="title" x="75" y="26">Run Simulation</text>
-        <text class="sub" x="75" y="40">Event Scheduler</text>
-        <text class="drill-hint" x="75" y="60">↳ View Event Scheduler</text>
-        <g class="num-badge" transform="translate(0,0)"><circle r="11"/><text>8</text></g>
-      </g>
-      <!-- Vertical interface connectors -->
-      <path class="api-arrow idle" id="arrow-4-5" d="M637,158 L637,220"/>
-      <path class="api-arrow idle" id="arrow-5-6" d="M637,296 L637,378"/>
-      <path class="api-arrow idle" id="arrow-8-9" d="M965,378 L965,300"/>
-      <path class="api-arrow idle" id="arrow-9-10" d="M965,220 L965,158"/>
     </svg>
   </div>
-  <!-- ── PAGE 2: EVENT SCHEDULER ── -->
-  <div id="page-scheduler" class="page-view">
-    <div class="sched-wrap">
-      <div class="sched-cols">
-        <div class="sched-col" data-group="tm" style="--gc:var(--col-cyan)">
-          <div class="sched-col-hdr" style="background:var(--col-cyan)">Traffic Manager</div>
-          <div class="sched-rows">
-            <div class="sched-row idle" id="sr-1"><div class="sr-icon">1</div><div class="sr-txt"><div class="sr-name">Read Flits</div><div class="sr-desc">Eject flits from the network</div></div></div>
-            <div class="sched-row idle" id="sr-2"><div class="sr-icon">2</div><div class="sr-txt"><div class="sr-name">Retire Flits</div><div class="sr-desc">Retire ejected flits, timestamp &amp; stats</div></div></div>
-            <div class="sched-row idle" id="sr-3"><div class="sr-icon">3</div><div class="sr-txt"><div class="sr-name">Issue Packet</div><div class="sr-desc">Decide whether to generate a packet</div></div></div>
-            <div class="sched-row idle" id="sr-4"><div class="sr-icon">4</div><div class="sr-txt"><div class="sr-name">Generate Packet</div><div class="sr-desc">Create flits per traffic pattern</div></div></div>
-            <div class="sched-row idle" id="sr-5"><div class="sr-icon">5</div><div class="sr-txt"><div class="sr-name">Write Flits</div><div class="sr-desc">Inject the flit onto the network</div></div></div>
-          </div>
+  <!-- ── PAGE 2: SYSTEM ARCHITECTURE ── -->
+  <div id="page-architecture" class="page-view">
+    <div class="slide arch-slide">
+      <div class="lane fx" id="lane-0" style="--c:var(--col-cyan)">
+        <div class="lane-head">
+          <span class="lane-name">Frontend · Web Client</span>
+          <span class="tech-badges"><span class="tech">React</span><span class="tech">TypeScript</span><span class="tech">Material UI</span><span class="tech">Projects → browser localStorage</span></span>
         </div>
-        <div class="sched-arrow">→</div>
-        <div class="sched-col" data-group="rp" style="--gc:var(--col-purple)">
-          <div class="sched-col-hdr" style="background:var(--col-purple)">Router Pipeline</div>
-          <div class="sched-rows">
-            <div class="sched-row idle" id="sr-6"><div class="sr-icon">6</div><div class="sr-txt"><div class="sr-name">Input Queuing</div><div class="sr-desc">Store flits in VCs (Buffer Write)</div></div></div>
-            <div class="sched-row idle" id="sr-7"><div class="sr-icon">7</div><div class="sr-txt"><div class="sr-name">Route Computation</div><div class="sr-desc">Compute output port</div></div></div>
-            <div class="sched-row idle" id="sr-8"><div class="sr-icon">8</div><div class="sr-txt"><div class="sr-name">VC Allocation</div><div class="sr-desc">Find VC in output port buffer</div></div></div>
-            <div class="sched-row idle" id="sr-9"><div class="sr-icon">9</div><div class="sr-txt"><div class="sr-name">SW Allocation</div><div class="sr-desc">Crossbar grant arbitration</div></div></div>
-            <div class="sched-row idle" id="sr-10"><div class="sr-icon">10</div><div class="sr-txt"><div class="sr-name">SW Traversal</div><div class="sr-desc">Crossbar traversal of granted flits</div></div></div>
-          </div>
+        <div class="blocks" style="--n:4">
+          <div class="blk"><div class="blk-t">Configuration</div><div class="blk-d">Stepper form with parameter validation and a live JSON preview.</div></div>
+          <div class="blk"><div class="blk-t">Visual Editor</div><div class="blk-d">Visual 2D mesh layout and node assignment.</div></div>
+          <div class="blk"><div class="blk-t">Simulation</div><div class="blk-d">Test cases, traffic pattern, injection rate and run control.</div></div>
+          <div class="blk"><div class="blk-t">Analysis</div><div class="blk-d">Latency graphs and live router-buffer heatmaps.</div></div>
         </div>
-        <div class="sched-arrow">→</div>
-        <div class="sched-col fabric" data-group="ll rl">
-          <div class="sched-col-hdr" style="background:var(--muted)">Network Fabric</div>
-          <div class="sched-subgroup" data-group="ll">
-            <div class="sched-subgroup-hdr" style="background:var(--col-blue)">Local Link</div>
-            <div class="sched-rows">
-              <div class="sched-row idle" id="sr-11"><div class="sr-icon">11</div><div class="sr-txt"><div class="sr-name">Forward Flits</div><div class="sr-desc">TM inject queue → channel</div></div></div>
-              <div class="sched-row idle" id="sr-12"><div class="sr-icon">12</div><div class="sr-txt"><div class="sr-name">Deliver Flits</div><div class="sr-desc">Channel → router</div></div></div>
-              <div class="sched-row idle" id="sr-13"><div class="sr-icon">13</div><div class="sr-txt"><div class="sr-name">Forward From Router</div><div class="sr-desc">Router local port → channel</div></div></div>
-              <div class="sched-row idle" id="sr-14"><div class="sr-icon">14</div><div class="sr-txt"><div class="sr-name">Deliver From Router</div><div class="sr-desc">Channel → TM</div></div></div>
+      </div>
+      <div class="link idle" id="link-0"><span class="link-lbl">⇅ JSON over HTTP · REST + WebSocket</span></div>
+      <div class="lane fx" id="lane-1" style="--c:var(--col-blue)">
+        <div class="lane-head">
+          <span class="lane-name">Middleware · In-Process Web Server</span>
+          <span class="tech-badges"><span class="tech">Drogon (C++17)</span><span class="tech">REST API</span><span class="tech">WebSocket /ws/v1</span><span class="tech">4 worker threads</span></span>
+        </div>
+        <div class="blocks" style="--n:3">
+          <div class="blk"><div class="blk-t">REST Endpoints</div><div class="blk-d">Start a run, poll its status, fetch its results: <b>POST</b> /api/v1/runs · <b>GET</b> /api/v1/runs/{id}.</div></div>
+          <div class="blk"><div class="blk-t">WebSocket Live Hub</div><div class="blk-d">Pushes live latency and heatmap updates to the client.</div></div>
+          <div class="blk"><div class="blk-t">In-Memory Run Registry</div><div class="blk-d">Keeps the 50 most recent runs. No database; nothing persists.</div></div>
+        </div>
+      </div>
+      <div class="link idle" id="link-1"><span class="link-lbl">⇅ in-process C++ calls · Core linked in as a library</span></div>
+      <div class="lane fx" id="lane-2" style="--c:var(--col-purple)">
+        <div class="lane-head">
+          <span class="lane-name">Backend · Simulation Engine (Core)</span>
+          <span class="tech-badges"><span class="tech">C++17</span><span class="tech">Cycle-accurate</span><span class="tech">Linked in-process</span><span class="tech">GoogleTest</span></span>
+        </div>
+        <div class="blocks" style="--n:4">
+          <div class="blk"><div class="blk-t">ConfigLoader &amp; SimulationEngine</div><div class="blk-d">Turns the config into an immutable SimConfig, then builds and runs the simulation.</div></div>
+          <div class="blk"><div class="blk-t">NoC Fabric &amp; Routers</div><div class="blk-d">2D mesh, 5-stage IQ → RC → VA → SA → ST pipeline, credit flow control.</div></div>
+          <div class="blk"><div class="blk-t">Traffic Manager</div><div class="blk-d">Synthetic traffic: uniform, hotspot, tornado, neighbor, bitcomp.</div></div>
+          <div class="blk"><div class="blk-t">Performance Analyzer</div><div class="blk-d">FlitMetrics, LatencyTimeline, RouterOccupancyTimeline.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- ── PAGE 3: API & DROGON ── -->
+  <div id="page-api" class="page-view">
+    <div class="slide">
+      <div class="pillars">
+        <div class="pillar fx" id="pillar-0" style="--c:var(--col-cyan)">
+          <div class="pillar-hdr"><h3>1. How GUI and server talk</h3><p>JSON messages over the network</p></div>
+          <div class="pillar-body">
+            <div>
+              <div class="mode-hd"><span class="tech" style="--c:var(--col-cyan)">REST (HTTP)</span><span class="mode-cap">Ask, get an answer</span></div>
+              <svg class="api-svg" viewBox="0 0 420 100" aria-label="REST: one request, one reply">
+                <rect class="abox" x="4" y="20" width="96" height="60" rx="8" stroke="#0284c7"/><text class="abox-t" x="52" y="50" fill="#0284c7">GUI</text>
+                <rect class="abox" x="320" y="20" width="96" height="60" rx="8" stroke="#2563eb"/><text class="abox-t" x="368" y="50" fill="#2563eb">Server</text>
+                <path class="amsg api-anim" d="M104,38 L314,38" stroke="#0284c7" marker-end="url(#m-cyan)"/>
+                <text class="alb" x="210" y="30">request</text>
+                <path class="amsg ret api-anim" d="M316,64 L110,64" stroke="#2563eb" marker-end="url(#m-blue)"/>
+                <text class="alb" x="210" y="84">reply</text>
+              </svg>
+              <div class="mode-cap">Start a run, get its status and results</div>
+            </div>
+            <div>
+              <div class="mode-hd"><span class="tech" style="--c:var(--col-blue)">WebSocket</span><span class="mode-cap">Stays open, server pushes</span></div>
+              <svg class="api-svg" viewBox="0 0 420 100" aria-label="WebSocket: open connection, server pushes updates">
+                <rect class="abox" x="4" y="20" width="96" height="60" rx="8" stroke="#0284c7"/><text class="abox-t" x="52" y="50" fill="#0284c7">GUI</text>
+                <rect class="abox" x="320" y="20" width="96" height="60" rx="8" stroke="#2563eb"/><text class="abox-t" x="368" y="50" fill="#2563eb">Server</text>
+                <rect class="tube" x="104" y="32" width="212" height="36" rx="18"/>
+                <circle class="pushdot" cx="296" cy="50" r="6"/><circle class="pushdot" cx="296" cy="50" r="6"/><circle class="pushdot" cx="296" cy="50" r="6"/>
+                <text class="alb" x="210" y="92">connection stays open</text>
+              </svg>
+              <div class="mode-cap">Live latency and heatmap updates</div>
             </div>
           </div>
-          <div class="sched-subgroup" data-group="rl">
-            <div class="sched-subgroup-hdr" style="background:var(--col-orange)">Router Link</div>
-            <div class="sched-rows">
-              <div class="sched-row idle" id="sr-15"><div class="sr-icon">15</div><div class="sr-txt"><div class="sr-name">Forward Flits</div><div class="sr-desc">Router output buffer → channel</div></div></div>
-              <div class="sched-row idle" id="sr-16"><div class="sr-icon">16</div><div class="sr-txt"><div class="sr-name">Deliver Flits</div><div class="sr-desc">Channel → router</div></div></div>
+        </div>
+        <div class="pillar fx idle" id="pillar-1" style="--c:var(--col-blue)">
+          <div class="pillar-hdr"><h3>2. What the server does</h3><p>Every message finds its C++ function</p></div>
+          <div class="pillar-body">
+            <div class="srv-strip">start-up: read config.json (port 8080, 4 threads) · check port is free</div>
+            <div class="routes">
+              <div class="rt"><span class="verb">POST</span><span class="path">/api/v1/runs</span><span class="arr">→</span><span class="fn">StartRun()</span></div>
+              <div class="rt"><span class="verb">GET</span><span class="path">/api/v1/runs/{id}</span><span class="arr">→</span><span class="fn">GetStatus()</span></div>
+              <div class="rt"><span class="verb">GET</span><span class="path">…/results</span><span class="arr">→</span><span class="fn">GetResults()</span></div>
+              <div class="rt"><span class="verb">WS</span><span class="path">/ws/v1</span><span class="arr">→</span><span class="fn">live updates</span></div>
             </div>
+            <div class="srv-strip">app.run(): message in → handler → reply, until Ctrl+C</div>
+          </div>
+        </div>
+        <div class="pillar fx idle" id="pillar-2" style="--c:var(--col-purple)">
+          <div class="pillar-hdr"><h3>3. Why Drogon</h3><p>A C++ library that does the networking</p></div>
+          <div class="pillar-body">
+            <ol class="why">
+              <li><b>Written in C++, like Core</b><span>Core is linked in as a library and called directly. No bridge, no second language.</span></li>
+              <li><b>HTTP, WebSocket and threads in one</b><span>We write only the handler functions.</span></li>
+              <li><b>Fast, maintained, cross-platform</b><span>Runs on Windows and Linux.</span></li>
+            </ol>
           </div>
         </div>
       </div>
-      <div class="loop-wrap">
-        <svg class="loop-svg" viewBox="0 0 1180 30" preserveAspectRatio="none">
-          <defs>
-            <marker id="loop-head" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/>
-            </marker>
-          </defs>
-          <path class="loop-path" d="M 1150 5 Q 590 30 30 5" marker-end="url(#loop-head)"/>
-        </svg>
-        <div class="loop-lbl" id="loop-lbl">↻ Repeats every simulation cycle — Router Link feeds back into Traffic Manager</div>
+    </div>
+  </div>
+  <!-- ── PAGE 4: SIMULATION RUN FLOW (9 steps) ── -->
+  <div id="page-flow" class="page-view">
+    <svg id="flow-svg" viewBox="0 0 1100 580" xmlns="http://www.w3.org/2000/svg" aria-label="What happens when the user clicks Run">
+      <defs>
+        <marker id="m-cyan" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0284c7"/></marker>
+        <marker id="m-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker>
+      </defs>
+      <!-- lanes -->
+      <line class="seq-life" x1="150" y1="58" x2="150" y2="572"/>
+      <line class="seq-life" x1="550" y1="58" x2="550" y2="572"/>
+      <line class="seq-life" x1="950" y1="58" x2="950" y2="572"/>
+      <rect class="seq-lane-box" x="30"  y="4" width="240" height="50" rx="10" stroke="#0284c7"/>
+      <text class="seq-lane-lbl" x="150" y="25" fill="#0284c7">React GUI (browser)</text>
+      <text class="seq-lane-sub" x="150" y="43">REST client</text>
+      <rect class="seq-lane-box" x="430" y="4" width="240" height="50" rx="10" stroke="#2563eb"/>
+      <text class="seq-lane-lbl" x="550" y="25" fill="#2563eb">Drogon Server</text>
+      <text class="seq-lane-sub" x="550" y="43">noc_server</text>
+      <rect class="seq-lane-box" x="830" y="4" width="240" height="50" rx="10" stroke="#7c3aed"/>
+      <text class="seq-lane-lbl" x="950" y="25" fill="#7c3aed">C++ Core (simulator)</text>
+      <text class="seq-lane-sub" x="950" y="43">SimulationEngine</text>
+
+      <!-- 1: click Run, POST -->
+      <g class="seq idle" id="seq-1" style="--c:var(--col-cyan)">
+        <rect class="note" x="30" y="73" width="240" height="38" rx="8"/>
+        <text class="note-t" x="150" y="90">User clicks Run</text>
+        <text class="note-s" x="150" y="104">config → JSON</text>
+        <path class="msg" d="M272,92 L546,92" marker-end="url(#m-cyan)"/>
+        <text class="msg-lbl" x="410" y="85">POST /api/v1/runs</text>
+        <text class="msg-sub" x="410" y="107">{"rows":4, "cols":4, …}</text>
+        <g class="badge"><circle cx="30" cy="73" r="11"/><text x="30" y="73">1</text></g>
+      </g>
+      <!-- 2: handler + validation -->
+      <g class="seq idle" id="seq-2" style="--c:var(--col-blue)">
+        <rect class="note" x="430" y="129" width="240" height="38" rx="8"/>
+        <text class="note-t" x="550" y="146">StartRun() checks config</text>
+        <text class="note-s" x="550" y="160">ConfigLoader · bad config → error</text>
+        <g class="badge"><circle cx="430" cy="129" r="11"/><text x="430" y="129">2</text></g>
+      </g>
+      <!-- 3: worker thread -->
+      <g class="seq idle" id="seq-3" style="--c:var(--col-blue)">
+        <rect class="note" x="430" y="185" width="240" height="38" rx="8"/>
+        <text class="note-t" x="550" y="202">Start a worker thread</text>
+        <text class="note-s" x="550" y="216">RunExecutor</text>
+        <path class="msg" d="M672,204 L946,204" marker-end="url(#m-blue)"/>
+        <text class="msg-lbl" x="810" y="197">spawn run thread</text>
+        <g class="badge"><circle cx="430" cy="185" r="11"/><text x="430" y="185">3</text></g>
+      </g>
+      <!-- 4: engine runs -->
+      <g class="seq idle" id="seq-4" style="--c:var(--col-purple)">
+        <rect class="note" x="830" y="241" width="240" height="38" rx="8"/>
+        <text class="note-t" x="950" y="258">SimulationEngine(cfg)</text>
+        <text class="note-s" x="950" y="272">while (!done) Step();</text>
+        <g class="badge"><circle cx="830" cy="241" r="11"/><text x="830" y="241">4</text></g>
+      </g>
+      <!-- 5: immediate reply -->
+      <g class="seq idle" id="seq-5" style="--c:var(--col-blue)">
+        <rect class="note" x="430" y="297" width="240" height="38" rx="8"/>
+        <text class="note-t" x="550" y="314">Reply immediately</text>
+        <text class="note-s" x="550" y="328">before the run finishes</text>
+        <path class="msg ret" d="M428,316 L154,316" marker-end="url(#m-blue)"/>
+        <text class="msg-lbl" x="290" y="309">queued</text>
+        <text class="msg-sub" x="290" y="331">{"run_id":"r_1a5e…","status":"queued"}</text>
+        <g class="badge"><circle cx="430" cy="297" r="11"/><text x="430" y="297">5</text></g>
+      </g>
+      <!-- 6: polling -->
+      <g class="seq idle" id="seq-6" style="--c:var(--col-cyan)">
+        <rect class="note" x="30" y="353" width="240" height="38" rx="8"/>
+        <text class="note-t" x="150" y="370">Poll every 1.5 s</text>
+        <text class="note-s" x="150" y="384">asks for the run's status</text>
+        <path class="msg" d="M272,366 L546,366" marker-end="url(#m-cyan)"/>
+        <text class="msg-lbl" x="410" y="359">GET /api/v1/runs/r_1a5e…</text>
+        <g class="bl"><path class="msg ret" d="M548,382 L274,382" marker-end="url(#m-blue)"/>
+        <text class="msg-sub" x="410" y="397">{"status":"running","cycle":2724}</text></g>
+        <text class="pill-note" x="950" y="376">still simulating…</text>
+        <g class="badge"><circle cx="30" cy="353" r="11"/><text x="30" y="353">6</text></g>
+      </g>
+      <!-- 7: simulation finishes -->
+      <g class="seq idle" id="seq-7" style="--c:var(--col-purple)">
+        <rect class="note" x="830" y="409" width="240" height="38" rx="8"/>
+        <text class="note-t" x="950" y="426">Simulation finishes</text>
+        <text class="note-s" x="950" y="440">Warmup → Measure → Drain</text>
+        <g class="badge"><circle cx="830" cy="409" r="11"/><text x="830" y="409">7</text></g>
+      </g>
+      <!-- 8: fetch results -->
+      <g class="seq idle" id="seq-8" style="--c:var(--col-cyan)">
+        <rect class="note" x="30" y="465" width="240" height="38" rx="8"/>
+        <text class="note-t" x="150" y="482">Fetch the results</text>
+        <text class="note-s" x="150" y="496">once the run is done</text>
+        <path class="msg" d="M272,478 L546,478" marker-end="url(#m-cyan)"/>
+        <text class="msg-lbl" x="410" y="471">GET /api/v1/runs/…/results</text>
+        <g class="bl"><path class="msg ret" d="M548,494 L274,494" marker-end="url(#m-blue)"/>
+        <text class="msg-sub" x="410" y="509">{"outcome":"drained","latency":28.48…}</text></g>
+        <g class="badge"><circle cx="30" cy="465" r="11"/><text x="30" y="465">8</text></g>
+      </g>
+      <!-- 9: show results -->
+      <g class="seq idle" id="seq-9" style="--c:var(--col-green)">
+        <rect class="note" x="30" y="521" width="240" height="38" rx="8"/>
+        <text class="note-t" x="150" y="538">Show the results</text>
+        <text class="note-s" x="150" y="552">latency · throughput</text>
+        <g class="badge"><circle cx="30" cy="521" r="11"/><text x="30" y="521">9</text></g>
+      </g>
+    </svg>
+  </div>
+  <!-- ── PAGE 5: BACKEND MODULE SCORECARD ── -->
+  <div id="page-modules" class="page-view">
+    <div class="slide modules-slide">
+      <div class="legend"><span>✅ Implemented</span><span>🟡 Partial</span><span>🔴 Not started</span><span>⛔ Retired / folded in</span></div>
+      <div class="cards6">
+        <div class="mcard fx" id="mcard-0" style="--c:var(--col-purple)">
+          <div class="mcard-hdr"><h3>Shell &amp; Configuration</h3><span class="st ok">✅ Implemented · 3 config parts partial</span></div>
+          <div class="mrows">
+            <div class="mrow" style="--l:0"><span class="mn">Shell / CLI</span><span class="mnote">-v, -vv trace levels</span><span class="st ok">✅</span></div>
+            <div class="mrow" style="--l:0"><span class="mn">Config</span><span class="mnote">ConfigLoader → SimConfig</span><span class="st ok">✅</span></div>
+            <div class="mrow" style="--l:1"><span class="mn">NoC Config</span><span class="mnote">topology · router · link</span><span class="st ok">✅</span></div>
+            <div class="mrow" style="--l:1"><span class="mn">Traffic Config</span><span class="mnote"></span><span class="st ok">✅</span></div>
+            <div class="mrow" style="--l:1"><span class="mn">PhaseSchedule / Metrics / Trace</span><span class="mnote"></span><span class="st ok">✅</span></div>
+            <div class="mrow" style="--l:1"><span class="mn">Node Config</span><span class="mnote">waits on Node Layer</span><span class="st wip">🟡</span></div>
+            <div class="mrow" style="--l:1"><span class="mn">Protocol Config</span><span class="mnote"></span><span class="st wip">🟡</span></div>
+            <div class="mrow" style="--l:1"><span class="mn">Perf Analyzer Config</span><span class="mnote"></span><span class="st wip">🟡</span></div>
+          </div>
+        </div>
+        <div class="mcard fx idle" id="mcard-1" style="--c:var(--col-cyan)">
+          <div class="mcard-hdr"><h3>Simulation Kernel &amp; Traffic Generator</h3><span class="st ok">✅ Implemented</span></div>
+          <div class="mrows">
+            <div class="mrow" style="--l:0"><span class="mn">SimulationEngine</span><span class="mnote">owns one run (= sim builder)</span><span class="st ok">✅</span></div>
+            <div class="mrow" style="--l:0"><span class="mn">SimulationLoop</span><span class="mnote">fixed per-cycle step order</span><span class="st ok">✅</span></div>
+            <div class="mrow" style="--l:0"><span class="mn">PhaseController</span><span class="mnote">Warmup → Measure → Drain</span><span class="st ok">✅</span></div>
+            <div class="mrow" style="--l:0"><span class="mn">TrafficManager</span><span class="mnote">synthetic workload</span><span class="st ok">✅</span></div>
+            <div class="mrow" style="--l:1"><span class="mn">ITrafficPattern</span><span class="mnote">5 patterns</span><span class="st ok">✅</span></div>
+            <div class="mrow" style="--l:1"><span class="mn">IInjectionProcess</span><span class="mnote">Bernoulli · on-off</span><span class="st ok">✅</span></div>
+          </div>
+        </div>
+        <div class="mcard fx idle" id="mcard-2" style="--c:var(--col-blue)">
+          <div class="mcard-hdr"><h3>NoC Fabric</h3><span class="st ok">✅ Implemented · mesh and XY only</span></div>
+          <div class="mrows">
+            <div class="mrow" style="--l:0"><span class="mn">NodeRegistry</span><span class="mnote"></span><span class="st ok">✅</span></div>
+            <div class="mrow" style="--l:0"><span class="mn">DevicePortDriver</span><span class="mnote"></span><span class="st ok">✅</span></div>
+            <div class="mrow" style="--l:0"><span class="mn">Fabric</span><span class="mnote"></span><span class="st ok">✅</span></div>
+            <div class="mrow" style="--l:1"><span class="mn">Topology</span><span class="mnote">mesh only; torus / ring planned</span><span class="st ok">✅</span></div>
+            <div class="mrow" style="--l:1"><span class="mn">Router</span><span class="mnote">4 CHI channels</span><span class="st ok">✅</span></div>
+            <div class="mrow" style="--l:2"><span class="mn">ChannelPipeline</span><span class="mnote">IQ · RC · VA/RA · SA · ST</span><span class="st ok">✅</span></div>
+            <div class="mrow" style="--l:2"><span class="mn">Allocation policies</span><span class="mnote">VA / RA</span><span class="st ok">✅</span></div>
+            <div class="mrow" style="--l:2"><span class="mn">Allocators / Arbiters</span><span class="mnote"></span><span class="st ok">✅</span></div>
+            <div class="mrow" style="--l:2"><span class="mn">Routing</span><span class="mnote">MeshXY; adaptive planned</span><span class="st ok">✅</span></div>
+            <div class="mrow" style="--l:2"><span class="mn">Shared types</span><span class="mnote">port, VC, credits, occupancy</span><span class="st ok">✅</span></div>
+            <div class="mrow" style="--l:1"><span class="mn">Interconnect</span><span class="mnote">Link / Channel</span><span class="st ok">✅</span></div>
+          </div>
+        </div>
+        <div class="mcard fx idle" id="mcard-3" style="--c:var(--col-orange)">
+          <div class="mcard-hdr"><h3>Protocol &amp; Node Layer</h3><span class="st wip">🟡 Vocabulary done · Node Layer next</span></div>
+          <div class="mrows">
+            <div class="mrow" style="--l:0"><span class="mn">Protocol</span><span class="mnote">flits, opcodes, FlitPool</span><span class="st ok">✅</span></div>
+            <div class="mrow" style="--l:1"><span class="mn">Opcodes</span><span class="mnote">parked; check against spec</span><span class="st wip">🟡</span></div>
+            <div class="mrow" style="--l:0"><span class="mn">Node Layer</span><span class="mnote">RN-F / HN-F / SN-F; largest piece</span><span class="st todo">🔴</span></div>
+            <div class="mrow" style="--l:0"><span class="mn">NoC Builder</span><span class="mnote">folded into NoC constructor</span><span class="st ret">⛔</span></div>
+            <div class="mrow" style="--l:0"><span class="mn">Link Driver</span><span class="mnote">each Link ticks itself</span><span class="st ret">⛔</span></div>
+          </div>
+        </div>
+        <div class="mcard fx idle" id="mcard-4" style="--c:var(--col-teal)">
+          <div class="mcard-hdr"><h3>Performance Analyzer &amp; Common</h3><span class="st wip">🟡 Core done · export missing</span></div>
+          <div class="mrows">
+            <div class="mrow" style="--l:0"><span class="mn">FlitMetrics</span><span class="mnote">events + report</span><span class="st ok">✅</span></div>
+            <div class="mrow" style="--l:0"><span class="mn">LatencyTimeline</span><span class="mnote">live latency graph</span><span class="st ok">✅</span></div>
+            <div class="mrow" style="--l:0"><span class="mn">RouterOccupancyTimeline</span><span class="mnote">heatmap</span><span class="st ok">✅</span></div>
+            <div class="mrow" style="--l:0"><span class="mn">StatsAccumulator</span><span class="mnote">no histogram / variance</span><span class="st ok">✅</span></div>
+            <div class="mrow" style="--l:0"><span class="mn">Throughput monitor</span><span class="mnote">per-VC occupancy too</span><span class="st todo">🔴</span></div>
+            <div class="mrow" style="--l:0"><span class="mn">CSV / JSON export</span><span class="mnote"></span><span class="st todo">🔴</span></div>
+            <div class="mrow" style="--l:0"><span class="mn">MetricsSelector</span><span class="mnote">empty placeholder</span><span class="st todo">🔴</span></div>
+            <div class="mrow" style="--l:0"><span class="mn">Common</span><span class="mnote">trace, NodeID, Phase</span><span class="st ok">✅</span></div>
+          </div>
+        </div>
+        <div class="mcard fx idle" id="mcard-5" style="--c:var(--col-pink)">
+          <div class="mcard-hdr"><h3>Server (Drogon)</h3><span class="st ok">✅ Demo scope · list / stop pending</span></div>
+          <div class="mrows">
+            <div class="mrow" style="--l:0"><span class="mn">app</span><span class="mnote">startup, config, CORS, port check</span><span class="st ok">✅</span></div>
+            <div class="mrow" style="--l:0"><span class="mn">common</span><span class="mnote">errors, json, live hub, time</span><span class="st ok">✅</span></div>
+            <div class="mrow" style="--l:0"><span class="mn">system</span><span class="mnote">health, version</span><span class="st ok">✅</span></div>
+            <div class="mrow" style="--l:0"><span class="mn">simulation</span><span class="mnote">runs, latency, heatmap</span><span class="st ok">✅</span></div>
+            <div class="mrow" style="--l:0"><span class="mn">live</span><span class="mnote">WebSocket /ws/v1</span><span class="st ok">✅</span></div>
+            <div class="mrow" style="--l:0"><span class="mn">list-runs, stop</span><span class="mnote">needed for the demo</span><span class="st todo">🔴</span></div>
+            <div class="mrow" style="--l:0"><span class="mn">designs, testcases, validate, meta</span><span class="mnote"></span><span class="st todo">🔴</span></div>
+            <div class="mrow" style="--l:0"><span class="mn">Persistence</span><span class="mnote">in-memory only; after demo</span><span class="st todo">🔴</span></div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -685,125 +959,153 @@ body {
    STEP DATA
 ================================================================ */
 const ARCH_STEPS = [
-  { num:1, name:"NoC Configuration", nodeId:"node-1", badge:"Frontend", badgeColor:"cyan",
-    desc:"User enters the configuration parameters for all NoC components — topology, routing algorithm, virtual channel counts, and buffer depths.",
-    meta:[{lbl:"Phase",val:"1 · Configuration"},{lbl:"Module",val:"Configuration Form"},{lbl:"Output",val:"Config object (client-side)"}] },
-  { num:2, name:"NoC Editor", nodeId:"node-2", badge:"Frontend", badgeColor:"cyan",
-    desc:"Manual visual editor builds the NoC visualization based on the entered configuration, letting the user inspect and adjust topology placement.",
-    meta:[{lbl:"Phase",val:"1 · Configuration"},{lbl:"Module",val:"Visual NoC Editor"},{lbl:"Output",val:"Rendered topology canvas"}] },
-  { num:3, name:"Test Case Creation", nodeId:"node-3", badge:"Frontend", badgeColor:"cyan",
-    desc:"User creates dedicated traffic test cases — traffic pattern, injection rate, packet size — to drive the simulation run.",
-    meta:[{lbl:"Phase",val:"2 · Performance Analysis"},{lbl:"Module",val:"Test Case Builder"},{lbl:"Output",val:"Traffic test case set"}] },
-  { num:4, name:"Run Simulation", nodeId:"node-4", badge:"Frontend", badgeColor:"cyan",
-    desc:"User triggers execution. The frontend packages the configuration and test cases for submission to the backend.",
-    meta:[{lbl:"Phase",val:"2 · Performance Analysis"},{lbl:"Module",val:"Run Controller"},{lbl:"Output",val:"Submit-ready payload"}] },
-  { num:5, name:"API Call — Configuration Parameters", nodeId:"node-5", badge:"API Gateway", badgeColor:"blue",
-    desc:"Configuration parameters are sent from the frontend, across the API boundary, to the backend engine.",
-    meta:[{lbl:"Direction",val:"Frontend → Backend"},{lbl:"Payload",val:"Configuration Parameters (JSON)"},{lbl:"Transport",val:"REST / IPC call"}] },
-  { num:6, name:"Configuration Loader", nodeId:"node-6", badge:"Backend", badgeColor:"purple",
-    desc:"Backend securely loads and validates the incoming API parameters before constructing simulator objects.",
-    meta:[{lbl:"Phase",val:"1 · Construction"},{lbl:"Module",val:"Configuration Loader"},{lbl:"Input",val:"Configuration Parameters"}] },
-  { num:7, name:"Initialization", nodeId:"node-7", badge:"Backend", badgeColor:"purple",
-    desc:"Initializes simulator subsystems — Topology Manager and Traffic Manager — from the loaded configuration.",
-    meta:[{lbl:"Phase",val:"1 · Construction"},{lbl:"Module",val:"Initializer"},{lbl:"Builds",val:"Topology Mgr · Traffic Mgr"}] },
-  { num:8, name:"Run Simulation (Event Scheduler)", nodeId:"node-8", badge:"Backend", badgeColor:"orange",
-    desc:"Executes the simulation in the backend engine, driving the per-cycle Event Scheduler loop (see Stage 2: Event Scheduler).",
-    meta:[{lbl:"Phase",val:"2 · Runtime"},{lbl:"Module",val:"Event Scheduler"},{lbl:"Drives",val:"Traffic Mgr ↔ Router Pipeline"}] },
-  { num:9, name:"API Call — Runtime Stats", nodeId:"node-9", badge:"API Gateway", badgeColor:"blue",
-    desc:"Runtime statistics are sent back across the API boundary, from the backend to the frontend.",
-    meta:[{lbl:"Direction",val:"Backend → Frontend"},{lbl:"Payload",val:"Runtime Stats (JSON)"},{lbl:"Transport",val:"REST / IPC call"}] },
-  { num:10, name:"Metrics & Visualization", nodeId:"node-10", badge:"Frontend", badgeColor:"green",
-    desc:"Frontend receives and displays the runtime stats returned from the API — latency, throughput, and per-flit statistics.",
-    meta:[{lbl:"Phase",val:"2 · Performance Analysis"},{lbl:"Module",val:"Metrics Dashboard"},{lbl:"Input",val:"Runtime Stats"}] },
+  { num:1, name:"Frontend — React Web Client", badge:"Frontend", badgeColor:"cyan",
+    desc:"A React + TypeScript single-page app in the browser: configure the NoC, build a test case, start a run and view the results. Projects are saved in the browser's localStorage." },
+  { num:2, name:"Middleware — Drogon Web Server", badge:"Middleware", badgeColor:"blue",
+    desc:"A C++ web server turns the GUI's REST and WebSocket messages into function calls, and keeps the 50 most recent runs in memory." },
+  { num:3, name:"Backend — C++ Simulation Engine", badge:"Backend", badgeColor:"purple",
+    desc:"Core is linked into the server as a library. It builds the NoC from the config and steps it cycle by cycle." },
 ];
-const ARCH_ARROWS = [
-  { id:"arrow-1-2", afterStep:0 },
-  { id:"arrow-3-4", afterStep:2 },
-  { id:"arrow-6-7", afterStep:5 },
+const API_STEPS = [
+  { num:1, name:"How GUI and server talk", badge:"API", badgeColor:"cyan",
+    desc:"The GUI and the simulator are separate programs, so they exchange JSON messages: REST for commands, WebSocket for live updates." },
+  { num:2, name:"What the server does", badge:"Server", badgeColor:"blue",
+    desc:"Drogon matches each incoming message to one of our C++ handler functions and sends the reply back." },
+  { num:3, name:"Why Drogon", badge:"Drogon", badgeColor:"purple",
+    desc:"Drogon does the networking, so we write only the handlers. Three reasons we use it." },
 ];
-const ARCH_API_ARROWS = [
-  { segIds:["arrow-4-5","arrow-5-6"], stepIdx:4, lblId:"arrow-api-config-lbl" },
-  { segIds:["arrow-8-9","arrow-9-10"], stepIdx:8, lblId:"arrow-api-stats-lbl" },
+const FLOW_STEPS = [
+  { num:1, name:"User clicks Run", badge:"GUI", badgeColor:"cyan",
+    desc:"The GUI sends the configuration as JSON in POST /api/v1/runs." },
+  { num:2, name:"Server checks the config", badge:"Server", badgeColor:"blue",
+    desc:"Drogon finds the handler. StartRun() validates the config with Core's ConfigLoader; a bad config gets an error reply." },
+  { num:3, name:"Start a worker thread", badge:"Server", badgeColor:"blue",
+    desc:"The simulation gets its own thread (RunExecutor), so the server stays free to answer other requests meanwhile." },
+  { num:4, name:"Core runs the simulation", badge:"Core", badgeColor:"purple",
+    desc:"On that thread, Core builds SimulationEngine(cfg) and calls Step() until the run is done." },
+  { num:5, name:"Immediate reply", badge:"Server", badgeColor:"blue",
+    desc:"The server replies before the simulation finishes, with a run_id and status “queued”, so the GUI never freezes on long runs." },
+  { num:6, name:"GUI polls for status", badge:"GUI", badgeColor:"cyan",
+    desc:"Every 1.5 s the GUI asks GET /api/v1/runs/{id} and gets the status and current cycle. The server already offers a WebSocket that pushes updates instead; the GUI doesn't use it yet." },
+  { num:7, name:"Simulation finishes", badge:"Core", badgeColor:"purple",
+    desc:"The run passes through Warmup, Measure and Drain, then completes." },
+  { num:8, name:"Fetch the results", badge:"GUI", badgeColor:"cyan",
+    desc:"The GUI calls GET /api/v1/runs/{id}/results. The server collects Core's metrics and replies with the results JSON." },
+  { num:9, name:"Show the results", badge:"GUI", badgeColor:"green",
+    desc:"The GUI shows the run results. The latency and heatmap charts on the Analysis page are the next GUI piece; the server already provides their data." },
 ];
-const SCHED_STEPS = [
-  { num:1,  name:"Read Flits",             rowId:"sr-1",  group:"tm", badge:"Traffic Manager", badgeColor:"cyan",   desc:"Eject flits from the network into the Traffic Manager's eject queue for this cycle.",
-    meta:[{lbl:"Component",val:"Traffic Manager"},{lbl:"Cycle Step",val:"1 of 16"},{lbl:"Queue",val:"_eject_queues"}] },
-  { num:2,  name:"Retire Flits",           rowId:"sr-2",  group:"tm", badge:"Traffic Manager", badgeColor:"cyan",   desc:"Retire flits that have been ejected. Timestamps are stamped and per-flit stats are calculated.",
-    meta:[{lbl:"Component",val:"Traffic Manager"},{lbl:"Cycle Step",val:"2 of 16"},{lbl:"Queue",val:"_total_in_flight"}] },
-  { num:3,  name:"Issue Packet",           rowId:"sr-3",  group:"tm", badge:"Traffic Manager", badgeColor:"cyan",   desc:"Decide whether a new packet should be generated for this node this cycle.",
-    meta:[{lbl:"Component",val:"Traffic Manager"},{lbl:"Cycle Step",val:"3 of 16"},{lbl:"Calls",val:"InjectionProcess::Test()"}] },
-  { num:4,  name:"Generate Packet",        rowId:"sr-4",  group:"tm", badge:"Traffic Manager", badgeColor:"cyan",   desc:"Create the flits for the new packet based on the configured traffic pattern.",
-    meta:[{lbl:"Component",val:"Traffic Manager"},{lbl:"Cycle Step",val:"4 of 16"},{lbl:"Queue",val:"_partial_packets"}] },
-  { num:5,  name:"Write Flits",            rowId:"sr-5",  group:"tm", badge:"Traffic Manager", badgeColor:"cyan",   desc:"Inject the flit onto the network via the local link injection queue.",
-    meta:[{lbl:"Component",val:"Traffic Manager"},{lbl:"Cycle Step",val:"5 of 16"},{lbl:"Queue",val:"_inject_queues"}] },
-  { num:6,  name:"Input Queuing",          rowId:"sr-6",  group:"rp", badge:"Router Pipeline",  badgeColor:"purple", desc:"Store incoming flits in their virtual channel buffers (Buffer Write).",
-    meta:[{lbl:"Component",val:"Router Pipeline · IQ"},{lbl:"Cycle Step",val:"6 of 16"},{lbl:"VC State",val:"→ routing"}] },
-  { num:7,  name:"Route Computation",      rowId:"sr-7",  group:"rp", badge:"Router Pipeline",  badgeColor:"purple", desc:"Compute the output port for the flit via the routing algorithm.",
-    meta:[{lbl:"Component",val:"Router Pipeline · RC"},{lbl:"Cycle Step",val:"7 of 16"},{lbl:"VC State",val:"→ vc_alloc"}] },
-  { num:8,  name:"VC Allocation",          rowId:"sr-8",  group:"rp", badge:"Router Pipeline",  badgeColor:"purple", desc:"Find and allocate a free virtual channel in the output port buffer.",
-    meta:[{lbl:"Component",val:"Router Pipeline · VA"},{lbl:"Cycle Step",val:"8 of 16"},{lbl:"VC State",val:"→ active"}] },
-  { num:9,  name:"SW Allocation",          rowId:"sr-9",  group:"rp", badge:"Router Pipeline",  badgeColor:"purple", desc:"Crossbar grant arbitration between competing flits.",
-    meta:[{lbl:"Component",val:"Router Pipeline · SA"},{lbl:"Cycle Step",val:"9 of 16"},{lbl:"Grants",val:"Crossbar arbiter"}] },
-  { num:10, name:"SW Traversal",           rowId:"sr-10", group:"rp", badge:"Router Pipeline",  badgeColor:"purple", desc:"Crossbar traversal of granted flits into the output buffer.",
-    meta:[{lbl:"Component",val:"Router Pipeline · ST"},{lbl:"Cycle Step",val:"10 of 16"},{lbl:"Queue",val:"_output_buffer"}] },
-  { num:11, name:"Forward Flits",          rowId:"sr-11", group:"ll", badge:"Local Link",       badgeColor:"blue",   desc:"Forward flits from the Traffic Manager's inject queues into the respective channel.",
-    meta:[{lbl:"Component",val:"Local Link"},{lbl:"Cycle Step",val:"11 of 16"},{lbl:"Direction",val:"TM → Router"}] },
-  { num:12, name:"Deliver Flits",          rowId:"sr-12", group:"ll", badge:"Local Link",       badgeColor:"blue",   desc:"Eject flits from the channel into the router's input queue.",
-    meta:[{lbl:"Component",val:"Local Link"},{lbl:"Cycle Step",val:"12 of 16"},{lbl:"Direction",val:"TM → Router"}] },
-  { num:13, name:"Forward From Router",    rowId:"sr-13", group:"ll", badge:"Local Link",       badgeColor:"blue",   desc:"Inject flits from the router's local port onto the channel toward the TM.",
-    meta:[{lbl:"Component",val:"Local Link"},{lbl:"Cycle Step",val:"13 of 16"},{lbl:"Direction",val:"Router → TM"}] },
-  { num:14, name:"Deliver From Router",    rowId:"sr-14", group:"ll", badge:"Local Link",       badgeColor:"blue",   desc:"Eject flits from the channel into the Traffic Manager's eject queue.",
-    meta:[{lbl:"Component",val:"Local Link"},{lbl:"Cycle Step",val:"14 of 16"},{lbl:"Direction",val:"Router → TM"}] },
-  { num:15, name:"Forward Flits",          rowId:"sr-15", group:"rl", badge:"Router Link",      badgeColor:"orange", desc:"Forward flits from the router's output buffer into the respective inter-router channel.",
-    meta:[{lbl:"Component",val:"Router Link"},{lbl:"Cycle Step",val:"15 of 16"},{lbl:"Direction",val:"Router → Router"}] },
-  { num:16, name:"Deliver Flits",          rowId:"sr-16", group:"rl", badge:"Router Link",      badgeColor:"orange", desc:"Eject flits from the channel into the downstream router's input queue.",
-    meta:[{lbl:"Component",val:"Router Link"},{lbl:"Cycle Step",val:"16 of 16"},{lbl:"Direction",val:"Router → Router"}] },
+const MODULE_STEPS = [
+  { num:1, name:"Shell & Configuration", badge:"Implemented", badgeColor:"purple",
+    desc:"The CLI and the config loader are done: INI in, validated immutable SimConfig out. Three config parts (Node, Protocol, Perf Analyzer) are partial and wait on later modules." },
+  { num:2, name:"Simulation Kernel & Traffic Generator", badge:"Implemented", badgeColor:"cyan",
+    desc:"The engine, the per-cycle loop and the Warmup → Measure → Drain phases are done, with a traffic generator offering 5 patterns and 2 injection processes." },
+  { num:3, name:"NoC Fabric", badge:"Implemented", badgeColor:"blue",
+    desc:"Mesh topology, the 5-stage router pipeline on 4 CHI channels, allocators, XY routing and the credit-based links are done. Torus, ring and adaptive routing are not." },
+  { num:4, name:"Protocol & Node Layer", badge:"Node Layer next", badgeColor:"orange",
+    desc:"The CHI flit vocabulary is in place; its opcodes still need checking against the spec. The Node Layer (RN-F, HN-F, SN-F coherence, P-credits) has not started and is the largest remaining piece." },
+  { num:5, name:"Performance Analyzer & Common", badge:"Partly done", badgeColor:"teal",
+    desc:"Latency, occupancy and flit metrics work end to end and feed the GUI. The throughput monitor, CSV / JSON export and metric selection are still to do." },
+  { num:6, name:"Server (Drogon)", badge:"Demo scope", badgeColor:"pink",
+    desc:"Runs, latency, heatmap and the WebSocket channels are served, all in memory. Listing runs and stopping a run are still needed for the demo; persistence comes after." },
+];
+const COVERAGE_STEPS = [
+  { num:1, name:"Mesh Fabric", badge:"Simulated", badgeColor:"blue",
+    desc:"The interconnect itself is simulated in full: a 2D mesh of 5-stage routers joined by credit-based links. Each link carries the 4 CHI channels (REQ, RSP, SNP, DAT), routed with XY." },
+  { num:2, name:"Nodes on the Mesh", badge:"Generic nodes", badgeColor:"purple",
+    desc:"Every router has 6 ports: corner routers have 2 mesh ports and 4 local ports, edge routers 3 and 3, interior routers 4 and 2. Each local port carries a generic node that only injects and ejects flits; the CHI node types are not simulated yet." },
+  { num:3, name:"Traffic Manager", badge:"Simulated", badgeColor:"cyan",
+    desc:"A layer around the whole mesh decides when and where each node sends: uniform, hotspot, tornado, neighbor or bitcomp patterns, with Bernoulli or on-off injection." },
+  { num:4, name:"Performance Analyzer", badge:"Partly done", badgeColor:"teal",
+    desc:"Probes on routers and nodes feed FlitMetrics, LatencyTimeline and RouterOccupancyTimeline, which drive the GUI charts. The throughput monitor and CSV / JSON export are still to do." },
+  { num:5, name:"Not Simulated Yet", badge:"Next", badgeColor:"orange",
+    desc:"RN-F, HN-F and SN-F nodes (the Node Layer, with CHI coherence and P-credits) are missing, as are torus / ring topologies and adaptive routing. Today's runs exercise the interconnect on its own." },
 ];
 const PAGES = [
-  { id:"architecture", label:"System Architecture", steps: ARCH_STEPS },
-  { id:"scheduler",     label:"Event Scheduler",     steps: SCHED_STEPS },
+  { id:"coverage",     label:"Simulation Coverage",   steps: COVERAGE_STEPS, render: renderCoverage },
+  { id:"architecture", label:"System Architecture",   steps: ARCH_STEPS,   render: renderArchitecture, idle: true },
+  { id:"api",          label:"API & Drogon Server",   steps: API_STEPS,    render: renderApi },
+  { id:"runflow",      label:"Simulation Run Flow",   steps: FLOW_STEPS,   render: renderRunFlow },
+  { id:"modules",      label:"Backend Module Status", steps: MODULE_STEPS, render: renderModules },
 ];
 /* Neighbors in the master presentation sequence */
-const PREV_DECK_URL = "../hardware-presentation/router-3d-explorer.html";
-const NEXT_DECK_URL = "flit-lifecycle.html?stage=0";
+const PREV_DECK_URL = "../hardware-presentation/index.html?end=1";
+const NEXT_DECK_URL = "../testing-presentation/index.html";
 /* ================================================================
    RENDER HELPERS
 ================================================================ */
-function renderArchitecture(stepIdx) {
-  ARCH_STEPS.forEach((s, i) => {
-    if (!s.nodeId) return;
-    const el = document.getElementById(s.nodeId);
+/* Mark element i of ids as done / active / idle relative to stepIdx */
+function applyStates(ids, stepIdx) {
+  ids.forEach((id, i) => {
+    const el = document.getElementById(id);
     el.classList.remove("idle", "active", "done");
     el.classList.add(i < stepIdx ? "done" : i === stepIdx ? "active" : "idle");
-  });
-  ARCH_ARROWS.forEach(a => {
-    document.getElementById(a.id).classList.toggle("lit", stepIdx > a.afterStep);
-  });
-  ARCH_API_ARROWS.forEach(a => {
-    const state = stepIdx > a.stepIdx ? "done" : stepIdx === a.stepIdx ? "active" : "idle";
-    a.segIds.forEach(id => {
-      const el = document.getElementById(id);
-      el.classList.remove("idle", "active", "done");
-      el.classList.add(state);
-    });
-    document.getElementById(a.lblId).style.opacity = stepIdx >= a.stepIdx ? "1" : "0";
   });
 }
-function renderScheduler(stepIdx) {
-  const activeGroup = SCHED_STEPS[stepIdx].group;
-  SCHED_STEPS.forEach((s, i) => {
-    const el = document.getElementById(s.rowId);
-    el.classList.remove("idle", "active", "done");
-    el.classList.add(i < stepIdx ? "done" : i === stepIdx ? "active" : "idle");
-  });
-  document.querySelectorAll(".sched-col").forEach(col => {
-    const groups = col.dataset.group.split(" ");
-    col.classList.toggle("active", groups.includes(activeGroup));
-  });
-  document.querySelectorAll(".sched-subgroup").forEach(sg => {
-    sg.classList.toggle("active", sg.dataset.group === activeGroup);
-  });
-  document.getElementById("loop-lbl").classList.toggle("active", stepIdx === SCHED_STEPS.length - 1);
+function renderArchitecture(stepIdx) {
+  const lanes = ["lane-0", "lane-1", "lane-2"], links = ["link-0", "link-1"];
+  if (stepIdx < 0) {
+    [...lanes, ...links].forEach(id => document.getElementById(id).classList.remove("idle", "active", "done"));
+    return;
+  }
+  applyStates(lanes, stepIdx);
+  /* link i sits between lane i and lane i+1 and lights up as the flow reaches lane i+1 */
+  applyStates(links, stepIdx - 1);
+}
+function renderApi(stepIdx) {
+  applyStates(["pillar-0", "pillar-1", "pillar-2"], stepIdx);
+}
+function renderRunFlow(stepIdx) {
+  applyStates(FLOW_STEPS.map(s => "seq-" + s.num), stepIdx);
+}
+function renderModules(stepIdx) {
+  applyStates(MODULE_STEPS.map(s => "mcard-" + (s.num - 1)), stepIdx);
+}
+/* Coverage diagram: each build-up layer is tagged .cv-g<step>; layers before the step are done, later ones idle */
+function renderCoverage(stepIdx) {
+  for (let g = 0; g < COVERAGE_STEPS.length; g++) {
+    document.querySelectorAll(".cv-g" + g).forEach(el => {
+      el.classList.remove("idle", "active", "done");
+      el.classList.add(g < stepIdx ? "done" : g === stepIdx ? "active" : "idle");
+    });
+  }
+}
+/* 4×4 mesh drawn illustratively. Every router has 6 ports in all: its directional (mesh) ports plus local ports
+   to nodes, so corner routers (2 directional) get 4 local ports, edge routers (3) get 3, interior routers (4) get 2.
+   Local ports sit at the router's corners; each carries one generic node. A link is drawn as its 4 CHI channels. */
+function buildCoverageMesh() {
+  const NS = "http://www.w3.org/2000/svg";
+  const COLS = [130, 300, 470, 640], ROWS = [130, 235, 340, 445];
+  const CH = [-4.5, -1.5, 1.5, 4.5];                        /* offsets of the 4 channel lines inside a link */
+  const CORNERS = [[1, -1], [-1, 1], [-1, -1], [1, 1]];     /* tie-break order: TR, BL, TL, BR */
+  const add = (parentId, tag, attrs, text) => {
+    const n = document.createElementNS(NS, tag);
+    for (const k in attrs) n.setAttribute(k, attrs[k]);
+    if (text) n.textContent = text;
+    document.getElementById(parentId).appendChild(n);
+  };
+  ROWS.forEach((cy, r) => COLS.forEach((cx, c) => {
+    CH.forEach(o => {
+      if (c < COLS.length - 1) add("cv-links", "line", { class: "cv-link", x1: cx + 28, y1: cy + o, x2: COLS[c + 1] - 28, y2: cy + o });
+      if (r < ROWS.length - 1) add("cv-links", "line", { class: "cv-link", x1: cx + o, y1: cy + 28, x2: cx + o, y2: ROWS[r + 1] - 28 });
+    });
+    add("cv-routers", "rect", { class: "cv-router", x: cx - 28, y: cy - 28, width: 56, height: 56, rx: 10 });
+    add("cv-routers", "text", { class: "cv-rt", x: cx, y: cy }, "R");
+    add("cv-probes", "circle", { class: "cv-probe", cx: cx + 17, cy: cy - 17, r: 4 });
+    const directional = (r > 0) + (r < ROWS.length - 1) + (c > 0) + (c < COLS.length - 1);
+    /* corners that touch a free (edge-of-mesh) side come first, so the local ports face outward */
+    const free = ([sx, sy]) => (sy < 0 ? r === 0 : r === ROWS.length - 1) + (sx < 0 ? c === 0 : c === COLS.length - 1);
+    const ports = CORNERS.map((k, i) => ({ k, i })).sort((a, b) => free(b.k) - free(a.k) || a.i - b.i).slice(0, 6 - directional);
+    ports.forEach(({ k: [sx, sy] }) => {
+      const px = cx + sx * 25, py = cy + sy * 25, nx = cx + sx * 58, ny = cy + sy * 38;
+      add("cv-nodes", "line", { class: "cv-stub", x1: px, y1: py, x2: nx, y2: ny });
+      add("cv-nodes", "circle", { class: "cv-port", cx: px, cy: py, r: 3.5 });
+      add("cv-nodes", "rect", { class: "cv-node", x: nx - 11, y: ny - 11, width: 22, height: 22, rx: 5 });
+      add("cv-nodes", "text", { class: "cv-nd", x: nx, y: ny }, "N");
+      add("cv-rings", "rect", { class: "cv-ring", x: nx - 13, y: ny - 13, width: 26, height: 26, rx: 7 });
+      add("cv-probes", "circle", { class: "cv-probe", cx: nx + 9, cy: ny - 9, r: 3.5 });
+      add("cv-ghost-rings", "rect", { class: "cv-gh-ring", x: nx - 13, y: ny - 13, width: 26, height: 26, rx: 7 });
+    });
+  }));
 }
 function renderPips(total, current) {
   const wrap = document.getElementById("prog-pips");
@@ -823,12 +1125,8 @@ function renderDetails(step) {
 }
 const IDLE_BAND_COPY = {
   architecture: {
-    title: "Frontend ↔ Backend Architecture",
-    desc: "Configuration flows from the frontend, across the API, through backend simulation, and back as runtime metrics."
-  },
-  scheduler: {
-    title: "Per-Cycle Event Scheduler",
-    desc: "Each cycle moves flits through the Traffic Manager, Router Pipeline, and Local/Router Links."
+    title: "Three Layers: GUI · Server · Simulator",
+    desc: "A React GUI talks JSON over HTTP to a Drogon web server, which runs the C++ simulation Core in-process."
   }
 };
 function renderIdleBand() {
@@ -844,13 +1142,13 @@ function renderIdleBand() {
 ================================================================ */
 const App = {
   page: 0,
-  step: -1,
+  step: 0,
   playing: false,
   playTimer: null,
   goToPage(idx) {
     this.stopPlay();
     this.page = idx;
-    this.step = (idx === 0) ? -1 : 0;
+    this.step = PAGES[idx].idle ? -1 : 0;
     this.render();
   },
   next() {
@@ -861,7 +1159,7 @@ const App = {
     else { window.location.href = NEXT_DECK_URL; }
   },
   prev() {
-    const floor = (this.page === 0) ? -1 : 0;
+    const floor = PAGES[this.page].idle ? -1 : 0;
     if (this.step > floor) { this.step--; this.render(); }
     else if (this.page > 0) { this.page--; this.step = PAGES[this.page].steps.length - 1; this.render(); }
     else { window.location.href = PREV_DECK_URL; }
@@ -869,7 +1167,7 @@ const App = {
   reset() {
     this.stopPlay();
     this.page = 0;
-    this.step = -1;
+    this.step = PAGES[0].idle ? -1 : 0;
     this.render();
   },
   togglePlay() {
@@ -898,8 +1196,7 @@ const App = {
     document.querySelectorAll(".page-view").forEach((el, i) => el.classList.toggle("active", i === this.page));
     const pageData = PAGES[this.page];
     const steps = pageData.steps;
-    if (this.page === 0) renderArchitecture(this.step);
-    if (this.page === 1) renderScheduler(this.step);
+    pageData.render(this.step);
     const isVeryLastStep = (this.page === PAGES.length - 1) && (this.step === steps.length - 1);
     if (this.step === -1) {
       document.getElementById("hdr-num").textContent = "–";
@@ -944,14 +1241,14 @@ const Landing = {
   hide() {
     document.getElementById("landing-view").style.display = "none";
   },
-  enterArchitecture() {
+  enterFirst() {
     this.hide();
     App.goToPage(0);
   }
 };
 document.addEventListener("keydown", (e) => {
   if (document.getElementById("landing-view").style.display !== "none") {
-    if (e.code === "ArrowRight") { e.preventDefault(); Landing.enterArchitecture(); }
+    if (e.code === "ArrowRight") { e.preventDefault(); Landing.enterFirst(); }
     else if (e.code === "ArrowLeft") { e.preventDefault(); window.location.href = "../index.html?end=1"; }
     return;
   }
@@ -960,6 +1257,7 @@ document.addEventListener("keydown", (e) => {
   else if (e.code === "Space") { e.preventDefault(); App.togglePlay(); }
 });
 App.render();
+buildCoverageMesh();
 const _urlParams = new URLSearchParams(location.search);
 if (_urlParams.get("end") === "1") {
   App.page = PAGES.length - 1;

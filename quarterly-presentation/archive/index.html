@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Archive — Quarterly Progress Report (July 2026)</title>
+  <meta name="description"
+    content="Master hub for the NoC Simulator project: cover, team, and a full table of contents linking into the Hardware Architecture, Software Development Progress, Verification & Validation, and Software Development Lifecycle presentations.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --s1: #ffffff;
+      --s2: #f1f5f9;
+      --s3: #e2e8f0;
+      --b1: #cbd5e1;
+      --b2: #94a3b8;
+
+      --text: #0f172a;
+      --muted: #334155;
+      --dim: #64748b;
+
+      --col-cyan: #0284c7;
+      --col-blue: #2563eb;
+      --col-purple: #7c3aed;
+      --col-orange: #ea580c;
+      --col-green: #16a34a;
+      --col-pink: #db2777;
+      --col-yellow: #d97706;
+      --col-teal: #0d9488;
+      --navy: #10265c;
+
+      --r: 12px;
+      --rs: 8px;
+      --rxs: 4px;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+    }
+
+    /* ================================================================
+   HUB SHELL — 3 full-viewport sections, one active at a time
+================================================================ */
+    .hub-page {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 3rem 2rem 2.5rem;
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(.97);
+      transition: opacity .4s, transform .4s;
+      overflow-y: auto;
+      background: var(--bg);
+    }
+
+    .hub-page.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: scale(1);
+    }
+
+    .hub-back {
+      position: absolute;
+      top: 1.6rem;
+      left: 2rem;
+      font-size: .82rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-decoration: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: .3rem;
+      transition: color .18s;
+    }
+
+    .hub-back:hover {
+      color: var(--col-teal);
+    }
+
+    .hub-continue-row {
+      position: absolute;
+      right: 2rem;
+      bottom: 2rem;
+      display: flex;
+      gap: .8rem;
+    }
+
+    .hub-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .7rem 1.5rem;
+      border-radius: var(--rs);
+      border: none;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      font-size: .88rem;
+      font-weight: 700;
+      transition: all .18s;
+      box-shadow: 0 2px 8px rgba(13, 148, 136, 0.25);
+    }
+
+    .hub-btn.primary {
+      background: linear-gradient(135deg, var(--col-teal), var(--col-cyan));
+      color: #fff;
+    }
+
+    .hub-btn.primary:hover {
+      box-shadow: 0 3px 14px rgba(13, 148, 136, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .hub-btn.ghost {
+      background: var(--s1);
+      border: 1px solid var(--b1);
+      color: var(--text);
+      box-shadow: none;
+    }
+
+    .hub-btn.ghost:hover {
+      background: var(--s2);
+    }
+
+    /* ================================================================
+   SECTION 1 — COVER
+================================================================ */
+    #hub-cover {
+      justify-content: center;
+    }
+
+    .cover-box {
+      border: 1.5px solid var(--b2);
+      border-radius: var(--rs);
+      padding: 1.6rem 3rem;
+      margin-bottom: 2.4rem;
+    }
+
+    .cover-title {
+      font-size: 3.5rem;
+      font-weight: 800;
+      text-decoration: underline;
+      text-underline-offset: 6px;
+      text-align: center;
+      letter-spacing: -.3px;
+    }
+
+    .cdac-logo-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: .2rem;
+      margin-bottom: 1.6rem;
+    }
+
+    .cdac-logo-wrap img {
+      height: 200px;
+      width: auto;
+    }
+
+    .cdac-wordmark-fallback {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .cdac-wordmark-fallback .cdac-big {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: var(--navy);
+      letter-spacing: 1px;
+    }
+
+    .cdac-wordmark-fallback .cdac-small {
+      font-size: .68rem;
+      font-weight: 700;
+      letter-spacing: 3px;
+      color: var(--dim);
+      text-transform: uppercase;
+    }
+
+    .cover-subtitle {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* ================================================================
+   SECTION 2 — TEAM
+================================================================ */
+    #hub-team {
+      justify-content: flex-start;
+    }
+
+    .team-hdr-box {
+      border: 1.5px solid var(--b2);
+      border-radius: var(--rs);
+      padding: .7rem 2.2rem;
+      margin-bottom: 2rem;
+      flex-shrink: 0;
+    }
+
+    .team-hdr-box .cover-title {
+      font-size: 1.5rem;
+    }
+
+    .team-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 0;
+      width: 100%;
+      max-width: 95%;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .team-cols {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr) 92px;
+      column-gap: 0;
+      row-gap: 1.4rem;
+      flex: 1;
+      width: 100%;
+    }
+
+    .member {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: .4rem;
+      padding: 0 0.8rem;
+    }
+
+    .member[style*="grid-column:2"],
+    .member[style*="grid-column:3"],
+    .member[style*="grid-column:4"],
+    .member[style*="grid-column:5"] {
+      border-left: 2px dashed var(--b1);
+    }
+
+    .team-noc-label,
+    .team-other-label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      height: 100%;
+      padding-left: .9rem;
+      border-left: 2px dashed var(--b1);
+      font-size: .76rem;
+      font-weight: 800;
+      letter-spacing: .03em;
+      text-transform: uppercase;
+      color: var(--muted);
+      line-height: 1.3;
+    }
+
+    .team-section-divider {
+      border-top: 2px dashed var(--b1);
+      margin: 0;
+    }
+
+    .avatar {
+      width: 88px;
+      height: 88px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 800;
+      font-size: 1.25rem;
+      font-family: 'JetBrains Mono', monospace;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+      object-fit: cover;
+    }
+
+    .member-name {
+      font-size: 1.08rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .member-role {
+      font-size: .92rem;
+      font-style: italic;
+      color: var(--muted);
+      margin-top: -4px;
+    }
+
+    .member-edu {
+      font-size: .84rem;
+      color: var(--dim);
+      line-height: 1.4;
+      margin-top: 2px;
+    }
+
+    .team-director-card .avatar {
+      width: 112px;
+      height: 112px;
+      font-size: 1.5rem;
+    }
+
+    .team-director-card .member-name {
+      font-size: 1.28rem;
+    }
+
+    .team-director-card .member-role {
+      font-size: 1.08rem;
+    }
+
+    .team-director-card .member-edu {
+      font-size: .96rem;
+    }
+
+    .member-edu .uni {
+      color: var(--col-blue);
+      font-weight: 600;
+    }
+
+    /* ================================================================
+   SECTION 3 — CONTENT / TABLE OF CONTENTS
+================================================================ */
+    #hub-content {
+      justify-content: flex-start;
+    }
+
+    .content-title {
+      font-size: 1.7rem;
+      font-weight: 800;
+      margin-bottom: .3rem;
+      flex-shrink: 0;
+    }
+
+    .content-sub {
+      font-size: .85rem;
+      color: var(--dim);
+      margin-bottom: 1.6rem;
+      flex-shrink: 0;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .deck-grid {
+      width: 100%;
+      max-width: 95%;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      align-items: start;
+      gap: 1.4rem;
+    }
+
+    .deck-block {
+      width: 100%;
+    }
+
+    @media (max-width: 900px) {
+      .deck-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .deck-hdr {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      text-decoration: none;
+      background: var(--s1);
+      border: 1.5px solid var(--b1);
+      border-radius: var(--r);
+      padding: 1rem 1.2rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      transition: all .18s;
+      height: 125px;
+    }
+
+    .deck-hdr:hover {
+      border-color: var(--c);
+      box-shadow: 0 4px 14px color-mix(in srgb, var(--c) 15%, transparent);
+    }
+
+    .deck-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 10px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 21px;
+      color: #fff;
+      background: linear-gradient(135deg, var(--c), color-mix(in srgb, var(--c) 65%, var(--text)));
+    }
+
+    .deck-hdr-text {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .deck-name {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .deck-desc {
+      font-size: 1.1rem;
+      color: var(--muted);
+      margin-top: 2px;
+      line-height: 1.4;
+    }
+
+    .deck-arrow {
+      font-size: 1.2rem;
+      color: var(--b2);
+      flex-shrink: 0;
+    }
+
+    .subtopic-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      grid-auto-rows: 1fr;
+      gap: .5rem;
+      margin-top: .7rem;
+      padding-left: .3rem;
+    }
+
+    .subtopic-pill {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      min-height: 2.6rem;
+      height: 100%;
+      padding: .4rem .75rem;
+      border-radius: 16px;
+      text-decoration: none;
+      background: var(--s1);
+      border: 1px solid var(--b1);
+      color: var(--muted);
+      font-size: .85rem;
+      font-weight: 600;
+      transition: all .18s;
+    }
+
+    .subtopic-pill:hover {
+      border-color: var(--c);
+      color: var(--c);
+      background: color-mix(in srgb, var(--c) 6%, var(--s1));
+      transform: translateY(-1px);
+    }
+
+    .subtopic-pill.plain {
+      cursor: default;
+    }
+
+    .subtopic-pill.archive {
+      grid-column: 1 / -1;
+      border-style: dashed;
+      background: var(--s2);
+      color: var(--dim);
+      font-weight: 500;
+    }
+
+    /* ================================================================
+       SECTION 2.5 — PROGRESS
+    ================================================================ */
+    #hub-progress {
+      justify-content: flex-start;
+      padding: 2rem;
+    }
+
+    .prog-container {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      max-width: 95%;
+      gap: 1rem;
+      margin: 0 auto;
+      flex: 1;
+      font-size: 1.15rem;
+    }
+
+    .prog-header {
+      text-align: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .prog-title {
+      font-size: 2.8rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: -0.5px;
+      margin-bottom: 0.2rem;
+    }
+
+    .prog-subtitle {
+      font-size: 1.4rem;
+      color: var(--muted);
+    }
+
+    .prog-main-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1.3fr 1fr 0.7fr;
+      gap: 1rem;
+      align-items: stretch;
+      flex: 1;
+    }
+
+    .prog-col {
+      border-radius: var(--rs);
+      border: 1.5px solid var(--b2);
+      background: var(--s1);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .prog-col-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .prog-col-stack .prog-col {
+      flex: 1;
+    }
+
+    .prog-col-header {
+      padding: 0.8rem;
+      font-weight: 700;
+      font-size: 1.2rem;
+      text-align: center;
+      border-bottom: 1px solid var(--b1);
+    }
+
+    .prog-col-body {
+      padding: 1rem;
+      flex: 1;
+    }
+
+    .prog-item {
+      margin-bottom: 1rem;
+    }
+    .prog-item:last-child {
+      margin-bottom: 0;
+    }
+    .prog-item-title {
+      font-weight: 700;
+      margin-bottom: 0.2rem;
+      font-size: 1.15rem;
+    }
+    .prog-item-desc {
+      color: var(--muted);
+      font-size: 1.1rem;
+    }
+
+    .c-blue .prog-col-header { background: #e0f2fe; color: #075985; border-color: #bae6fd; }
+    .c-blue { border-color: #bae6fd; }
+
+    .c-green .prog-col-header { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
+    .c-green { border-color: #bbf7d0; }
+
+    .c-orange .prog-col-header { background: #ffedd5; color: #9a3412; border-color: #fed7aa; }
+    .c-orange { border-color: #fed7aa; }
+
+    .c-purple .prog-col-header { background: #f3e8ff; color: #6b21a8; border-color: #e9d5ff; }
+    .c-purple { border-color: #e9d5ff; }
+
+    .dev-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    .dev-col-title {
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--col-orange);
+      text-align: center;
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+    }
+    .dev-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .dev-list li {
+      margin-bottom: 0.8rem;
+      display: flex;
+      flex-direction: column;
+    }
+    .dev-list.done li {
+      flex-direction: row;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .dev-footer {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: auto;
+      padding-top: 1rem;
+    }
+
+    .key-achievements {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      background: #f0f9ff;
+    }
+    .ka-text {
+      font-weight: 700;
+      padding: 0.8rem 1rem;
+      text-align: center;
+      background: #e0f2fe;
+      color: #075985;
+      border-bottom: 1px solid #bae6fd;
+      letter-spacing: 2px;
+    }
+    .ka-list {
+      padding: 1rem 1rem 1rem 2rem;
+      font-size: 1.15rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+    }
+    .ka-list li {
+      margin-bottom: 0.5rem;
+    }
+    .ka-list li::marker {
+      color: var(--col-blue);
+    }
+
+    .prog-footer {
+      border-radius: var(--rs);
+      border: 1.5px solid #e9d5ff;
+      background: #fdfaef;
+      overflow: hidden;
+    }
+    .prog-footer-header {
+      background: #f3e8ff;
+      color: #6b21a8;
+      text-align: center;
+      font-size: 1.2rem;
+      font-weight: 700;
+      padding: 0.5rem;
+      border-bottom: 1px solid #e9d5ff;
+    }
+    .prog-footer-body {
+      padding: 1rem 2rem;
+      background: var(--s1);
+    }
+
+    .sdlc-flow-wrap {
+      display: flex;
+      flex-direction: column;
+    }
+    .sdlc-flow-title {
+      font-weight: 700;
+      font-size: 1.15rem;
+      margin-bottom: 0.5rem;
+    }
+    .sdlc-flow {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 5px;
+    }
+    .sdlc-step {
+      padding: 0.6rem 0.5rem;
+      font-weight: 700;
+      font-size: 0.9rem;
+      flex: 1;
+      text-align: center;
+      background: var(--s2);
+      clip-path: polygon(0% 0%, 90% 0%, 100% 50%, 90% 100%, 0% 100%, 10% 50%);
+    }
+    .sdlc-step:first-child { clip-path: polygon(0% 0%, 90% 0%, 100% 50%, 90% 100%, 0% 100%); }
+    .sdlc-step:last-child { clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%, 10% 50%); }
+
+    .sdlc-step.concept { background: #a5f3fc; color: #0e7490; }
+    .sdlc-step.requirements { background: #bae6fd; color: #0369a1; }
+    .sdlc-step.design { background: #e9d5ff; color: #7e22ce; }
+    .sdlc-step.dev { background: #fed7aa; color: #c2410c; }
+    .sdlc-step.test { background: #bbf7d0; color: #15803d; }
+    .sdlc-step.maint { background: #fbcfe8; color: #be185d; }
+
+    .sdlc-bracket {
+      border-bottom: 2px solid var(--col-orange);
+      border-left: 2px solid var(--col-orange);
+      border-right: 2px solid var(--col-orange);
+      height: 10px;
+      margin-top: 15px;
+      width: 100%;
+      position: relative;
+    }
+    .sdlc-bracket::after {
+      content: "Development & Mesh Implementation";
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.85rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .next-obj-list {
+      padding-left: 1.2rem;
+      font-size: 1.1rem;
+    }
+    .next-obj-list li {
+      margin-bottom: 0.5rem;
+    }
+    .next-obj-list li::marker {
+      color: var(--col-purple);
+      content: '▶ ';
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <div id="hub-progress" class="hub-page active">
+    <a class="hub-back" href="javascript:void(0)" onclick="Hub.prev()" title="Back to the current Quarterly Progress deck">← Back</a>
+    
+    <div class="prog-container">
+      <div class="prog-header">
+        <div class="prog-title">QUARTERLY PROGRESS REPORT (APRIL 2026 - JULY 2026)</div>
+        <div class="prog-subtitle">Project Title: DEVELOPMENT OF CHI-BASED NETWORK-ON-CHIP (NoC) SIMULATOR</div>
+      </div>
+
+      <div class="prog-main-grid">
+        <!-- Col 1 -->
+        <div class="prog-col c-blue">
+          <div class="prog-col-header">1. REQUIREMENT GATHERING</div>
+          <div class="prog-col-body">
+            <div class="prog-item">
+              <div class="prog-item-title">Requirement Finalization:</div>
+              <div class="prog-item-desc">Functional Requirements of CHI Router Finalized</div>
+            </div>
+            <hr style="border:0; border-top:1px solid var(--b1); margin:0.5rem 0;">
+            <div class="prog-item">
+              <div class="prog-item-title">Architectural Specifications:</div>
+              <div class="prog-item-desc">Core Router Parameters Defined</div>
+            </div>
+            <hr style="border:0; border-top:1px solid var(--b1); margin:0.5rem 0;">
+            <div class="prog-item">
+              <div class="prog-item-title">Reference Platform:</div>
+              <div class="prog-item-desc">Explored BookSim Simulator</div>
+            </div>
+            <hr style="border:0; border-top:1px solid var(--b1); margin:0.5rem 0;">
+            <div class="prog-item">
+              <div class="prog-item-title">Validation Strategy:</div>
+              <div class="prog-item-desc">Investigated Testing Approaches</div>
+            </div>
+            <hr style="border:0; border-top:1px solid var(--b1); margin:0.5rem 0;">
+            <div class="prog-item">
+              <div class="prog-item-title">Node Modeling:</div>
+              <div class="prog-item-desc">Initiated PCIe RN-I Node Study</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Col 2 -->
+        <div class="prog-col c-green">
+          <div class="prog-col-header">2. SYSTEM DESIGN</div>
+          <div class="prog-col-body">
+            <div class="prog-item">
+              <div class="prog-item-title">Router Architecture:</div>
+              <div class="prog-item-desc">Designed 6-Port Router</div>
+            </div>
+            <hr style="border:0; border-top:1px solid var(--b1); margin:0.5rem 0;">
+            <div class="prog-item">
+              <div class="prog-item-title">Pipeline Architecture:</div>
+              <div class="prog-item-desc">Designed 5-Stage CHI Router Pipeline (flow)</div>
+            </div>
+            <hr style="border:0; border-top:1px solid var(--b1); margin:0.5rem 0;">
+            <div class="prog-item">
+              <div class="prog-item-title">High-Level Workflow:</div>
+              <div class="prog-item-desc">Designed NoC Simulator Workflow</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Col 3 -->
+        <div class="prog-col c-orange">
+          <div class="prog-col-header">3. CODING AND DEVELOPMENT</div>
+          <div class="prog-col-body" style="display:flex; flex-direction:column;">
+            <div class="dev-grid">
+              <div>
+                <div class="dev-col-title" style="color:#16a34a;">IMPLEMENTED</div>
+                <ul class="dev-list done">
+                  <li>Event scheduler</li>
+                  <li>Configuration Loader</li>
+                  <li>Traffic Manager</li>
+                  <li>CHI-based Router</li>
+                  <li>5-Stage Router Pipeline</li>
+                  <li>Links</li>
+                  <li>Route Computation Unit</li>
+                </ul>
+              </div>
+              <div style="border-left:1px dashed var(--b1); padding-left:1rem;">
+                <div class="dev-col-title">ONGOING</div>
+                <ul class="dev-list ongoing">
+                  <li><span>Credit-based Flow Control</span></li>
+                  <li><span>Allocator</span></li>
+                  <li><span>Arbiters</span></li>
+                  <li><span>CHI Flits</span></li>
+                  <li><span>Component Integration</span></li>
+                </ul>
+              </div>
+            </div>
+            <div class="dev-footer">
+              * Highlighted components upgraded later for CHI Devices.
+            </div>
+          </div>
+        </div>
+
+        <!-- Col 4: Testing (shortened) stacked with Key Achievements beneath it -->
+        <div class="prog-col-stack">
+          <div class="prog-col c-purple">
+            <div class="prog-col-header">4. TESTING AND VALIDATION</div>
+            <div class="prog-col-body">
+              <div class="prog-item" style="display:flex; gap:0.5rem;">
+                <span style="color:var(--col-purple);">●</span>
+                <span>Initial Module-Level Testing Commenced</span>
+              </div>
+              <hr style="border:0; border-top:1px solid var(--b1); margin:1rem 0;">
+              <div class="prog-item" style="display:flex; gap:0.5rem;">
+                <span style="color:var(--col-purple);">●</span>
+                <span>Validation Methodology & Test Scenarios Prepared</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="prog-col c-blue key-achievements">
+            <div class="ka-text">KEY ACHIEVEMENTS</div>
+            <ul class="ka-list">
+              <li>Successfully Established Requirements</li>
+              <li>Completed High-Level Design & Pipeline Architecture</li>
+              <li>Selected & Analyzed BookSim</li>
+              <li>Completed Implementation of Certain Modules</li>
+              <li>Initiated Testing Pipeline Setup</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Col 5: Next Cycle Objectives (replaces old Key Achievements slot) -->
+        <div class="prog-col c-purple">
+          <div class="prog-col-header">NEXT CYCLE OBJECTIVES</div>
+          <div class="prog-col-body">
+            <ul class="next-obj-list">
+              <li>Extend Development for Complete Mesh</li>
+              <li>Integrate CHI Nodes (RN-F, HN-F, SN-F) for End-to-End Transactions</li>
+              <li>Maintain 6-Phase Workflow</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="prog-footer">
+        <div class="prog-footer-header">CURRENT STATUS & NEXT MILESTONES</div>
+        <div class="prog-footer-body">
+          <div class="sdlc-flow-wrap">
+            <div class="sdlc-flow-title">6-PHASE SDLC WORKFLOW STRUCTURE</div>
+            <div class="sdlc-flow">
+              <div class="sdlc-step concept">Concept / Needs</div>
+              <div class="sdlc-step requirements">Requirements</div>
+              <div class="sdlc-step design">Architecture / Design</div>
+              <div class="sdlc-step dev">Implementation</div>
+              <div class="sdlc-step test">Integration & Test</div>
+              <div class="sdlc-step maint">Operation & Maint.</div>
+            </div>
+            <div class="sdlc-bracket"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    /* Archive page: both arrow keys return to the current Quarterly Progress deck. */
+    const Hub = {
+      next() { window.location.href = "../index.html"; },
+      prev() { window.location.href = "../index.html"; }
+    };
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); Hub.next(); }
+      else if (e.key === "ArrowLeft") { e.preventDefault(); Hub.prev(); }
+    });
+  </script>
+</body>
+
+</html>

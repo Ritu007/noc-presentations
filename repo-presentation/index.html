@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NoC Simulator — Repository, CI/CD &amp; Documentation</title>
+<meta name="description" content="How code moves from a feature branch to a release in the NoC Simulator repository, how every change is built and tested automatically, and how the design documents are kept.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ================================================================
+   DESIGN TOKENS — PREMIUM LIGHT THEME (matches flit-presentation)
+================================================================ */
+:root {
+  --bg:       #f8fafc;
+  --s1:       #ffffff;
+  --s2:       #f1f5f9;
+  --s3:       #e2e8f0;
+  --b1:       #cbd5e1;
+  --b2:       #94a3b8;
+
+  --text:     #0f172a;
+  --muted:    #334155;
+  --dim:      #64748b;
+
+  --col-cyan:   #0284c7;
+  --col-blue:   #2563eb;
+  --col-purple: #7c3aed;
+  --col-orange: #ea580c;
+  --col-green:  #16a34a;
+  --col-pink:   #db2777;
+  --col-yellow: #d97706;
+  --col-teal:   #0d9488;
+  --col-red:    #dc2626;
+
+  --nav-w:    260px;
+  --hdr-h:    54px;
+  --ctrl-h:   64px;
+  --r:        10px;
+  --rs:       6px;
+  --rxs:      4px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  display: grid;
+  grid-template-rows: var(--hdr-h) 1fr auto var(--ctrl-h);
+  grid-template-columns: var(--nav-w) 1fr;
+  grid-template-areas:
+    "hdr  hdr"
+    "nav  canvas"
+    "nav  band"
+    "ctrl ctrl";
+}
+
+/* ================================================================
+   HEADER
+================================================================ */
+#app-header {
+  grid-area: hdr;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 1.4rem; background: var(--s1); border-bottom: 1px solid var(--b1);
+  position: relative; z-index: 50; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+#app-header::after {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent 0%, var(--col-cyan) 20%, var(--col-blue) 50%, var(--col-purple) 80%, transparent 100%);
+  opacity: 0.7;
+}
+.brand { display: flex; align-items: center; gap: .6rem; }
+.brand-icon {
+  width: 30px; height: 30px; border-radius: 8px;
+  background: linear-gradient(135deg, var(--col-cyan), var(--col-blue));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; color: white; flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(2,132,199,0.3);
+}
+#app-header h1 { font-size: 1rem; font-weight: 700; letter-spacing: -.2px; color: var(--text); white-space: nowrap; }
+.chi-badge {
+  font-size: .63rem; font-weight: 700; text-transform: uppercase; letter-spacing: .8px;
+  color: var(--col-cyan); background: rgba(2,132,199,.08); border: 1px solid rgba(2,132,199,.25);
+  padding: 2px 8px; border-radius: 20px; white-space: nowrap;
+}
+.hdr-center { font-size: .78rem; color: var(--muted); font-weight: 500; font-family: 'JetBrains Mono', monospace; text-align: center; }
+.hdr-center span { color: var(--col-cyan); font-weight: 700; }
+.phase-pill {
+  display: flex; align-items: center; gap: .4rem; font-size: .7rem;
+  font-family: 'JetBrains Mono', monospace; color: var(--muted); font-weight: 600;
+  background: var(--s2); padding: 4px 10px; border-radius: 14px; border: 1px solid var(--b1); white-space: nowrap;
+}
+.phase-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--col-green); box-shadow: 0 0 6px var(--col-green); animation: phase-glow 2s ease-in-out infinite; }
+@keyframes phase-glow { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: .5; transform: scale(0.85); } }
+
+/* ================================================================
+   NAVIGATOR (LEFT)
+================================================================ */
+#stage-nav { grid-area: nav; background: var(--s1); border-right: 1px solid var(--b1); padding: 1rem .75rem .6rem; display: flex; flex-direction: column; gap: 4px; overflow: hidden; }
+.nav-group-label { font-size: .62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--dim); padding: 0 .5rem; margin-bottom: .5rem; }
+
+/* ================================================================
+   BACK TO MAIN MENU — consistent top-of-left-column position
+================================================================ */
+.back-menu-link {
+  display: block; text-align: center; text-decoration: none;
+  padding: .55rem .75rem; margin-bottom: 12px;
+  border: 1px solid var(--b1); border-radius: var(--rs);
+  background: var(--s2); color: var(--text); font-weight: 600;
+  font-family: 'Inter', sans-serif; font-size: .8rem;
+  transition: background .2s, border-color .2s;
+}
+.back-menu-link:hover { background: var(--s3); }
+
+/* ================================================================
+   FLOW SWITCHER — jump directly between the 4 peer flows
+================================================================ */
+.flow-switch {
+  display: flex; flex-direction: column; gap: 3px;
+  padding-bottom: .7rem; margin-bottom: .7rem;
+  border-bottom: 1px solid var(--b1);
+}
+.flow-switch-lbl {
+  font-size: .62rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1.5px; color: var(--dim);
+  padding: 0 .5rem; margin-bottom: .3rem;
+}
+.flow-switch-item {
+  display: flex; align-items: center; gap: .5rem;
+  padding: .4rem .6rem; border-radius: var(--rxs);
+  font-size: .74rem; font-weight: 600; text-decoration: none;
+  color: var(--muted); border: 1px solid transparent;
+  transition: all .18s;
+}
+.flow-switch-item::before {
+  content: ''; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--dot, var(--dim)); flex-shrink: 0;
+}
+.flow-switch-item:hover { background: var(--s2); border-color: var(--b1); color: var(--text); }
+.flow-switch-item.current {
+  color: var(--dot, var(--text)); font-weight: 700; cursor: default;
+  background: color-mix(in srgb, var(--dot, var(--dim)) 8%, transparent);
+  border-color: color-mix(in srgb, var(--dot, var(--dim)) 30%, transparent);
+  pointer-events: none;
+}
+.flow-switch-item.fs-blue   { --dot: var(--col-blue); }
+.flow-switch-item.fs-cyan   { --dot: var(--col-cyan); }
+.flow-switch-item.fs-purple { --dot: var(--col-purple); }
+.flow-switch-item.fs-orange { --dot: var(--col-orange); }
+.flow-switch-item.fs-teal   { --dot: var(--col-teal); }
+
+.nav-item {
+  display: flex; align-items: center; gap: .6rem; padding: .55rem .75rem; border-radius: var(--rs);
+  cursor: pointer; border: 1px solid transparent; background: transparent; color: var(--muted);
+  text-align: left; width: 100%; transition: background .2s, border-color .2s; font-family: 'Inter', sans-serif;
+}
+.nav-item:hover { background: var(--s2); }
+.nav-item.active { background: rgba(2,132,199,.08); border-color: rgba(2,132,199,.3); box-shadow: 0 1px 3px rgba(2,132,199,.1); }
+.nav-status-icon { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--b1); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; transition: all .3s; font-weight: 700; }
+.nav-item.active .nav-status-icon { border-color: var(--col-cyan); background: rgba(2,132,199,.15); }
+.nav-item.active .nav-status-icon::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--col-cyan); }
+.nav-text { flex: 1; min-width: 0; }
+.nav-num { font-size: .6rem; color: var(--dim); font-family: 'JetBrains Mono', monospace; font-weight: 600; margin-bottom: 1px; }
+.nav-name { font-size: .78rem; font-weight: 600; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nav-item.active .nav-name { color: var(--col-cyan); }
+.nav-color-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.nav-desc { font-size: .68rem; color: var(--dim); padding: 0 .75rem .5rem; margin-top: -6px; line-height: 1.4; }
+.nav-kbd-hint { margin-top: auto; padding-top: .6rem; font-size: .63rem; color: var(--dim); text-align: center; letter-spacing: .2px; }
+.kbd { display: inline-block; padding: 1px 5px; border-radius: 4px; background: var(--s2); border: 1px solid var(--b1); font-family: 'JetBrains Mono', monospace; font-size: .6rem; color: var(--muted); font-weight: 600; }
+
+/* ================================================================
+   MAIN CANVAS
+================================================================ */
+#main-canvas { grid-area: canvas; position: relative; overflow: hidden; background: var(--bg); }
+.page-view {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  padding: 1rem; opacity: 0; pointer-events: none; transform: scale(.96);
+  transition: opacity .4s, transform .4s;
+}
+.page-view.active { opacity: 1; pointer-events: auto; transform: scale(1); }
+
+/* ---- Shared styles for the architecture / API / run-flow / module slides ----
+   HTML slides size everything in em off --u so they scale with window height. */
+.slide { --u: clamp(12px, 1.85vh, 24px); font-size: var(--u); width: 100%; max-width: 1600px; }
+.fx { transition: opacity .35s, box-shadow .35s, border-color .35s; }
+.fx.idle { opacity: .38; }
+.fx.active { border-color: var(--c); box-shadow: 0 0 0 2px var(--c), 0 6px 22px color-mix(in srgb, var(--c) 22%, transparent); }
+.tech-badges { display: flex; flex-wrap: wrap; gap: .4em; }
+.tech { font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: .78em; padding: .22em .75em; border-radius: 20px; white-space: nowrap; color: var(--c); background: color-mix(in srgb, var(--c) 8%, transparent); border: 1px solid color-mix(in srgb, var(--c) 30%, transparent); }
+.nw { white-space: nowrap; }
+.st { font-weight: 700; font-size: .78em; white-space: nowrap; }
+.st.ok { color: var(--col-green); }
+.st.wip { color: var(--col-yellow); }
+.st.todo { color: var(--col-red); }
+
+/* ---- Page 1: Branching model ---- */
+.branch-slide { display: flex; flex-direction: column; gap: .9em; }
+.repo-card { display: flex; align-items: center; gap: 1em; background: var(--s1); border: 1.5px solid var(--b1); border-radius: .9em; padding: .8em 1.1em; }
+.repo-name { font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 1.15em; color: var(--text); }
+.repo-sub { font-size: .95em; color: var(--muted); margin-top: .15em; }
+.repo-txt { flex: 1; min-width: 0; }
+#branch-svg { width: 100%; height: auto; display: block; }
+.grp { transition: opacity .35s; }
+.grp.idle { opacity: .22; }
+.bnode rect { fill: var(--s1); stroke: var(--c); stroke-width: 2; }
+.bnode .bn { font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 19px; fill: var(--c); text-anchor: middle; }
+.bnode .bs { font-family: 'JetBrains Mono', monospace; font-weight: 500; font-size: 11px; fill: var(--muted); text-anchor: middle; }
+.gate rect { fill: color-mix(in srgb, var(--col-purple) 9%, var(--s1)); stroke: var(--col-purple); stroke-width: 2; }
+.gate text { font-family: 'Inter', sans-serif; font-weight: 800; font-size: 13px; fill: var(--col-purple); text-anchor: middle; }
+.barrow { fill: none; stroke: var(--col-blue); stroke-width: 2.2; }
+.barrow.hot { stroke: var(--col-orange); }
+.bcap { font-family: 'Inter', sans-serif; font-weight: 500; font-size: 12.5px; fill: var(--muted); text-anchor: middle; }
+.bcap.note { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 11px; fill: var(--col-orange); }
+.blbl { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 11.5px; fill: var(--col-orange); }
+.grp.active .barrow { stroke-dasharray: 7 5; animation: dash-flow .8s linear infinite; }
+@keyframes dash-flow { to { stroke-dashoffset: -24; } }
+
+/* ---- Page 2: CI/CD (3 columns) ---- */
+.cols3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1em; align-items: stretch; }
+.col { display: flex; flex-direction: column; background: var(--s1); border: 1.5px solid var(--b1); border-radius: .9em; overflow: hidden; }
+.col-hdr { background: var(--c); color: #fff; padding: .8em 1.1em; }
+.col-hdr h3 { font-size: 1.3em; font-weight: 800; }
+.col-hdr p { font-size: .88em; opacity: .92; margin-top: .15em; }
+.col-body { flex: 1; padding: 1em 1.1em 1.1em; display: flex; flex-direction: column; justify-content: space-evenly; gap: .9em; color: var(--muted); line-height: 1.4; }
+.col-body code { font-family: 'JetBrains Mono', monospace; font-size: .88em; color: var(--c); }
+.defn { display: flex; flex-direction: column; gap: .3em; padding: .8em .9em; border: 1.5px solid color-mix(in srgb, var(--c) 35%, var(--b1)); border-radius: .7em; background: color-mix(in srgb, var(--c) 5%, var(--s1)); }
+.defn .tech { align-self: flex-start; }
+.defn b { font-size: 1.15em; color: var(--text); }
+.defn .note { font-family: 'JetBrains Mono', monospace; font-size: .78em; font-weight: 700; color: var(--col-orange); }
+.stages { display: flex; flex-wrap: wrap; align-items: center; gap: .4em .35em; }
+.stg { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: .84em; color: var(--c); background: color-mix(in srgb, var(--c) 8%, var(--s1)); border: 1.5px solid color-mix(in srgb, var(--c) 40%, var(--b1)); border-radius: .5em; padding: .35em .65em; white-space: nowrap; }
+.sa { color: var(--b2); font-weight: 800; }
+.trig { padding: .5em 0; border-top: 1px dashed var(--b1); }
+.trig b { display: block; color: var(--text); font-size: 1.02em; }
+.trig span { font-size: .92em; }
+.gate-note { font-size: .85em; color: var(--dim); font-style: italic; }
+.ticks { list-style: none; display: flex; flex-direction: column; gap: .5em; }
+.ticks li { position: relative; padding-left: 1.5em; }
+.ticks li::before { content: '✓'; position: absolute; left: 0; color: var(--col-green); font-weight: 800; }
+.next-hd { font-size: .72em; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--dim); }
+.next-list { list-style: none; display: flex; flex-direction: column; gap: .5em; }
+.next-list li { position: relative; padding-left: 1.5em; }
+.next-list li::before { content: '→'; position: absolute; left: 0; color: var(--col-orange); font-weight: 800; }
+@media (max-width: 1000px) { .cols3 { grid-template-columns: 1fr; } }
+
+/* ---- Page 3: Documentation ---- */
+.docs-slide { display: grid; grid-template-columns: 5fr 7fr; gap: 1em; align-items: stretch; }
+.tree { font-family: 'JetBrains Mono', monospace; font-size: .78em; line-height: 1.6; white-space: pre; overflow: hidden; background: var(--s2); border: 1px solid var(--b1); border-radius: .5em; padding: .7em .9em; color: var(--text); }
+.tree .t { color: var(--dim); }
+.tree .h { color: var(--c); font-weight: 700; }
+.fam-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .8em; flex: 1; }
+.fam { display: flex; flex-direction: column; gap: .35em; padding: .75em .9em; background: var(--s1); border: 1.5px solid color-mix(in srgb, var(--k) 35%, var(--b1)); border-left: 5px solid var(--k); border-radius: .7em; }
+.fam-n { font-weight: 800; font-size: 1.12em; color: var(--text); }
+.fam-n small { font-family: 'JetBrains Mono', monospace; font-size: .62em; font-weight: 700; color: var(--k); margin-left: .5em; letter-spacing: .5px; }
+.fam-c { font-size: .93em; color: var(--muted); }
+.fam-f { font-family: 'JetBrains Mono', monospace; font-size: .74em; color: var(--dim); line-height: 1.55; overflow-wrap: anywhere; }
+.fam-f .wip { color: var(--col-orange); font-weight: 700; }
+@media (max-width: 1000px) { .docs-slide, .fam-grid { grid-template-columns: 1fr; } }
+
+/* ================================================================
+   LANDING VIEW (title slide — shown first, on top of everything)
+================================================================ */
+#landing-view {
+  position: fixed; inset: 0; z-index: 500;
+  background: var(--bg);
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+  padding: 3rem 2rem; overflow-y: auto;
+}
+.landing-toc-link {
+  position: fixed; top: 1.5rem; left: 1.5rem; z-index: 501;
+  display: inline-flex; align-items: center; gap: .3rem;
+  text-decoration: none; color: var(--dim); font-size: .78rem; font-weight: 600;
+  padding: .45rem .8rem; border: 1px solid var(--b1); border-radius: var(--rs);
+  background: var(--bg);
+  transition: background .2s, border-color .2s, color .2s;
+}
+.landing-toc-link:hover { background: var(--s3); color: var(--text); }
+.landing-continue-row { display: flex; justify-content: center; width: 100%; }
+.landing-start-btn {
+  display: inline-flex; align-items: center; gap: .5rem;
+  padding: .85rem 1.8rem; border: none; border-radius: var(--rs); cursor: pointer;
+  font-family: 'Inter', sans-serif; font-size: .92rem; font-weight: 700; color: #fff;
+  background: linear-gradient(135deg, var(--col-cyan), var(--col-blue)); box-shadow: 0 2px 10px rgba(8,145,178,.3);
+  transition: all .18s;
+}
+.landing-start-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(37,99,235,.4); }
+.landing-inner { margin: auto 0; max-width: 95%; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 2.4rem; }
+.landing-title-block { text-align: center; }
+.landing-title { font-size: 2.6rem; font-weight: 800; letter-spacing: -1px; color: var(--text); line-height: 1.15; }
+.landing-subtitle { margin-top: .6rem; font-size: .95rem; font-family: 'JetBrains Mono', monospace; color: var(--dim); font-weight: 500; letter-spacing: .3px; }
+.landing-list { width: 100%; display: grid; grid-template-columns: repeat(2, 1fr); gap: .8rem; }
+.landing-divider { grid-column: 1 / -1; width: 100%; display: flex; align-items: center; gap: .8rem; color: var(--dim); font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+.landing-divider::before, .landing-divider::after { content: ''; flex: 1; height: 1px; background: var(--b1); }
+@media (max-width: 720px) {
+  .landing-list { grid-template-columns: 1fr; }
+}
+.landing-card {
+  display: flex; align-items: center; gap: 1rem; width: 100%;
+  padding: 1.1rem 1.3rem; background: var(--s1); border: 1px solid var(--b1); border-radius: var(--r);
+  text-decoration: none; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  transition: all .18s;
+}
+.landing-card.wide { grid-column: 1 / -1; }
+.landing-card.archive { background: var(--s2); border-style: dashed; box-shadow: none; }
+.landing-card.archive .landing-card-name { color: var(--muted); }
+.landing-card.archive .landing-card-desc { color: var(--dim); }
+.archive-tag { margin-left: .6rem; vertical-align: middle; font-family: 'JetBrains Mono', monospace; font-size: .7rem; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; color: var(--dim); border: 1px solid var(--b2); border-radius: 20px; padding: .15rem .6rem; }
+.landing-card:hover { border-color: var(--b2); box-shadow: 0 4px 14px rgba(0,0,0,0.08); transform: translateY(-1px); }
+.landing-card-icon { width: 44px; height: 44px; border-radius: 10px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #fff; }
+.landing-card-text { flex: 1; min-width: 0; }
+.landing-card-name { font-size: 1.4rem; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+.landing-card-desc { font-size: 1.1rem; color: var(--muted); line-height: 1.5; }
+.landing-card-arrow { font-size: 1.1rem; color: var(--b2); flex-shrink: 0; transition: transform .18s, color .18s; }
+.landing-card:hover .landing-card-arrow { color: var(--col-cyan); transform: translateX(3px); }
+
+/* ================================================================
+   NOW BAND (full-width, under canvas + details — the readable one)
+================================================================ */
+#now-band { grid-area: band; background: var(--s1); border-top: 1px solid var(--b1); border-bottom: 1px solid var(--b1); box-shadow: 0 1px 4px rgba(0,0,0,0.04); overflow: hidden; }
+#band-body { display: flex; align-items: center; gap: 1.1rem; padding: .85rem 1.6rem; border-left: 4px solid transparent; transition: opacity .15s; }
+#band-body.fading { opacity: 0; }
+
+.band-badge { flex-shrink: 0; display: inline-flex; align-items: center; gap: .35rem; padding: .3rem .8rem; border-radius: 20px; font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; border: 1px solid; white-space: nowrap; }
+.band-badge.c-cyan   { background: rgba(2,132,199,.08);  border-color: rgba(2,132,199,.3);  color: var(--col-cyan); }
+.band-badge.c-blue   { background: rgba(37,99,235,.08);  border-color: rgba(37,99,235,.3);  color: var(--col-blue); }
+.band-badge.c-purple { background: rgba(124,58,237,.08); border-color: rgba(124,58,237,.3); color: var(--col-purple); }
+.band-badge.c-orange { background: rgba(234,88,12,.08);  border-color: rgba(234,88,12,.3);  color: var(--col-orange); }
+.band-badge.c-green  { background: rgba(22,163,74,.08);  border-color: rgba(22,163,74,.3);  color: var(--col-green); }
+.band-badge.c-pink   { background: rgba(219,39,119,.08); border-color: rgba(219,39,119,.3);  color: var(--col-pink); }
+
+.band-title { flex-shrink: 0; font-size: 1.15rem; font-weight: 800; color: var(--text); white-space: nowrap; }
+.band-desc { flex: 1; min-width: 0; font-size: .92rem; color: var(--muted); line-height: 1.5; font-weight: 500; }
+
+/* ================================================================
+   CONTROL BAR (FOOTER)
+================================================================ */
+#control-bar { grid-area: ctrl; background: var(--s1); border-top: 1px solid var(--b1); display: flex; align-items: center; justify-content: space-between; padding: 0 1.4rem; gap: .75rem; box-shadow: 0 -1px 3px rgba(0,0,0,0.03); }
+.prog-row { display: flex; align-items: center; gap: .75rem; flex: 1; min-width: 0; }
+.prog-pips { display: flex; gap: .28rem; align-items: center; flex-wrap: wrap; }
+.pip { height: 5px; width: 20px; border-radius: 3px; background: var(--b1); transition: all .3s; }
+.pip.done { background: var(--col-green); }
+.pip.cur { background: var(--col-cyan); width: 34px; }
+.prog-lbl { font-size: .75rem; color: var(--muted); font-weight: 600; font-family: 'JetBrains Mono', monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.prog-lbl span { color: var(--col-cyan); font-weight: 700; }
+
+.ctrl-btns { display: flex; gap: .5rem; align-items: center; flex-shrink: 0; }
+.ctrl-btn { display: flex; align-items: center; justify-content: center; gap: .4rem; height: 36px; padding: 0 1.05rem; border: none; border-radius: var(--rs); font-family: 'Inter', sans-serif; font-size: .78rem; font-weight: 700; cursor: pointer; transition: all .18s; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.ctrl-btn:disabled { opacity: .3; cursor: not-allowed; }
+.reset-btn { background: var(--s2); border: 1px solid var(--b1); color: var(--muted); font-size: .72rem; padding: 0 .75rem; }
+.reset-btn:hover:not(:disabled) { background: var(--s3); color: var(--text); }
+.prev-btn { background: var(--s1); border: 1px solid var(--b1); color: var(--text); }
+.prev-btn:hover:not(:disabled) { background: var(--s2); border-color: var(--b2); }
+.play-btn { background: linear-gradient(135deg, var(--col-cyan), var(--col-blue)); color: white; min-width: 85px; box-shadow: 0 2px 8px rgba(2,132,199,0.3); }
+.play-btn:hover:not(:disabled) { box-shadow: 0 3px 12px rgba(2,132,199,0.45); transform: translateY(-1px); }
+.play-btn.playing { background: linear-gradient(135deg, var(--col-orange), #dc2626); box-shadow: 0 2px 8px rgba(234,88,12,0.3); }
+.next-btn { background: var(--col-cyan); color: white; box-shadow: 0 2px 8px rgba(2,132,199,0.3); }
+.next-btn:hover:not(:disabled) { background: var(--col-blue); box-shadow: 0 3px 12px rgba(37,99,235,0.45); transform: translateY(-1px); }
+</style>
+</head>
+<body>
+
+<div id="landing-view">
+  <a class="landing-toc-link" href="../index.html?end=1">← Table of Contents</a>
+  <div class="landing-inner">
+    <div class="landing-title-block">
+      <div class="landing-title">Repository, CI/CD &amp; Documentation</div>
+      <div class="landing-subtitle">NoC Simulator — Version Control, Automation and Docs</div>
+    </div>
+    <div class="landing-continue-row">
+      <button class="landing-start-btn" onclick="Landing.enter()">Start Presentation →</button>
+    </div>
+    <div class="landing-list">
+      <div class="landing-card wide" onclick="Landing.enter()">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-purple), var(--col-orange))">⇆</div>
+        <div class="landing-card-text">
+          <div class="landing-card-name">Repo, CI/CD &amp; Documentation</div>
+          <div class="landing-card-desc">How code moves from a feature branch to a release, how every change is built and tested automatically, and how the design documents are kept.</div>
+        </div>
+        <div class="landing-card-arrow">→</div>
+      </div>
+      <div class="landing-divider">Last meeting</div>
+      <a class="landing-card archive wide" href="archive/index.html">
+        <div class="landing-card-icon" style="background:var(--b2)">↺</div>
+        <div class="landing-card-text">
+          <div class="landing-card-name">Archive: Software Development Lifecycle <span class="archive-tag">Presented July 2026</span></div>
+          <div class="landing-card-desc">Standard and pipelined SDLC models, requirements, system design, development and coding, and the documentation flow. Not part of this walkthrough.</div>
+        </div>
+        <div class="landing-card-arrow">↗</div>
+      </a>
+      <div class="landing-divider">Other Presentations</div>
+      <a class="landing-card" href="../hardware-presentation/index.html">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-purple), var(--col-blue))">⬡</div>
+        <div class="landing-card-text">
+          <div class="landing-card-name">Hardware Architecture &amp; Router Design</div>
+        </div>
+        <div class="landing-card-arrow">↗</div>
+      </a>
+      <a class="landing-card" href="../presentation/index.html">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-cyan), var(--col-blue))">⬡</div>
+        <div class="landing-card-text">
+          <div class="landing-card-name">Software Development Progress</div>
+        </div>
+        <div class="landing-card-arrow">↗</div>
+      </a>
+      <a class="landing-card" href="../testing-presentation/index.html">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-teal), var(--col-green))">✓</div>
+        <div class="landing-card-text">
+          <div class="landing-card-name">Testing &amp; Verification</div>
+        </div>
+        <div class="landing-card-arrow">↗</div>
+      </a>
+      <a class="landing-card" href="../mesh-presentation/index.html">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-orange), var(--col-pink))">⊞</div>
+        <div class="landing-card-text">
+          <div class="landing-card-name">Internal Mesh &amp; Node Architecture</div>
+        </div>
+        <div class="landing-card-arrow">↗</div>
+      </a>
+      <a class="landing-card" href="../pcie-presentation/index.html">
+        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-blue), var(--col-cyan))">⇄</div>
+        <div class="landing-card-text">
+          <div class="landing-card-name">PCIe &amp; RN-I Bridge</div>
+        </div>
+        <div class="landing-card-arrow">↗</div>
+      </a>
+    </div>
+  </div>
+</div>
+<header id="app-header">
+  <div class="brand">
+    <div class="brand-icon">⇆</div>
+    <h1>NoC Simulator — Repository, CI/CD &amp; Documentation</h1>
+    <span class="chi-badge">Repo &amp; Docs</span>
+  </div>
+  <div class="hdr-center" id="hdr-stage-info">
+    Step <span id="hdr-num">1</span> of <span id="hdr-total">3</span>
+    &nbsp;·&nbsp;
+    <span id="hdr-name">One repository</span>
+  </div>
+  <div class="phase-pill" id="phase-pill">
+    <span class="phase-dot"></span>
+    <span id="phase-text">Repo</span>
+  </div>
+</header>
+<nav id="stage-nav" aria-label="Presentation pages">
+  <a href="javascript:void(0)" class="back-menu-link" onclick="Landing.show()">← Back to Main Menu</a>
+  <div class="flow-switch">
+    <div class="flow-switch-lbl">Switch Flow</div>
+    <a class="flow-switch-item fs-purple current" href="index.html?flow=repo">Repo, CI/CD &amp; Docs</a>
+    <a class="flow-switch-item fs-teal" href="../testing-presentation/index.html">Testing &amp; Verification ↗</a>
+    <a class="flow-switch-item fs-blue" href="../pcie-presentation/index.html">PCIe &amp; RN-I Bridge ↗</a>
+  </div>
+  <div class="nav-group-label">Presentation Pages</div>
+  <button class="nav-item active" id="nav-0" onclick="App.goToPage(0)">
+    <div class="nav-status-icon" id="nav-st-0"></div>
+    <div class="nav-text"><div class="nav-num">01</div><div class="nav-name">Branching Model</div></div>
+    <div class="nav-color-dot" style="background:var(--col-purple)"></div>
+  </button>
+  <button class="nav-item" id="nav-1" onclick="App.goToPage(1)">
+    <div class="nav-status-icon" id="nav-st-1"></div>
+    <div class="nav-text"><div class="nav-num">02</div><div class="nav-name">CI/CD Pipeline</div></div>
+    <div class="nav-color-dot" style="background:var(--col-orange)"></div>
+  </button>
+  <button class="nav-item" id="nav-2" onclick="App.goToPage(2)">
+    <div class="nav-status-icon" id="nav-st-2"></div>
+    <div class="nav-text"><div class="nav-num">03</div><div class="nav-name">Documentation</div></div>
+    <div class="nav-color-dot" style="background:var(--col-teal)"></div>
+  </button>
+  <div class="nav-kbd-hint">
+    <span class="kbd">←</span><span class="kbd">→</span> navigate &nbsp;·&nbsp;
+    <span class="kbd">Space</span> play
+  </div>
+</nav>
+<main id="main-canvas">
+  <!-- ── PAGE 1: BRANCHING MODEL ── -->
+  <div id="page-branch" class="page-view active">
+    <div class="slide branch-slide">
+      <div class="repo-card fx" id="repo-card" style="--c:var(--col-purple)">
+        <div class="repo-txt">
+          <div class="repo-name">C-DAC-CINE-VLSI/NoC-Simulator</div>
+          <div class="repo-sub">One private GitHub organisation repo: Core, Server, GUI and the design docs together.</div>
+        </div>
+        <span class="tech" style="--c:var(--col-purple)">GitHub · private</span>
+      </div>
+      <svg id="branch-svg" viewBox="0 0 1100 360" xmlns="http://www.w3.org/2000/svg" aria-label="Branching model: feature and bugfix branches into dev, staging, main, with hotfix back-edge">
+        <defs>
+          <marker id="bm-main" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker>
+          <marker id="bm-hot" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#ea580c"/></marker>
+        </defs>
+        <g class="grp idle" id="g-main">
+          <g class="bnode" style="--c:#0d9488"><rect x="10" y="70" width="170" height="56" rx="10"/><text class="bn" x="95" y="105">feature/*</text></g>
+          <g class="bnode" style="--c:#0d9488"><rect x="10" y="160" width="170" height="56" rx="10"/><text class="bn" x="95" y="195">bugfix/*</text></g>
+          <text class="bcap" x="95" y="240">One developer's work in</text>
+          <text class="bcap" x="95" y="257">progress, deleted after merge</text>
+          <path class="barrow" d="M182,98 C210,98 210,133 233,133" marker-end="url(#bm-main)"/>
+          <path class="barrow" d="M182,188 C210,188 210,153 233,153" marker-end="url(#bm-main)"/>
+          <g class="gate"><rect x="235" y="118" width="130" height="50" rx="25"/><text x="300" y="148">PR + review</text></g>
+          <path class="barrow" d="M367,143 L416,143" marker-end="url(#bm-main)"/>
+          <g class="bnode" style="--c:#2563eb"><rect x="420" y="108" width="170" height="70" rx="10"/><text class="bn" x="505" y="141">dev</text><text class="bs" x="505" y="162">integration</text></g>
+          <text class="bcap" x="505" y="76">All finished work,</text>
+          <text class="bcap" x="505" y="93">integrated</text>
+          <path class="barrow" d="M592,143 L646,143" marker-end="url(#bm-main)"/>
+          <g class="bnode" style="--c:#7c3aed"><rect x="650" y="108" width="170" height="70" rx="10"/><text class="bn" x="735" y="141">staging</text><text class="bs" x="735" y="162">final validation</text></g>
+          <text class="bcap" x="735" y="76">Release candidate under</text>
+          <text class="bcap" x="735" y="93">system-level validation</text>
+          <path class="barrow" d="M822,143 L876,143" marker-end="url(#bm-main)"/>
+          <g class="bnode" style="--c:#16a34a"><rect x="880" y="108" width="170" height="70" rx="10"/><text class="bn" x="965" y="141">main</text><text class="bs" x="965" y="162">tagged vX.Y.Z</text></g>
+          <text class="bcap" x="965" y="60">Released, tagged code only</text>
+          <text class="bcap note" x="965" y="78">no release tagged yet</text>
+        </g>
+        <g class="grp idle" id="g-hot">
+          <path class="barrow hot" d="M965,180 L965,286" marker-end="url(#bm-hot)"/>
+          <text class="blbl" x="950" y="236" text-anchor="end">urgent fix to a release</text>
+          <g class="bnode" style="--c:#ea580c"><rect x="880" y="290" width="170" height="56" rx="10"/><text class="bn" x="965" y="325">hotfix/*</text></g>
+          <path class="barrow hot" d="M878,318 L304,318 L304,172" marker-end="url(#bm-hot)"/>
+          <text class="blbl" x="590" y="310" text-anchor="middle">back through PR + review</text>
+        </g>
+      </svg>
+    </div>
+  </div>
+  <!-- ── PAGE 2: CI/CD PIPELINE ── -->
+  <div id="page-cicd" class="page-view">
+    <div class="slide">
+      <div class="cols3">
+        <div class="col fx" id="col-0" style="--c:var(--col-purple)">
+          <div class="col-hdr"><h3>1. What CI and CD mean</h3><p>Automation behind every push</p></div>
+          <div class="col-body">
+            <div class="defn"><span class="tech">CI</span><b>Continuous Integration</b><span>Every time code is pushed, a server builds it and runs all the tests automatically. Nobody has to remember to.</span></div>
+            <div class="defn"><span class="tech">CD</span><b>Continuous Delivery</b><span>The same pipeline packages a ready-to-run release when code reaches <code>main</code>.</span><span class="note">DEFINED, NOT YET IN USE: NOTHING RELEASED</span></div>
+          </div>
+        </div>
+        <div class="col fx idle" id="col-1" style="--c:var(--col-blue)">
+          <div class="col-hdr"><h3>2. Our pipeline</h3><p>GitHub Actions</p></div>
+          <div class="col-body">
+            <div class="stages"><span class="stg">push</span><span class="sa">→</span><span class="stg">build</span><span class="sa">→</span><span class="stg">run all tests</span><span class="sa">→</span><span class="stg">save test report</span><span class="sa">→</span><span class="stg">✅ / ❌ on GitHub</span></div>
+            <div>
+              <div class="trig"><b>Every push, any branch</b><span>Linux gcc build and the full test suite, as a quick check.</span></div>
+              <div class="trig"><b>Pull request into dev / staging / main</b><span>The same on Linux gcc, Linux clang and Windows MSVC.</span></div>
+            </div>
+            <div class="gate-note">Reviewers hold a merge until CI is green; GitHub does not enforce it on our plan.</div>
+          </div>
+        </div>
+        <div class="col fx idle" id="col-2" style="--c:var(--col-orange)">
+          <div class="col-hdr"><h3>3. Why, and what's next</h3><p>What it buys us</p></div>
+          <div class="col-body">
+            <ul class="ticks">
+              <li>Bugs caught within minutes of the change that caused them.</li>
+              <li>No “works on my machine”: clean machines, several compilers.</li>
+              <li>Reviewers see test results on every PR.</li>
+              <li>A recorded history of what passed and failed.</li>
+            </ul>
+            <div class="next-hd">Next</div>
+            <ul class="next-list">
+              <li>ASan and coverage jobs.</li>
+              <li>Server and GUI build jobs.</li>
+              <li>A release job: package <code>noc_server</code> with the GUI when <code>main</code> is tagged.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- ── PAGE 3: DOCUMENTATION ── -->
+  <div id="page-docs" class="page-view">
+    <div class="slide docs-slide">
+      <div class="col fx" id="doc-0" style="--c:var(--col-teal)">
+        <div class="col-hdr"><h3>1. Docs live next to the code</h3><p>Markdown files in the Git repo</p></div>
+        <div class="col-body">
+          <ul class="ticks">
+            <li>Reviewed in pull requests, like code.</li>
+            <li>Versioned with the code.</li>
+            <li>Updated in the same PR as the change they describe.</li>
+          </ul>
+<div class="tree"><span class="h">System Design Documents/</span>
+<span class="t">├──</span> 01-System-Design/          <span class="h">HLDD</span>
+<span class="t">├──</span> 02-Pipeline-Design/        <span class="h">LLDD</span> · flows
+<span class="t">├──</span> 03-Module-Design/          <span class="h">LLDD</span> · per module
+<span class="t">├──</span> 04-GUI-Design/             <span class="h">GUI</span>
+<span class="t">├──</span> 05-Architecture-Decisions/ the "why"
+<span class="t">├──</span> 06-Testing-Strategy/
+<span class="t">└──</span> 07-Reference/BookSim2/     reference notes</div>
+        </div>
+      </div>
+      <div class="col fx idle" id="doc-1" style="--c:var(--col-blue)">
+        <div class="col-hdr"><h3>2. Four document families</h3><p>What each one covers</p></div>
+        <div class="col-body">
+          <div class="fam-grid">
+            <div class="fam" style="--k:var(--col-blue)"><div class="fam-n">High-Level Design<small>HLDD</small></div><div class="fam-c">What the system is, who owns what, how modules connect, and why we chose it that way.</div><div class="fam-f">NoC_Simulator_System_Design.md<br>Module_Roles_and_Responsibilities.md<br>Architecture_Decisions.md</div></div>
+            <div class="fam" style="--k:var(--col-purple)"><div class="fam-n">Low-Level Design<small>LLDD</small></div><div class="fam-c">Class-level design, one page per Core module, and a flit's journey cycle by cycle.</div><div class="fam-f">NoC_Module_Design.md<br>Flit_Lifecycle.md<br>03-Module-Design/ (one page per module)</div></div>
+            <div class="fam" style="--k:var(--col-cyan)"><div class="fam-n">GUI Design<small>GUI</small></div><div class="fam-c">How the GUI talks to Core (REST + WebSocket), the data model, and the screen-by-screen design.</div><div class="fam-f">GUI_Design_DRAFT.md <span class="wip">(being finalised)</span><br>Server/README.md (API reference)</div></div>
+            <div class="fam" style="--k:var(--col-teal)"><div class="fam-n">Supporting<small>OTHER</small></div><div class="fam-c">Testing plan and CI, release history, and BookSim2 reference notes.</div><div class="fam-f">TESTING_STRATEGY.md<br>CHANGELOG.md<br>07-Reference/BookSim2/</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+<!-- ══════════════════════════════════════════════════════════════
+     NOW BAND (full-width, readable explanation)
+══════════════════════════════════════════════════════════════ -->
+<div id="now-band">
+  <div id="band-body"><!-- populated by JS --></div>
+</div>
+<!-- ══════════════════════════════════════════════════════════════
+     CONTROL BAR
+══════════════════════════════════════════════════════════════ -->
+<footer id="control-bar">
+  <div class="prog-row">
+    <div class="prog-pips" id="prog-pips"></div>
+    <div class="prog-lbl" id="prog-lbl">
+      Step <span id="prog-num">1</span> of <span id="prog-total">10</span> &nbsp;·&nbsp;
+      <span id="prog-name">NoC Configuration</span>
+    </div>
+  </div>
+  <div class="ctrl-btns">
+    <button class="ctrl-btn reset-btn" id="btn-reset" onclick="App.reset()">↺ Reset</button>
+    <button class="ctrl-btn prev-btn"  id="btn-prev"  onclick="App.prev()" disabled>⬅ Prev</button>
+    <button class="ctrl-btn play-btn"  id="btn-play"  onclick="App.togglePlay()">▶ Play</button>
+    <button class="ctrl-btn next-btn"  id="btn-next"  onclick="App.next()">Next ➔</button>
+  </div>
+</footer>
+<script>
+/* ================================================================
+   STEP DATA
+================================================================ */
+const BRANCH_STEPS = [
+  { num:1, name:"One repository", badge:"Repo", badgeColor:"purple",
+    desc:"Everything lives in one private GitHub organisation repo: Core, Server, GUI and the design docs together." },
+  { num:2, name:"The path of a change", badge:"Branches", badgeColor:"blue",
+    desc:"Work starts on a feature or bugfix branch and enters dev only through a reviewed pull request, then moves to staging and finally to main. No release has been tagged yet: staging → main is the defined process." },
+  { num:3, name:"Hotfixes", badge:"Hotfix", badgeColor:"orange",
+    desc:"An urgent fix to a release is made on a hotfix branch off main, and comes back through the same pull request and review." },
+];
+const CICD_STEPS = [
+  { num:1, name:"What CI and CD mean", badge:"CI / CD", badgeColor:"purple",
+    desc:"CI builds and tests every push automatically. CD would package a release when code reaches main; that part is defined but not yet in use." },
+  { num:2, name:"Our pipeline", badge:"Actions", badgeColor:"blue",
+    desc:"GitHub Actions builds each push and runs all the tests, saves a report and shows ✅ or ❌ on GitHub. Pull requests get the wider build: Linux gcc, Linux clang and Windows MSVC." },
+  { num:3, name:"Why, and what's next", badge:"Next", badgeColor:"orange",
+    desc:"Bugs are caught within minutes and results sit on every PR. Next: ASan and coverage jobs, Server and GUI builds, and a release job." },
+];
+const DOCS_STEPS = [
+  { num:1, name:"Docs live next to the code", badge:"Docs", badgeColor:"teal",
+    desc:"All design documents are Markdown files in the Git repo, reviewed in pull requests like code, versioned, and updated in the same PR as the change they describe." },
+  { num:2, name:"Four document families", badge:"Families", badgeColor:"blue",
+    desc:"High-level design, low-level design, GUI design and supporting documents. The GUI design is still being finalised." },
+];
+const PAGES = [
+  { id:"branch", label:"Branching Model", steps: BRANCH_STEPS, render: renderBranch },
+  { id:"cicd",   label:"CI/CD Pipeline",  steps: CICD_STEPS,   render: renderCicd },
+  { id:"docs",   label:"Documentation",   steps: DOCS_STEPS,   render: renderDocs },
+];
+/* Neighbors in the master presentation sequence */
+const PREV_DECK_URL = "../testing-presentation/index.html?end=1";
+const NEXT_DECK_URL = "../mesh-presentation/index.html";
+/* ================================================================
+   RENDER HELPERS
+================================================================ */
+/* Mark element i of ids as done / active / idle relative to stepIdx */
+function applyStates(ids, stepIdx) {
+  ids.forEach((id, i) => {
+    const el = document.getElementById(id);
+    el.classList.remove("idle", "active", "done");
+    el.classList.add(i < stepIdx ? "done" : i === stepIdx ? "active" : "idle");
+  });
+}
+function renderBranch(stepIdx) {
+  /* repo card is step 0; the main flow is step 1; the hotfix path is step 2 */
+  applyStates(["repo-card", "g-main", "g-hot"], stepIdx);
+}
+function renderCicd(stepIdx) {
+  applyStates(["col-0", "col-1", "col-2"], stepIdx);
+}
+function renderDocs(stepIdx) {
+  applyStates(["doc-0", "doc-1"], stepIdx);
+}
+function renderPips(total, current) {
+  const wrap = document.getElementById("prog-pips");
+  wrap.innerHTML = "";
+  for (let i = 0; i < total; i++) {
+    const p = document.createElement("div");
+    p.className = "pip" + (i < current ? " done" : i === current ? " cur" : "");
+    wrap.appendChild(p);
+  }
+}
+function renderDetails(step) {
+  const band = document.getElementById("band-body");
+  band.style.borderLeftColor = `var(--col-${step.badgeColor})`;
+  band.innerHTML = `
+    <div class="band-title">${step.num}. ${step.name}</div>
+    <div class="band-desc">${step.desc}</div>`;
+}
+/* ================================================================
+   APP STATE MACHINE
+================================================================ */
+const App = {
+  page: 0,
+  step: 0,
+  playing: false,
+  playTimer: null,
+  goToPage(idx) {
+    this.stopPlay();
+    this.page = idx;
+    this.step = 0;
+    this.render();
+  },
+  next() {
+    const steps = PAGES[this.page].steps;
+    if (this.step < steps.length - 1) { this.step++; this.render(); }
+    else if (this.page < PAGES.length - 1) { this.page++; this.step = 0; this.render(); }
+    else { window.location.href = NEXT_DECK_URL; }
+  },
+  prev() {
+    if (this.step > 0) { this.step--; this.render(); }
+    else if (this.page > 0) { this.page--; this.step = PAGES[this.page].steps.length - 1; this.render(); }
+    else { window.location.href = PREV_DECK_URL; }
+  },
+  reset() {
+    this.stopPlay();
+    this.page = 0;
+    this.step = 0;
+    this.render();
+  },
+  togglePlay() {
+    if (this.playing) { this.stopPlay(); return; }
+    this.playing = true;
+    const btn = document.getElementById("btn-play");
+    btn.classList.add("playing");
+    btn.textContent = "⏸ Pause";
+    this.playTimer = setInterval(() => {
+      const s = PAGES[this.page].steps;
+      if (this.step < s.length - 1) { this.step++; this.render(); }
+      else if (this.page < PAGES.length - 1) { this.page++; this.step = 0; this.render(); }
+      else { this.stopPlay(); }
+    }, 2200);
+  },
+  stopPlay() {
+    this.playing = false;
+    if (this.playTimer) clearInterval(this.playTimer);
+    const btn = document.getElementById("btn-play");
+    if (btn) { btn.classList.remove("playing"); btn.textContent = "▶ Play"; }
+  },
+  render() {
+    document.querySelectorAll(".nav-item").forEach((el, i) => el.classList.toggle("active", i === this.page));
+    document.querySelectorAll(".page-view").forEach((el, i) => el.classList.toggle("active", i === this.page));
+    const steps = PAGES[this.page].steps;
+    PAGES[this.page].render(this.step);
+    const s = steps[this.step];
+    const isVeryLastStep = (this.page === PAGES.length - 1) && (this.step === steps.length - 1);
+    document.getElementById("hdr-num").textContent = this.step + 1;
+    document.getElementById("hdr-total").textContent = steps.length;
+    document.getElementById("hdr-name").textContent = s.name;
+    document.getElementById("phase-text").textContent = s.badge;
+    renderPips(steps.length, this.step);
+    document.getElementById("prog-num").textContent = this.step + 1;
+    document.getElementById("prog-total").textContent = steps.length;
+    document.getElementById("prog-name").textContent = s.name;
+    renderDetails(s);
+    document.getElementById("btn-next").textContent = isVeryLastStep ? "Next Deck ➔" : "Next ➔";
+    document.getElementById("btn-prev").disabled = false;
+  }
+};
+/* ================================================================
+   LANDING VIEW
+================================================================ */
+const Landing = {
+  show() {
+    App.stopPlay();
+    document.getElementById("landing-view").style.display = "flex";
+  },
+  hide() {
+    document.getElementById("landing-view").style.display = "none";
+  },
+  enter() {
+    this.hide();
+    App.goToPage(0);
+  }
+};
+document.addEventListener("keydown", (e) => {
+  if (document.getElementById("landing-view").style.display !== "none") {
+    if (e.code === "ArrowRight") { e.preventDefault(); Landing.enter(); }
+    else if (e.code === "ArrowLeft") { e.preventDefault(); window.location.href = "../index.html?end=1"; }
+    return;
+  }
+  if (e.code === "ArrowRight") { App.next(); }
+  else if (e.code === "ArrowLeft") { App.prev(); }
+  else if (e.code === "Space") { e.preventDefault(); App.togglePlay(); }
+});
+App.render();
+const _urlParams = new URLSearchParams(location.search);
+if (_urlParams.get("end") === "1") {
+  App.page = PAGES.length - 1;
+  App.step = PAGES[App.page].steps.length - 1;
+  App.render();
+  Landing.hide();
+} else {
+  const _urlPage = parseInt(_urlParams.get("page"), 10);
+  if (_urlPage >= 0 && _urlPage < PAGES.length) {
+    App.goToPage(_urlPage);
+    Landing.hide();
+  } else if (_urlParams.get("flow") === "repo") {
+    Landing.hide();
+  }
+}
+</script>
+</body>
+</html>

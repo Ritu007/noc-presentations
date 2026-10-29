@@ -3,13 +3,41 @@
 ## Project
 Interactive HTML/CSS/JS presentation for a Network-on-Chip (NoC) Simulator, built for C-DAC.
 Plain static files, no build step, opened directly in a browser. Entry point: `index.html` (hub:
-Cover → Team → Table of Contents). Five decks, each self-contained, chained in this order:
-- `hardware-presentation/` (Hardware Architecture & Router Design, + `router-3d-explorer.html`)
-- `presentation/` (Software Development Progress, + 3 sub-pages: `flit-lifecycle.html`,
-  `router-pipeline.html`, `chi-channel-architecture.html`)
-- `sdlc-presentation/` (Software Development Lifecycle)
-- `verification-presentation/` (Verification & Validation)
-- `pcie-presentation/` (PCIe & RN-I Bridge, + `rni-bridge-walkthrough.html`)
+Cover → Team → Table of Contents). The master clicker flow, in order:
+recap → quarterly → hardware → software progress → testing → repo/CI-CD/docs → (live demo, not a page) → mesh & node architecture → pcie → timeline → thank-you.
+- `recap-presentation/` (Recap: roadmap & CHI nodes, 6-port router, ports by router position, system architecture,
+  flit lifecycle & router pipeline summary). Same iframe + `postMessage` slide bridge as `hardware-presentation/`;
+  slides 1, 2 and 4 wrap pages of the archived hardware / software decks (roadmap and architecture show only their
+  finished state, with no bottom text: a step with an empty `desc` hides the bottom band).
+- `quarterly-presentation/` (Quarterly Progress Report) — placeholder, content to be added
+- `hardware-presentation/` (Hardware Architecture & Router Design: node/device link handshake, link-layer
+  interface, CHI handshake, CHI router architecture, credit mechanism, QoS arbitration, QoS aging, router pipeline flow, CHI flit channels). Each page embeds a standalone slide from
+  `hardware-presentation/slides/` in an iframe; the slide forwards ArrowLeft/ArrowRight/Space to the deck
+  via `postMessage` and the deck tells it which step to show (see `Slides` in the deck's `index.html`).
+- `presentation/` (Software Development Progress: simulation coverage, architecture, API/Drogon, run flow,
+  backend module status)
+- `testing-presentation/` (Testing & Verification: testing plan, GoogleTest, tools & next steps)
+- `repo-presentation/` (Repository, CI/CD & Documentation: branching model, CI/CD pipeline,
+  documentation)
+- `mesh-presentation/` (Internal Mesh & Node Architecture, working title: the deck has no name yet; shown after the demo that follows the repo deck):
+  internal mesh status, the RN-F/SN-F/HN-F architecture flow documents, and the architecture document status table. Same iframe + `postMessage` slide bridge as
+  `hardware-presentation/`. The title lives in `TITLE` in the hub block, the deck's `index.html`, and the other decks' landing cards.
+- `pcie-presentation/` (PCIe & RN-I Bridge) — placeholder, content to be added
+- `timeline-presentation/` (Project Timeline: the 2026 Gantt chart as a native HTML table; its single step has no `desc`, which hides the bottom band)
+- `thank-you/` (closing page)
+
+Each new deck is a single self-contained `index.html` (landing → pages → next deck, no idle step).
+Placeholder decks have one blank page (`Content to be added`) so the arrow-key chain stays intact;
+fill in their pages later by replacing the `blank` page and `*_STEPS` in the deck's `index.html`.
+
+### Archives
+Material presented in a previous review meeting lives in `<deck>/archive/` (previous recap in `recap-presentation/archive/`, previous quarterly
+report, hardware, PCIe & RN-I, timeline, software progress, V&V in `testing-presentation/archive/`,
+SDLC in `repo-presentation/archive/`). An archive is NOT part of the clicker flow: it is linked only
+from its deck's landing page (a dashed "Last meeting" card) and from the hub TOC (a dashed pill),
+and every exit (ArrowLeft/ArrowRight at either end, back links) returns to that deck's
+`index.html` landing page — never onward into the next deck. Archived sub-pages (for example
+`hardware-presentation/archive/router-3d-explorer.html`) keep their internal chaining.
 
 ## Hard requirement: fully keyboard/clicker-driven navigation
 This is delivered as a live talk. The presenter must be able to go through the ENTIRE
@@ -20,8 +48,8 @@ a button or card with the mouse.
 
 For any new page or flow added here:
 - Give it a `keydown` listener for `ArrowRight`/`ArrowLeft` (see `setupKeyListeners()` in each
-  deck's `app.js`, and the inline listeners in `presentation/index.html`, `router-pipeline.html`,
-  `chi-channel-architecture.html`, `pcie-presentation/rni-bridge-walkthrough.html`).
+  deck's `app.js` (for the archived multi-file decks), and the inline listeners in each deck's
+  `index.html`).
 - Landing/title screens (`#landing-view`) are stops in the flow, not just a launch menu:
   ArrowRight must enter the first topic (same as the "Start Presentation →" button), ArrowLeft
   must return to the hub Table of Contents (`../index.html?end=1`, same as the "← Table of

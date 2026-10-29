@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CHI Handshake: Complete vs Simplified</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--text:#0f172a;--muted:#64748b;--line:#9ca3af;--bd:#e2e8f0;--amber:#fb9f5a;--teal:#6aa9f5}
+html{scroll-padding-top:env(safe-area-inset-top,0px);background:#fff}
+body{margin:0;background:#fff;color:var(--text);font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:16px}
+.wrap{max-width:980px;margin:0 auto}
+h1{font-size:22px;margin:0 0 2px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 12px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+button{font:inherit;font-weight:600;padding:7px 14px;border-radius:8px;border:1px solid var(--bd);background:#fff;color:var(--text);cursor:pointer}
+button[aria-pressed="true"]{background:var(--text);color:#fff;border-color:var(--text)}
+#bC[aria-pressed="true"]{background:var(--amber);border-color:var(--amber);color:#111}
+#bS[aria-pressed="true"]{background:var(--teal);border-color:var(--teal);color:#111}
+.box{background:#fff;border:1px solid var(--bd);border-radius:14px;padding:8px}
+svg{width:100%;height:auto;display:block}
+.nt{font:700 12px system-ui,sans-serif;fill:#111;text-anchor:middle}
+.nt.off{fill:#6b7280;font-weight:600}
+.lbl{font:700 12px system-ui,sans-serif}
+.dim{opacity:.12}
+.hl{filter:drop-shadow(0 0 5px rgba(15,23,42,.4))}
+.item{transition:opacity .3s}
+
+
+
+
+
+
+
+
+
+.cap{margin-top:12px;font-size:20px;font-weight:700;text-align:center;min-height:30px}
+.legend{display:flex;flex-wrap:wrap;gap:18px;margin-top:12px;font-size:13px}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:30px;height:0;border-top:4px solid}
+.sw2{width:18px;height:14px;border:3px solid #475569;background:#fbd9f4;border-radius:2px}
+.sw3{width:18px;height:14px;border:1.5px dashed var(--line);border-radius:2px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px;margin-top:12px}
+.card{border:1px solid var(--bd);border-radius:12px;padding:12px;font-size:13px}
+.card h3{margin:0 0 4px;font-size:14px}
+</style>
+<style id="hw-fit">
+/* fit inside the deck frame: a clicker cannot scroll */
+html,body{height:100%;overflow:hidden}
+body{padding-block:8px}
+h1{display:none}
+.bar{margin-bottom:8px}
+svg{max-height:calc(100vh - 175px)}
+.cap{margin-top:6px;font-size:18px;min-height:26px}
+.legend{margin-top:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>CHI handshake: complete vs simplified</h1>
+<div class="bar">
+<button id="bB" aria-pressed="true">Show both</button>
+<button id="bC" aria-pressed="false">Complete</button>
+<button id="bS" aria-pressed="false">Simplified</button>
+</div>
+<div class="box"><svg id="svg" viewBox="0 0 900 620" role="img" aria-label="Mesh with endpoint links using the complete CHI handshake and fabric links using the simplified handshake"></svg></div>
+<div class="cap" id="cap" aria-live="polite"></div>
+<div class="legend">
+<span><i class="sw" style="border-color:var(--amber)"></i>Complete handshake link</span>
+<span><i class="sw" style="border-color:var(--teal)"></i>Simplified handshake link</span>
+<span><i class="sw2"></i>Block using both (RN-F, SN-F)</span>
+<span><i class="sw3"></i>Not involved</span>
+</div>
+</div>
+<script>
+const NS='http://www.w3.org/2000/svg';
+const fills={pe:'#c4f1f5',rn:'#fbd9f4',r:'#fcd3d3',sn:'#cddcfb',hn:'#cdf3bf',mem:'#cdf3bf'};
+const N={PE1:[130,45,'Processing|Element 1','pe'],PE2:[770,45,'Processing|Element 2','pe'],
+RN1:[130,160,'RN-F1','rn'],RN2:[770,160,'RN-F2','rn'],
+R00:[330,270,'R00','r'],R01:[570,270,'R01','r'],R10:[330,390,'R10','r'],R11:[570,390,'R11','r'],
+SN3:[130,490,'SN-F3','sn'],HN2:[770,490,'HN-F2','hn'],MEM:[130,565,'Main Memory','mem']};
+// type: c = complete (endpoint link), s = simplified (fabric link)
+const L=[['PE1','RN1','c'],['PE2','RN2','c'],['SN3','MEM','c'],
+['RN1','R00','s'],['RN2','R01','s'],['R00','R01','s'],['R10','R11','s'],['R00','R10','s'],['R01','R11','s'],['R10','SN3','s'],['R11','HN2','s']];
+const COL={c:'#fb9f5a',s:'#6aa9f5'},HW=55,HH=22;
+const svg=document.getElementById('svg');
+const $=(t,a,p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e};
+function edge(a,b){const[x1,y1]=N[a],[x2,y2]=N[b];let dx=x2-x1,dy=y2-y1;const d=Math.hypot(dx,dy);dx/=d;dy/=d;
+const t=Math.min(dx?HW/Math.abs(dx):1e9,dy?HH/Math.abs(dy):1e9)+4;return[x1+dx*t,y1+dy*t,dx,dy]}
+const uses={};L.forEach(([a,b,ty])=>{[a,b].forEach(n=>{(uses[n]=uses[n]||new Set()).add(ty)})});
+const items=[]; // {el, set}
+// links
+L.forEach(([a,b,ty])=>{const p=edge(a,b),q=edge(b,a),c=COL[ty];
+const g=$('g',{class:'item'},svg);
+$('line',{x1:p[0],y1:p[1],x2:q[0],y2:q[1],stroke:c,'stroke-width':5,'stroke-linecap':'round',opacity:.3},g);
+$('line',{x1:p[0],y1:p[1],x2:q[0],y2:q[1],stroke:c,'stroke-width':5,'stroke-linecap':'round'},g);
+$('line',{x1:q[0],y1:q[1],x2:p[0],y2:p[1],stroke:'#fff','stroke-width':0},g);
+[[p,p[2],p[3]],[q,q[2],q[3]]].forEach(([e,ux,uy])=>{const bx=e[0]+ux*12,by=e[1]+uy*12,px=-uy*6,py=ux*6;
+$('polygon',{points:`${e[0]},${e[1]} ${bx+px},${by+py} ${bx-px},${by-py}`,fill:c},g)});
+items.push({el:g,set:new Set([ty])})});
+// blocks
+for(const k in N){const[x,y,t,c]=N[k],s=uses[k],g=$('g',{class:'item'},svg);
+$('rect',{x:x-HW,y:y-HH,width:HW*2,height:HH*2,rx:4,fill:fills[c],stroke:s.size>1?'#475569':(s.has('c')?COL.c:COL.s),'stroke-width':4},g);
+const ls=t.split('|');ls.forEach((m,i)=>{const e=$('text',{x:x,y:y+4+(i-(ls.length-1)/2)*14,class:'nt'},g);e.textContent=m});
+items.push({el:g,set:s})}
+// filter
+const bs={B:bB,C:bC,S:bS};
+const capTxt={C:'<span style="color:var(--amber)">Complete CHI Handshake Mechanism</span>',S:'<span style="color:var(--teal)">Simplified CHI Handshake Mechanism</span>',B:'<span style="color:var(--amber)">Complete CHI Handshake Mechanism</span> &nbsp;|&nbsp; <span style="color:var(--teal)">Simplified CHI Handshake Mechanism</span>'};
+let cur='B';function setMode(m){cur=m;for(const k in bs)bs[k].setAttribute('aria-pressed',k===m);document.getElementById('cap').innerHTML=capTxt[m];
+items.forEach(i=>{const show=m==='B'||(m==='C'&&i.set.has('c'))||(m==='S'&&i.set.has('s'));i.el.classList.toggle('dim',!show);i.el.classList.toggle('hl',show&&m!=='B')})}
+const MODE_KEYS=['B','C','S'];
+function pick(m){setMode(m);hwReport(MODE_KEYS.indexOf(m));}
+bB.onclick=()=>pick('B');bC.onclick=()=>pick('C');bS.onclick=()=>pick('S');setMode('B');svg.onclick=()=>pick({B:'C',C:'S',S:'B'}[cur]);svg.style.cursor='pointer';
+window.hwSlide={goto:function(n){setMode(MODE_KEYS[n]);}};
+</script>
+<script>
+/* Hardware deck bridge: arrow keys / Space are forwarded to the deck, and the deck drives this slide's steps. */
+(function(){
+  function post(m){ try{ parent.postMessage(m,'*'); }catch(e){} }
+  window.addEventListener('keydown',function(e){
+    if(e.code==='ArrowRight'||e.code==='ArrowLeft'||e.code==='Space'){
+      e.preventDefault(); e.stopImmediatePropagation(); post({hw:'key',code:e.code});
+    }
+  },true);
+  window.hwReport=function(n){ post({hw:'step',step:n}); };
+  window.hwPost=post;
+  window.addEventListener('message',function(e){
+    var m=e.data; if(!m||!m.hw||!window.hwSlide) return;
+    if(m.hw==='goto') window.hwSlide.goto(m.step);
+    else if(m.hw==='play'&&window.hwSlide.play) window.hwSlide.play();
+    else if(m.hw==='pause'&&window.hwSlide.pause) window.hwSlide.pause();
+  });
+  window.addEventListener('load',function(){ setTimeout(function(){ post({hw:'ready'}); },0); });
+})();
+</script>
+</body>
+</html>

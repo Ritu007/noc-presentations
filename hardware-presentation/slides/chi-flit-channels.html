@@ -1,0 +1,391 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>CHI Flit Channels</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: one selector row on top, one animated link diagram below; choosing a button swaps the diagram.
+   Single bright-on-white look by choice. */
+:root {
+  --bg: #ffffff;
+  --card-edge: #dde3ea;
+  --gutter: #f1f4f9;
+  --fg: #121a26;
+  --muted: #5b6676;
+  --signal: #3b4658;
+  --ink: #0f1722;
+
+  --display: "Chakra Petch", "Arial Narrow", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+
+  --req-body: #d3e6fb; --req-line: #4a86c4; --req-flit: #2f86e0;
+  --dat-body: #d0f1ec; --dat-line: #2f9a90; --dat-flit: #17b3a3;
+  --rsp-body: #e3f2d1; --rsp-line: #75a048; --rsp-flit: #6cba2c;
+  --snp-body: #fcf2c2; --snp-line: #c2a60a; --snp-flit: #eab800;
+
+  --router: #f9dfdf; --router-line: #d48a88;
+  --hnf: #dbefde;    --hnf-line: #74b47c;
+  --snf: #d9e6f9;    --snf-line: #7a9ddb;
+  --rnf: #ecdaf5;    --rnf-line: #bc8fd5;
+
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--mono); }
+button { font-family: inherit; }
+.wrap {
+  max-width: 620px;
+  margin: 0 auto;
+  padding-block: 24px 36px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+h1 {
+  margin: 0 0 16px;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.6rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+/* selector */
+.tabs { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 130px), 1fr)); gap: 8px; margin-bottom: 14px; }
+.tab {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 8px;
+  font: 700 12px/1.2 var(--mono);
+  letter-spacing: 0.04em;
+  text-align: center;
+  color: var(--fg);
+  background: #fff;
+  border: 1.5px solid var(--card-edge);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+.tab:hover { border-color: #9aa8bb; }
+.tab:focus-visible { outline: 3px solid #2563ff; outline-offset: 2px; }
+.tab[aria-selected="true"] { border-color: var(--ink); background: #f1f4f9; box-shadow: inset 0 -3px 0 var(--ink); }
+.swatch { display: flex; align-items: center; gap: 4px; }
+.swatch i { display: block; width: 26px; height: 12px; border-radius: 3px; border: 1.5px solid; }
+.swatch i.router { background: var(--router); border-color: var(--router-line); }
+.swatch i.hnf { background: var(--hnf); border-color: var(--hnf-line); }
+.swatch i.snf { background: var(--snf); border-color: var(--snf-line); }
+.swatch i.rnf { background: var(--rnf); border-color: var(--rnf-line); }
+.swatch b { font: 700 12px var(--mono); color: var(--signal); }
+
+/* stage */
+.stage { border: 1.5px solid var(--card-edge); border-radius: 10px; padding: 14px; }
+.stage-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; margin-bottom: 10px; }
+.stage-head h2 { margin: 0; min-width: 0; font: 700 12px/1.3 var(--mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.stage-body svg { display: block; width: 100%; max-width: 480px; height: auto; margin: 0 auto; }
+
+.ch-REQ { --body: var(--req-body); --line: var(--req-line); --flit: var(--req-flit); }
+.ch-DAT { --body: var(--dat-body); --line: var(--dat-line); --flit: var(--dat-flit); }
+.ch-RSP { --body: var(--rsp-body); --line: var(--rsp-line); --flit: var(--rsp-flit); }
+.ch-SNP { --body: var(--snp-body); --line: var(--snp-line); --flit: var(--snp-flit); }
+
+/* svg parts */
+.node { stroke-width: 1.5; }
+.n-router { fill: var(--router); stroke: var(--router-line); }
+.n-hnf { fill: var(--hnf); stroke: var(--hnf-line); }
+.n-snf { fill: var(--snf); stroke: var(--snf-line); }
+.n-rnf { fill: var(--rnf); stroke: var(--rnf-line); }
+.node-name { font-family: var(--display); font-weight: 700; fill: #2a303a; text-anchor: middle; }
+.gutter { fill: var(--gutter); }
+.lane-arrow { fill: var(--body); stroke: var(--line); stroke-width: 1.5; stroke-linejoin: round; }
+.lane-glow { fill: var(--flit); }
+.flit { fill: var(--flit); stroke: var(--line); stroke-width: 1; }
+.flit-halo { fill: var(--flit); }
+.hit { fill: var(--flit); }
+.lane-label {
+  font: 700 11px var(--mono);
+  letter-spacing: 0.08em;
+  fill: var(--ink);
+  text-anchor: middle;
+  stroke: var(--body);
+  stroke-width: 3.5px;
+  paint-order: stroke;
+  stroke-linejoin: round;
+}
+.credit-line { stroke: var(--signal); stroke-width: 1; opacity: 0.7; }
+.credit-head { fill: var(--signal); opacity: 0.85; }
+.credit-label { font: 500 10px var(--mono); letter-spacing: 0.04em; fill: var(--signal); text-anchor: middle; }
+.credit-dot { fill: #1c2430; }
+.credit-halo { fill: #1c2430; }
+</style>
+
+<main class="wrap">
+  <h1>CHI Flit Channels</h1>
+  <div class="tabs" id="tabs" role="tablist" aria-label="Port configuration"></div>
+  <section class="stage" id="panel" role="tabpanel">
+    <div class="stage-head">
+      <h2 id="stageTitle"></h2>
+    </div>
+    <div class="stage-body" id="stageBody"></div>
+  </section>
+</main>
+
+<script>
+(function () {
+  var NS = "http://www.w3.org/2000/svg";
+  function el(name, attrs, parent) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  var mod = function (a, n) { return ((a % n) + n) % n; };
+
+  // timing (seconds)
+  var CYCLE = 6.4, GAP = 0.34, NFLIT = 3, TRAVEL = 1.25, HIT = 0.35;
+  var PULSE = 0.9, LANE_START = 1.0, LANE_STEP = 0.5, BACK_OFFSET = 0.7;
+
+  // geometry
+  var W = 400, H = 420, GX1 = 120, GX2 = 280;
+  var AX1 = 124, AX2 = 276, BODY_H = 18, HEAD_H = 32, HEAD_L = 24;
+
+  var LP = { k: "router", lines: ["CHI", "ROUTER", "(Local Port)"] };
+  var CARDS = [
+    { tab: "Router ↔ Router", title: "Router ↔ Router",
+      L: { k: "router", lines: ["CHI", "ROUTER"] }, R: { k: "router", lines: ["CHI", "ROUTER"] },
+      fwd: ["REQ", "DAT", "RSP", "SNP"], back: ["REQ", "RSP", "DAT", "SNP"] },
+    { tab: "HN-F", title: "HN-F ↔ Router (Local Port)",
+      L: { k: "hnf", lines: ["HN-F"] }, R: LP,
+      fwd: ["REQ", "DAT", "RSP", "SNP"], back: ["REQ", "RSP", "DAT"] },
+    { tab: "SN-F", title: "SN-F ↔ Router (Local Port)",
+      L: { k: "snf", lines: ["SN-F"] }, R: LP,
+      fwd: ["DAT", "RSP"], back: ["REQ", "DAT"] },
+    { tab: "RN-F", title: "RN-F ↔ Router (Local Port)",
+      L: { k: "rnf", lines: ["RN-F"] }, R: LP,
+      fwd: ["REQ", "DAT", "RSP"], back: ["SNP", "RSP", "DAT"] }
+  ];
+
+  var credits = [];
+  var lanes = [];
+
+  function drawNode(svg, side, node) {
+    var x = side === "L" ? 0 : GX2;
+    el("rect", { x: x, y: 0, width: 120, height: H, "class": "node n-" + node.k }, svg);
+    var cx = x + 60;
+    var items = node.lines.map(function (t) {
+      var sub = t.charAt(0) === "(";
+      var size = sub ? 13 : (node.lines.length === 1 ? 28 : 22);
+      return { t: t, size: size, h: size * 1.3 };
+    });
+    var total = items.reduce(function (s, i) { return s + i.h; }, 0);
+    var y = H / 2 - total / 2;
+    items.forEach(function (i) {
+      y += i.h;
+      var t = el("text", { x: cx, y: y - i.size * 0.28, "class": "node-name", "font-size": i.size }, svg);
+      t.textContent = i.t;
+      if (i.size === 13) t.setAttribute("font-weight", "600");
+    });
+  }
+
+  function arrowPoints(dir, cy) {
+    var t = cy - BODY_H / 2, b = cy + BODY_H / 2, hh = HEAD_H / 2;
+    if (dir > 0) {
+      var hx = AX2 - HEAD_L;
+      return [AX1, t, hx, t, hx, cy - hh, AX2, cy, hx, cy + hh, hx, b, AX1, b].join(" ");
+    }
+    var hx2 = AX1 + HEAD_L;
+    return [AX2, t, hx2, t, hx2, cy - hh, AX1, cy, hx2, cy + hh, hx2, b, AX2, b].join(" ");
+  }
+
+  function drawGroup(svg, names, dir, creditY, regionTop, regionH, groupOffset) {
+    var y = creditY;
+    var x0 = dir > 0 ? AX1 : AX2, x1 = dir > 0 ? AX2 : AX1;
+    var line = el("line", { x1: AX1, y1: y, x2: AX2, y2: y, "class": "credit-line" }, svg);
+    var back = dir > 0 ? -7 : 7;
+    el("polygon", { points: [x1, y, x1 + back, y - 3.5, x1 + back, y + 3.5].join(" "), "class": "credit-head" }, svg);
+    var label = el("text", { x: 200, y: y - 7, "class": "credit-label" }, svg);
+    label.textContent = "rdyto_rcv_crds";
+    var halo = el("circle", { cx: x0, cy: y, r: 8, "class": "credit-halo", opacity: 0 }, svg);
+    var dot = el("circle", { cx: x0, cy: y, r: 3.2, "class": "credit-dot", opacity: 0 }, svg);
+    credits.push({ dot: dot, halo: halo, label: label, line: line, delay: groupOffset, x0: x0 + dir * 6, x1: x1 - dir * 10 });
+
+    var n = names.length, slot = regionH / n;
+    names.forEach(function (name, k) {
+      var cy = regionTop + slot * (k + 0.5);
+      var g = el("g", { "class": "ch-" + name }, svg);
+      el("polygon", { points: arrowPoints(dir, cy), "class": "lane-arrow" }, g);
+      var glow = el("polygon", { points: arrowPoints(dir, cy), "class": "lane-glow", opacity: 0 }, g);
+      var hitX = dir > 0 ? GX2 : GX1 - 8;
+      var hit = el("rect", { x: hitX, y: cy - 14, width: 8, height: 28, rx: 2, "class": "hit", opacity: 0 }, g);
+      var flits = [];
+      for (var i = 0; i < NFLIT; i++) {
+        var halo2 = el("rect", { x: 0, y: cy - 8, width: 26, height: 16, rx: 6, "class": "flit-halo", opacity: 0 }, g);
+        var f = el("rect", { x: 0, y: cy - 5, width: 18, height: 10, rx: 2.5, "class": "flit", opacity: 0 }, g);
+        flits.push({ f: f, h: halo2 });
+      }
+      var txt = el("text", { x: (AX1 + AX2) / 2 + (dir > 0 ? -6 : 6), y: cy + 4, "class": "lane-label" }, g);
+      txt.textContent = name;
+      lanes.push({
+        delay: groupOffset + LANE_START + k * LANE_STEP,
+        sx: dir > 0 ? AX1 + 10 : AX2 - 10,
+        ex: dir > 0 ? AX2 - 17 : AX1 + 17,
+        flits: flits, glow: glow, hit: hit
+      });
+    });
+  }
+
+  function buildDiagram(cfg, parent) {
+    credits = []; lanes = [];
+    var svg = el("svg", { viewBox: "0 0 " + W + " " + H, role: "img",
+      "aria-label": "Animated flits on CHI channels, " + cfg.title }, parent);
+    drawNode(svg, "L", cfg.L);
+    drawNode(svg, "R", cfg.R);
+    el("rect", { x: GX1, y: 0, width: GX2 - GX1, height: H, "class": "gutter" }, svg);
+    drawGroup(svg, cfg.fwd, 1, 34, 58, 150, 0);
+    drawGroup(svg, cfg.back, -1, 232, 256, 150, BACK_OFFSET);
+  }
+
+  function render(T) {
+    var i, j;
+    for (i = 0; i < credits.length; i++) {
+      var c = credits[i];
+      var tt = mod(T - c.delay, CYCLE);
+      var u = tt / PULSE;
+      if (u >= 0 && u <= 1) {
+        var x = c.x0 + (c.x1 - c.x0) * u;
+        var a = Math.min(1, u / 0.1, (1 - u) / 0.1);
+        c.dot.setAttribute("cx", x); c.halo.setAttribute("cx", x);
+        c.dot.setAttribute("opacity", a); c.halo.setAttribute("opacity", a * 0.25);
+        c.line.setAttribute("opacity", 1);
+      } else {
+        c.dot.setAttribute("opacity", 0); c.halo.setAttribute("opacity", 0);
+        c.line.setAttribute("opacity", 0.7);
+      }
+      c.label.setAttribute("opacity", (tt > PULSE * 0.5 && tt < PULSE + 0.6) ? 1 : 0.65);
+    }
+    for (i = 0; i < lanes.length; i++) {
+      var L = lanes[i], act = 0, hit = 0;
+      for (j = 0; j < NFLIT; j++) {
+        var t2 = mod(T - L.delay - j * GAP, CYCLE) / TRAVEL;
+        var fl = L.flits[j];
+        if (t2 >= 0 && t2 <= 1) {
+          var fx = L.sx + (L.ex - L.sx) * t2;
+          var al = Math.min(1, t2 / 0.08, (1 - t2) / 0.1);
+          fl.f.setAttribute("x", fx - 9); fl.h.setAttribute("x", fx - 13);
+          fl.f.setAttribute("opacity", al); fl.h.setAttribute("opacity", al * 0.35);
+          if (al > act) act = al;
+        } else {
+          fl.f.setAttribute("opacity", 0); fl.h.setAttribute("opacity", 0);
+          var span = HIT / TRAVEL;
+          if (t2 > 1 && t2 < 1 + span) {
+            var hv = 1 - (t2 - 1) / span;
+            if (hv > hit) hit = hv;
+          }
+        }
+      }
+      L.glow.setAttribute("opacity", act * 0.3);
+      L.hit.setAttribute("opacity", hit * 0.85);
+    }
+  }
+
+  /* ---------- selector + playback ---------- */
+  var tabsEl = document.getElementById("tabs");
+  var panel = document.getElementById("panel");
+  var body = document.getElementById("stageBody");
+  var titleEl = document.getElementById("stageTitle");
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  var T = 2.2, speed = 1, playing = true, last = null, current = -1;
+  var tabBtns = [];
+
+  CARDS.forEach(function (cfg, idx) {
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "tab"; b.id = "tab" + idx;
+    b.setAttribute("role", "tab");
+    b.setAttribute("aria-controls", "panel");
+    var sw = document.createElement("span");
+    sw.className = "swatch";
+    var l = document.createElement("i"); l.className = cfg.L.k;
+    var m = document.createElement("b"); m.textContent = "⇄";
+    var r = document.createElement("i"); r.className = cfg.R.k;
+    sw.appendChild(l); sw.appendChild(m); sw.appendChild(r);
+    var t = document.createElement("span");
+    t.textContent = cfg.tab;
+    b.appendChild(sw); b.appendChild(t);
+    b.addEventListener("click", function () { select(idx, false); });
+    tabsEl.appendChild(b);
+    tabBtns.push(b);
+  });
+
+  tabsEl.addEventListener("keydown", function (e) {
+    var d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+    if (!d) return;
+    e.preventDefault();
+    select(mod(current + d, CARDS.length), true);
+  });
+
+  function select(idx, focus) {
+    if (idx === current) return;
+    current = idx;
+    tabBtns.forEach(function (b, i) {
+      b.setAttribute("aria-selected", i === idx ? "true" : "false");
+      b.tabIndex = i === idx ? 0 : -1;
+    });
+    panel.setAttribute("aria-labelledby", "tab" + idx);
+    body.textContent = "";
+    titleEl.textContent = CARDS[idx].title;
+    buildDiagram(CARDS[idx], body);
+    T = 2.2;
+    last = null;
+    render(T);
+    if (focus) tabBtns[idx].focus();
+  }
+
+  function tick(now) {
+    if (playing) {
+      if (last !== null) T += Math.min(0.1, (now - last) / 1000) * speed;
+      last = now;
+      render(T);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  window.hwSlide = { goto: function (n) { select(n, false); } };
+  select(0, false);
+  if (reduce) playing = false;
+  requestAnimationFrame(tick);
+})();
+</script>
+
+<style id="hw-fit">
+/* fit inside the deck frame: the deck drives the steps, so the slide's own nav bar and text panel are hidden */
+html,body{height:100%;overflow:hidden}
+h1,.tabs,.stage-head{display:none}
+.wrap{max-width:none;padding-block:8px}
+.stage{border:0;padding:0}
+.stage-body svg{max-width:none;width:auto;height:calc(100vh - 24px);margin:0 auto}
+</style>
+<script>
+/* Hardware deck bridge: arrow keys / Space are forwarded to the deck, and the deck drives this slide's steps. */
+(function(){
+  function post(m){ try{ parent.postMessage(m,'*'); }catch(e){} }
+  window.addEventListener('keydown',function(e){
+    if(e.code==='ArrowRight'||e.code==='ArrowLeft'||e.code==='Space'){
+      e.preventDefault(); e.stopImmediatePropagation(); post({hw:'key',code:e.code});
+    }
+  },true);
+  window.hwReport=function(n){ post({hw:'step',step:n}); };
+  window.hwPost=post;
+  window.addEventListener('message',function(e){
+    var m=e.data; if(!m||!m.hw||!window.hwSlide) return;
+    if(m.hw==='goto') window.hwSlide.goto(m.step);
+    else if(m.hw==='play'&&window.hwSlide.play) window.hwSlide.play();
+    else if(m.hw==='pause'&&window.hwSlide.pause) window.hwSlide.pause();
+  });
+  window.addEventListener('load',function(){ setTimeout(function(){ post({hw:'ready'}); },0); });
+})();
+</script>
+</body></html>

@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Node / Device Link Handshake Animation</title>
+<style>
+:root{
+  --bg:#ffffff; --panel:#ffffff; --ink:#18212d; --muted:#667386; --line:#cdd4df; --wire:#a3adbc;
+  --node:#d7e7fb; --nodeInk:#1d3b63;
+  --tx:#d98200; --txSoft:#fdeccb; --rx:#1d9a52; --rxSoft:#d9f1e2; --sa:#7a3fe0;
+  --flit:#2563eb; --cr:#0a8fb0; --code:#eef1f6;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+code{font:12px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code);padding:1px 5px;border-radius:4px}
+.topbar{position:sticky;top:0;z-index:30;background:var(--bg);border-bottom:1px solid var(--line);padding:10px 16px}
+.inner{max-width:1000px;margin:0 auto}
+.row1{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+button,select{font:inherit;font-size:13px;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:5px 12px;cursor:pointer}
+button:hover{border-color:var(--muted)} button:disabled{opacity:.4;cursor:default}
+button.primary{background:var(--ink);color:var(--bg);border-color:var(--ink);font-weight:600;min-width:104px}
+label.chk{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--muted);cursor:pointer;margin-left:auto}
+.bar{display:flex;gap:4px;margin:10px 0 8px}
+.bar i{flex:1;height:4px;border-radius:2px;background:var(--line);cursor:pointer;transition:background .2s}
+.bar i.done{background:var(--ink);opacity:.45} .bar i.cur{background:var(--ink)}
+.stno{font-size:11px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase}
+#stTitle{font-size:15px;font-weight:700;line-height:1.3;margin:1px 0 4px}
+.live{font-size:13px;min-height:40px;color:var(--ink)}
+.diagram{max-width:1000px;margin:14px auto 40px;padding:0 16px}
+.diagram .card{background:#fff;border:none;padding:8px;overflow-x:auto}
+.diagram svg{width:100%;min-width:760px;height:auto;display:block}
+
+.node{fill:var(--node);stroke:var(--wire);stroke-width:1}
+.nodetxt{font:800 22px system-ui;fill:var(--nodeInk);text-anchor:middle}
+.ell{stroke-width:1.3;opacity:.9}
+.ell.tx{fill:var(--txSoft);stroke:var(--tx)} .ell.rx{fill:var(--rxSoft);stroke:var(--rx)}
+.brace{fill:none;stroke:var(--nodeInk);stroke-width:1.5;opacity:.7}
+.grp{font:700 11.5px system-ui;fill:var(--muted)}
+.dirlab{font:800 15px system-ui;fill:var(--nodeInk);text-anchor:middle}
+.chn{font:800 15px system-ui;fill:var(--ink)}
+.bar2{stroke:var(--wire);stroke-width:1.4;fill:none}
+.sig .wire{stroke:var(--wire);stroke-width:1.4;transition:stroke .25s,stroke-width .25s}
+.sig.bus .wire{stroke-width:3.4}
+.sig .head{fill:var(--wire);transition:fill .25s}
+.sig .lab{font:11px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;fill:var(--muted);transition:fill .25s}
+.sig .bits{font:700 11px system-ui;fill:var(--muted);transition:fill .25s}
+.sig .hl{fill:var(--c);opacity:0}
+.g-tx{--c:var(--tx)} .g-rx{--c:var(--rx)} .g-sa{--c:var(--sa)}
+.sig.cr{--c:var(--cr)}
+.sig.on .wire{stroke:var(--c);stroke-width:2.8}
+.sig.bus.on .wire{stroke-width:4.4}
+.sig.on .head{fill:var(--c)}
+.sig.on .lab{fill:var(--ink);font-weight:700}
+.sig.on .bits{fill:var(--c)}
+.sig.flow{--c:var(--flit)}
+.sig.flow .wire{stroke-dasharray:10 6;animation:dash .5s linear infinite}
+.sig.flow.rev .wire{animation-direction:reverse}
+.sig.flash .hl{animation:hl 1.3s ease-out}
+@keyframes dash{to{stroke-dashoffset:-16}}
+@keyframes hl{0%{opacity:.34}100%{opacity:0}}
+.dotp{fill:var(--c)} .dotp.fall{fill:var(--panel);stroke:var(--c);stroke-width:2.2}
+.dotp.cr{fill:var(--cr)} .dotp.fl{fill:var(--flit)}
+@media (prefers-reduced-motion: reduce){.sig.flow .wire{animation:none}.sig.flash .hl{animation:none}}
+</style>
+<style id="hw-fit">
+/* the deck drives the stages, so the top control panel is hidden */
+.topbar{display:none}
+.diagram{margin-top:8px}
+</style>
+</head>
+<body>
+<div class="topbar" id="topbar"><div class="inner">
+  <div class="row1">
+    <button id="bPrev" title="Previous stage (&larr;)">&#9664; Prev</button>
+    <button id="bPlay" class="primary" title="Play / pause (Space)">&#9654; Play</button>
+    <button id="bNext" title="Next stage (&rarr;)">Next &#9654;</button>
+    <button id="bRestart" title="Restart (R)">&#9198; Restart</button>
+    <select id="sSpeed" title="Speed"><option value="0.5">0.5&times;</option><option value="1" selected>1&times;</option><option value="1.5">1.5&times;</option><option value="2">2&times;</option></select>
+    <label class="chk"><input type="checkbox" id="cFollow" checked> follow action</label>
+  </div>
+  <div class="bar" id="bar"></div>
+  <div class="stno" id="stNo"></div>
+  <div id="stTitle"></div>
+  <div class="live" id="live"></div>
+</div></div>
+<div class="diagram"><div class="card"><svg id="dia" role="img" aria-label="Animated node to device link interface diagram"></svg></div></div>
+<script>
+(() => {
+'use strict';
+const NS = 'http://www.w3.org/2000/svg';
+const $ = (s, r = document) => r.querySelector(s);
+const mk = (tag, attrs = {}, parent, text) => {
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (text !== undefined) e.textContent = text;
+  if (parent) parent.appendChild(e);
+  return e;
+};
+
+const CH = ['REQ', 'DAT', 'RSP', 'SNP'];
+const BITS = { TX: { REQ: 162, DAT: 756, RSP: 73, SNP: 126 }, RX: { REQ: 162, DAT: 756, RSP: 126, SNP: 126 } };
+
+
+const ids = {
+  TX: c => ({ pend: `TX${c}FLITPEND`, v: `TX${c}FLITV`, flit: `TX${c}FLIT`, cr: `TX${c}LCRDV` }),
+  RX: c => ({ pend: `RX${c}FLITPEND`, v: `RX${c}FLITV`, flit: `RX${c}FLIT`, cr: `RX${c}LCRDV` })
+};
+
+/* ---- step builders ---- */
+function creditAll(D, n) { const o = {}; CH.forEach(c => o[`${D}_${c}`] = n); return o; }
+
+// pipelined flit transfer on all four channels
+function pipeline(D) {
+  const steps = [], N = CH.length;
+  const who = D === 'TX' ? 'node sends' : 'device sends';
+  for (let t = 1; t <= N + 2; t++) {
+    const set = {}, flit = {}, credit = {};
+    CH.forEach((c, i) => {
+      const k = ids[D](c);
+      set[k.pend] = (t === i + 1) ? 1 : 0;
+      set[k.v] = (t === i + 2) ? 1 : 0;
+      if (t === i + 2) { flit[k.flit] = 'flit'; credit[`${D}_${c}`] = -1; }
+    });
+    let cap;
+    if (t <= N + 1) {
+      const parts = [];
+      if (t - 2 >= 0 && t - 2 < N) parts.push(`${CH[t - 2]} flit on the link: <code>FLITV</code>=1 with the payload on <code>FLIT</code> (${who}) &mdash; one L-credit consumed`);
+      if (t - 1 < N) parts.push(`<code>${D}${CH[t - 1]}FLITPEND</code> &uarr; &mdash; early warning, a flit may follow next cycle`);
+      cap = `<b>Cycle ${t}</b> &middot; ` + parts.join('<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;');
+    } else {
+      cap = `<b>Cycle ${t}</b> &middot; all <code>FLITV</code>/<code>FLITPEND</code> low again &mdash; every channel is idle with one credit fewer.`;
+    }
+    steps.push({ set, flit, credit, cap, dur: 1050 });
+  }
+  // credits are recycled
+  const returnDir = D === 'TX' ? 'device' : 'node';
+  const pulse = CH.map(c => ids[D](c).cr);
+  steps.push({
+    pulse, credit: creditAll(D, +1), dur: 1500,
+    cap: `<b>Credits recycled</b> &middot; the ${returnDir} (the Receiver) has consumed the flits and frees its buffers, so each <code>${D}*LCRDV</code> pulses once &mdash; +1 L-credit per channel.`
+  });
+  return steps;
+}
+
+// link-flit credit return during deactivation (Opcode 0)
+function linkFlits(D, who) {
+  const setAll = (key, v) => { const o = {}; CH.forEach(c => o[ids[D](c)[key]] = v); return o; };
+  const flitAll = () => { const o = {}; CH.forEach(c => o[ids[D](c).flit] = 'link'); return o; };
+  return [
+    { set: setAll('pend', 1), dur: 1000,
+      cap: `<b>Cycle 1</b> &middot; <code>${D}*FLITPEND</code> &uarr; on all four channels &mdash; ${who} is about to return credits with Link flits.` },
+    { set: Object.assign(setAll('pend', 1), setAll('v', 1)), flit: flitAll(), credit: creditAll(D, -1), dur: 1100,
+      cap: `<b>Cycle 2</b> &middot; Link flit #1 (<code>Opcode</code>=0, <code>TxnID</code>=0) on every channel &mdash; each one hands back one L-credit.` },
+    { set: Object.assign(setAll('pend', 0), setAll('v', 1)), flit: flitAll(), credit: creditAll(D, -1), dur: 1100,
+      cap: `<b>Cycle 3</b> &middot; Link flit #2 &mdash; the credit counters reach 0.` },
+    { set: setAll('v', 0), dur: 1600,
+      cap: `<b>Done</b> &middot; all L-credits are back with the Receiver. The link must stay in DEACTIVATE until this has happened.` }
+  ];
+}
+
+const TXALL_PULSE = CH.map(c => ids.TX(c).cr);
+const RXALL_PULSE = CH.map(c => ids.RX(c).cr);
+
+const STAGES = [
+  /* 0 */ { ph: 0, title: 'Reset released &mdash; interface idle (STOP / STOP)',
+    steps: [
+      { dur: 2200, cap: '<b>RESETn released.</b> TX link = STOP (REQ 0, ACK 0) &middot; RX link = STOP (REQ 0, ACK 0). Nothing may move yet.' },
+      { dur: 1800, cap: 'Press <b>&#9654; Play</b> to run all stages automatically, or <b>Next</b> to go one stage at a time.' }
+    ] },
+
+  /* 1 */ { ph: 1, title: 'TXSACTIVE asserted &mdash; node announces protocol activity',
+    steps: [{ set: { TXSACTIVE: 1 }, dur: 2600, cap: '<code>TXSACTIVE</code> &uarr; &mdash; the node tells the device that Protocol-layer work is pending.' }] },
+
+  /* 2 */ { ph: 1, title: 'RXSACTIVE asserted &mdash; device reports its own activity',
+    steps: [{ set: { RXSACTIVE: 1 }, dur: 2600, cap: '<code>RXSACTIVE</code> &uarr; &mdash; the device is active too, so link activation must not be delayed.' }] },
+
+  /* 3 */ { ph: 2, title: 'TXLINKACTIVEREQ asserted &mdash; outbound link: STOP &rarr; ACTIVATE',
+    steps: [{ set: { TXLINKACTIVEREQ: 1 }, dur: 2800, cap: '<code>TXLINKACTIVEREQ</code> &uarr; &mdash; outbound link STOP &rarr; <b>ACTIVATE</b>. Combined state <b>TxAct / RxStop</b>.' }] },
+
+  /* 4 */ { ph: 2, title: 'TXLINKACTIVEACK asserted &mdash; outbound link: ACTIVATE &rarr; RUN',
+    steps: [{ set: { TXLINKACTIVEACK: 1 }, dur: 2800, cap: '<code>TXLINKACTIVEACK</code> &uarr; &mdash; outbound link ACTIVATE &rarr; <b>RUN</b>. Combined state <b>TxRun / RxStop</b>.' }] },
+
+  /* 5 */ { ph: 3, title: 'RXLINKACTIVEREQ asserted &mdash; inbound link: STOP &rarr; ACTIVATE',
+    steps: [{ set: { RXLINKACTIVEREQ: 1 }, dur: 2800, cap: '<code>RXLINKACTIVEREQ</code> &uarr; (from the device) &mdash; inbound link STOP &rarr; <b>ACTIVATE</b>. Combined state <b>TxRun / RxAct</b>.' }] },
+
+  /* 6 */ { ph: 3, title: 'RXLINKACTIVEACK asserted &mdash; inbound link: ACTIVATE &rarr; RUN',
+    steps: [{ set: { RXLINKACTIVEACK: 1 }, dur: 2800, cap: '<code>RXLINKACTIVEACK</code> &uarr; &mdash; inbound link ACTIVATE &rarr; <b>RUN</b>. Combined state <b>TxRun / RxRun</b> (stable).' }] },
+
+  /* 7 */ { ph: 4, title: 'L-credits granted to the outbound channels',
+    steps: [
+      { pulse: TXALL_PULSE, credit: creditAll('TX', 1), dur: 1500, cap: '<b>Credit 1</b> &middot; <code>TX*LCRDV</code> pulses on all four channels &mdash; each outbound channel now holds 1 L-credit.' },
+      { pulse: TXALL_PULSE, credit: creditAll('TX', 1), dur: 1800, cap: '<b>Credit 2</b> &middot; second pulse &mdash; 2 L-credits per outbound channel. The node can now send up to 2 flits on each.' }
+    ] },
+
+  /* 8 */ { ph: 4, title: 'L-credits granted to the inbound channels',
+    steps: [
+      { pulse: RXALL_PULSE, credit: creditAll('RX', 1), dur: 1500, cap: '<b>Credit 1</b> &middot; <code>RX*LCRDV</code> pulses (node &rarr; device) &mdash; 1 credit issued per inbound channel.' },
+      { pulse: RXALL_PULSE, credit: creditAll('RX', 1), dur: 1800, cap: '<b>Credit 2</b> &middot; second pulse &mdash; the device now holds 2 credits per inbound channel.' }
+    ] },
+
+  /* 9 */ { ph: 4, title: 'Outbound flit transfer (node &rarr; device)',
+    steps: pipeline('TX') },
+
+  /* 10 */ { ph: 4, title: 'Inbound flit transfer (device &rarr; node)',
+    steps: pipeline('RX') },
+
+  /* 11 */ { ph: 5, title: 'Protocol activity ends &mdash; TXSACTIVE and RXSACTIVE drop',
+    steps: [
+      { set: { TXSACTIVE: 0 }, dur: 1800, cap: '<code>TXSACTIVE</code> &darr; &mdash; the node has completed all of its transactions.' },
+      { set: { RXSACTIVE: 0 }, dur: 2200, cap: '<code>RXSACTIVE</code> &darr; &mdash; the device is idle as well. The links are still RUN.' }
+    ] },
+
+  /* 12 */ { ph: 5, title: 'TXLINKACTIVEREQ deasserted &mdash; outbound link: RUN &rarr; DEACTIVATE',
+    steps: [{ set: { TXLINKACTIVEREQ: 0 }, dur: 2000, cap: '<code>TXLINKACTIVEREQ</code> &darr; &mdash; outbound link RUN &rarr; <b>DEACTIVATE</b>. Combined state <b>TxDeact / RxRun</b>.' }]
+      .concat(linkFlits('TX', 'the node')) },
+
+  /* 13 */ { ph: 5, title: 'RXLINKACTIVEREQ deasserted &mdash; inbound link: RUN &rarr; DEACTIVATE',
+    steps: [{ set: { RXLINKACTIVEREQ: 0 }, dur: 2000, cap: '<code>RXLINKACTIVEREQ</code> &darr; (from the device) &mdash; inbound link RUN &rarr; <b>DEACTIVATE</b>. Combined state <b>TxDeact / RxDeact</b>.' }]
+      .concat(linkFlits('RX', 'the device')) },
+
+  /* 14 */ { ph: 5, title: 'TXLINKACTIVEACK deasserted &mdash; outbound link: DEACTIVATE &rarr; STOP',
+    steps: [{ set: { TXLINKACTIVEACK: 0 }, dur: 2800, cap: '<code>TXLINKACTIVEACK</code> &darr; &mdash; outbound link DEACTIVATE &rarr; <b>STOP</b>. Combined state <b>TxStop / RxDeact</b>.' }] },
+
+  /* 15 */ { ph: 5, title: 'RXLINKACTIVEACK deasserted &mdash; inbound link: DEACTIVATE &rarr; STOP',
+    steps: [{ set: { RXLINKACTIVEACK: 0 }, dur: 3000, cap: '<code>RXLINKACTIVEACK</code> &darr; &mdash; inbound link DEACTIVATE &rarr; <b>STOP</b>. Combined state <b>TxStop / RxStop</b> &mdash; interface fully idle.' }] }
+];
+const LAST = STAGES.length - 1;
+
+/* ---------------- diagram ---------------- */
+const svg = $('#dia');
+const W = 1010, H = 1250;
+svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+const NODE_X = 14, NODE_W = 160, NODE_R = NODE_X + NODE_W;
+const BAR = 470, X2 = 740, LAB = 490, DEV_X = 836, DEV_W = 160;
+const S = {};
+const back = mk('g', {}, svg), wires = mk('g', {}, svg), dotLayer = mk('g', {}, svg);
+mk('rect', { x: NODE_X, y: 10, width: NODE_W, height: H - 20, rx: 6, class: 'node' }, back);
+mk('rect', { x: DEV_X, y: 10, width: DEV_W, height: H - 20, rx: 6, class: 'node' }, back);
+mk('text', { class: 'nodetxt', x: DEV_X + DEV_W / 2, y: H / 2 + 7 }, back, 'DEVICE');
+
+function brace(x, y1, y2) {
+  const m = (y1 + y2) / 2, r = 10;
+  return `M ${x + r} ${y1} Q ${x} ${y1} ${x} ${y1 + r} L ${x} ${m - r} Q ${x} ${m} ${x - r} ${m} Q ${x} ${m} ${x} ${m + r} L ${x} ${y2 - r} Q ${x} ${y2} ${x + r} ${y2}`;
+}
+function addSig({ id, grp, dir, y, x1, bus = false, bits, cr = false }) {
+  const g = mk('g', { class: `sig g-${grp}${bus ? ' bus' : ''}${cr ? ' cr' : ''}${dir === 'in' ? ' rev' : ''}` }, wires);
+  mk('rect', { class: 'hl', x: x1 - 4, y: y - 14, width: X2 + 76 - x1, height: 24, rx: 5 }, g);
+  mk('line', { class: 'wire', x1, y1: y, x2: X2, y2: y }, g);
+  mk('polygon', { class: 'head', points: dir === 'out' ? `${X2 + 2},${y} ${X2 - 9},${y - 5} ${X2 - 9},${y + 5}` : `${x1 - 2},${y} ${x1 + 9},${y - 5} ${x1 + 9},${y + 5}` }, g);
+  mk('text', { class: 'lab', x: LAB, y: y - 6 }, g, id);
+  mk('text', { class: 'bits', x: X2 + 14, y: y + 4 }, g, `${bits} bit${bits > 1 ? 's' : ''}`);
+  S[id] = { id, grp, dir, y, x1, x2: X2, bus, g, cr };
+}
+
+addSig({ id: 'TXSACTIVE', grp: 'sa', dir: 'out', y: 36, x1: NODE_R, bits: 1 });
+addSig({ id: 'RXSACTIVE', grp: 'sa', dir: 'in', y: 66, x1: NODE_R, bits: 1 });
+
+function buildLink(D, top) {
+  const isTX = D === 'TX', grp = isTX ? 'tx' : 'rx';
+  const chTop0 = top + 36 + 52 + 14, CHP = 114;
+  const bottom = chTop0 + CHP * 3 + 118;
+  mk('ellipse', { class: `ell ${grp}`, cx: 214, cy: (top + bottom) / 2, rx: 26, ry: (bottom - top) / 2 }, back);
+  mk('path', { class: 'brace', d: brace(158, top + 20, bottom - 14) }, back);
+  mk('text', { class: 'dirlab', x: 118, y: (top + 20 + bottom - 14) / 2 + 5 }, back, D);
+  mk('text', { class: 'grp', x: 252, y: top + 14 }, back, isTX ? 'Outbound link' : 'Inbound link');
+  let y = top + 36;
+  if (isTX) {
+    addSig({ id: 'TXLINKACTIVEREQ', grp, dir: 'out', y, x1: NODE_R, bits: 1 }); y += 26;
+    addSig({ id: 'TXLINKACTIVEACK', grp, dir: 'in', y, x1: NODE_R, bits: 1 });
+  } else {
+    addSig({ id: 'RXLINKACTIVEACK', grp, dir: 'out', y, x1: NODE_R, bits: 1 }); y += 26;
+    addSig({ id: 'RXLINKACTIVEREQ', grp, dir: 'in', y, x1: NODE_R, bits: 1 });
+  }
+  CH.forEach((c, i) => {
+    const ct = chTop0 + i * CHP, k = ids[D](c), out = isTX;
+    mk('path', { class: 'bar2', d: `M ${NODE_R} ${ct} H ${BAR} V ${ct + 100}` }, back);
+    mk('text', { class: 'chn', x: 290, y: ct - 6 }, back, c);
+    addSig({ id: k.pend, grp, dir: out ? 'out' : 'in', y: ct + 20, x1: BAR, bits: 1 });
+    addSig({ id: k.v,    grp, dir: out ? 'out' : 'in', y: ct + 44, x1: BAR, bits: 1 });
+    addSig({ id: k.flit, grp, dir: out ? 'out' : 'in', y: ct + 68, x1: BAR, bits: BITS[D][c], bus: true });
+    addSig({ id: k.cr,   grp, dir: out ? 'in' : 'out', y: ct + 92, x1: BAR, bits: 1, cr: true });
+  });
+  return { top, bottom };
+}
+const gTX = buildLink('TX', 96);
+const gRX = buildLink('RX', gTX.bottom + 26);
+mk('text', { class: 'nodetxt', x: NODE_X + NODE_W / 2, y: H / 2 + 7 }, back, 'NODE');
+
+/* ---------------- state / render ---------------- */
+function fresh() { return { sig: {}, credit: {} }; }
+function applyPersistent(st, step) {
+  if (step.set) Object.assign(st.sig, step.set);
+  if (step.credit) for (const k in step.credit) st.credit[k] = (st.credit[k] || 0) + step.credit[k];
+}
+const EMPTY = { pulse: new Set(), flit: {} };
+function render(st, tr) {
+  for (const id in S) {
+    const s = S[id];
+    const v = (st.sig[id] | 0) || (tr.pulse.has(id) ? 1 : 0), fl = tr.flit[id];
+    s.g.classList.toggle('on', s.bus ? !!fl : !!v);
+    s.g.classList.toggle('flow', s.bus && !!fl);
+  }
+}
+let speed = 1;
+function travel(id, kind) {
+  const s = S[id]; if (!s) return;
+  const cls = `dotp g-${s.grp}${kind === 'fall' ? ' fall' : ''}${s.cr ? ' cr' : ''}${s.bus ? ' fl' : ''}`;
+  const x0 = s.dir === 'out' ? s.x1 : s.x2, dx = (s.x2 - s.x1) * (s.dir === 'out' ? 1 : -1);
+  const e = s.bus ? mk('rect', { class: cls, x: x0 - 9, y: s.y - 5, width: 18, height: 10, rx: 3 }, dotLayer)
+                  : mk('circle', { class: cls, cx: x0, cy: s.y, r: 5.5 }, dotLayer);
+  const a = e.animate([{ transform: 'translateX(0)', opacity: 1 }, { transform: `translateX(${dx}px)`, opacity: .95 }],
+    { duration: 800 / speed, easing: 'ease-in-out', fill: 'forwards' });
+  a.onfinish = () => e.remove();
+}
+function flash(id) { const s = S[id]; if (!s) return; s.g.classList.remove('flash'); void s.g.getBoundingClientRect(); s.g.classList.add('flash'); }
+function animateChanges(before, after, tr) {
+  const t = [];
+  for (const id in S) { const b = before[id] | 0, a = after[id] | 0; if (b !== a) { flash(id); travel(id, a ? 'rise' : 'fall'); t.push(id); } }
+  tr.pulse.forEach(id => { flash(id); travel(id, 'rise'); t.push(id); });
+  for (const id in tr.flit) { flash(id); travel(id, 'rise'); t.push(id); }
+  return t;
+}
+let follow = true;
+function followScroll(list) {
+  if (!follow || !list.length) return;
+  const r = svg.getBoundingClientRect(), k = r.height / H;
+  const ys = list.map(id => r.top + S[id].y * k), lo = Math.min(...ys), hi = Math.max(...ys);
+  const topH = $('#topbar').offsetHeight, vTop = topH + 30, vBot = innerHeight - 40;
+  if (lo < vTop || hi > vBot) {
+    const target = (hi - lo) < (vBot - vTop) ? (lo + hi) / 2 : lo;
+    scrollBy({ top: target - (topH + (innerHeight - topH) * 0.45), behavior: 'smooth' });
+  }
+}
+
+/* ---------------- player ---------------- */
+let state = fresh(), stageIdx = 0, stageDone = false, token = 0, autoplay = false, paused = false, busy = false;
+const GAP = 900;
+const plain = h => h.replace(/&mdash;/g, '–').replace(/&rarr;/g, '→').replace(/&rsquo;/g, '’').replace(/&amp;/g, '&');
+const barEl = $('#bar');
+STAGES.forEach((s, i) => { const b = document.createElement('i'); b.title = i + ': ' + plain(s.title); b.addEventListener('click', () => goto(i)); barEl.appendChild(b); });
+
+function delay(ms, tok) {
+  return new Promise(res => {
+    let el = 0, last = performance.now();
+    (function tick() {
+      if (tok !== token) return res(false);
+      const now = performance.now();
+      if (!paused) el += (now - last) * speed;
+      last = now;
+      if (el >= ms) res(true); else setTimeout(tick, 30);
+    })();
+  });
+}
+function showStage(k) {
+  $('#stNo').textContent = `Stage ${k} of ${LAST}`;
+  $('#stTitle').innerHTML = STAGES[k].title;
+  $('#live').innerHTML = '&nbsp;';
+  [...barEl.children].forEach((b, i) => { b.classList.toggle('cur', i === k); b.classList.toggle('done', i < k); });
+}
+async function runStage(k, tok) {
+  stageDone = false; stageIdx = k; showStage(k);
+  for (const stp of STAGES[k].steps) {
+    if (tok !== token) return false;
+    const before = Object.assign({}, state.sig);
+    applyPersistent(state, stp);
+    const tr = { pulse: new Set(stp.pulse || []), flit: stp.flit || {} };
+    render(state, tr);
+    const touched = animateChanges(before, state.sig, tr);
+    $('#live').innerHTML = stp.cap || '&nbsp;';
+    followScroll(touched);
+    if (!(await delay(stp.dur || 1100, tok))) return false;
+  }
+  render(state, EMPTY);
+  stageDone = true;
+  return true;
+}
+async function playFrom(k, tok) {
+  busy = true; updateButtons();
+  try {
+    while (k <= LAST) {
+      if (!(await runStage(k, tok))) return;
+      if (!autoplay) return;
+      if (k === LAST) { autoplay = false; return; }
+      if (!(await delay(GAP, tok))) return;
+      k++;
+    }
+  } finally { if (tok === token) { busy = false; updateButtons(); } }
+}
+function goto(k) {
+  k = Math.max(0, Math.min(LAST, k));
+  token++; const tok = token; paused = false;
+  state = fresh();
+  for (let j = 0; j < k; j++) STAGES[j].steps.forEach(s => applyPersistent(state, s));
+  render(state, EMPTY);
+  stageIdx = k; stageDone = false;
+  playFrom(k, tok);
+}
+const isPlaying = () => autoplay && !paused;
+function updateButtons() {
+  $('#bPlay').innerHTML = isPlaying() ? '&#10074;&#10074; Pause' : (stageIdx === LAST && stageDone ? '&#8635; Play again' : '&#9654; Play');
+  $('#bPrev').disabled = stageIdx === 0;
+  $('#bNext').disabled = stageIdx === LAST;
+}
+function togglePlay() {
+  if (isPlaying()) { paused = true; updateButtons(); return; }
+  if (paused) { paused = false; autoplay = true; updateButtons(); return; }
+  autoplay = true; paused = false;
+  if (!busy) {
+    if (stageIdx === LAST && stageDone) goto(0);
+    else if (stageDone) { token++; playFrom(stageIdx + 1, token); }
+    else goto(stageIdx);
+  }
+  updateButtons();
+}
+$('#bPlay').addEventListener('click', togglePlay);
+$('#bNext').addEventListener('click', () => goto(stageIdx + 1));
+$('#bPrev').addEventListener('click', () => goto(stageIdx - 1));
+$('#bRestart').addEventListener('click', () => { autoplay = false; scrollTo({ top: 0, behavior: 'smooth' }); goto(0); });
+$('#sSpeed').addEventListener('change', e => speed = +e.target.value);
+$('#cFollow').addEventListener('change', e => follow = e.target.checked);
+addEventListener('keydown', e => {
+  if (e.target.tagName === 'SELECT' || e.target.tagName === 'INPUT') return;
+  if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
+  else if (e.key === 'ArrowRight') { e.preventDefault(); goto(stageIdx + 1); }
+  else if (e.key === 'ArrowLeft') { e.preventDefault(); goto(stageIdx - 1); }
+  else if (e.key === 'r' || e.key === 'R') { autoplay = false; goto(0); }
+});
+window.__chi = { goto, get stage() { return stageIdx; }, get done() { return stageDone; } };
+render(state, EMPTY);
+goto(0);
+})();
+</script>
+<script>
+(function(){
+  var started=false,last=-1,playing=false,btn=function(){return document.getElementById('bPlay');};
+  var isPlaying=function(){ return /Pause/.test(btn().textContent); };
+  window.hwSlide={
+    goto:function(k){ started=true; last=k; window.__chi.goto(k); },
+    play:function(){ btn().click(); },
+    pause:function(){ if(isPlaying()) btn().click(); }
+  };
+  setInterval(function(){
+    if(!started) return;
+    if(window.__chi.stage!==last){ last=window.__chi.stage; hwReport(last); }
+    var p=isPlaying(); if(p!==playing){ playing=p; hwPost({hw:'playing',on:p}); }
+  },250);
+})();
+</script>
+<script>
+/* Hardware deck bridge: arrow keys / Space are forwarded to the deck, and the deck drives this slide's steps. */
+(function(){
+  function post(m){ try{ parent.postMessage(m,'*'); }catch(e){} }
+  window.addEventListener('keydown',function(e){
+    if(e.code==='ArrowRight'||e.code==='ArrowLeft'||e.code==='Space'){
+      e.preventDefault(); e.stopImmediatePropagation(); post({hw:'key',code:e.code});
+    }
+  },true);
+  window.hwReport=function(n){ post({hw:'step',step:n}); };
+  window.hwPost=post;
+  window.addEventListener('message',function(e){
+    var m=e.data; if(!m||!m.hw||!window.hwSlide) return;
+    if(m.hw==='goto') window.hwSlide.goto(m.step);
+    else if(m.hw==='play'&&window.hwSlide.play) window.hwSlide.play();
+    else if(m.hw==='pause'&&window.hwSlide.pause) window.hwSlide.pause();
+  });
+  window.addEventListener('load',function(){ setTimeout(function(){ post({hw:'ready'}); },0); });
+})();
+</script>
+</body>
+</html>

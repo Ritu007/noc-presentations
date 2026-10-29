@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flit lifecycle and router pipeline summary</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--cyan:#0284c7;--blue:#2563eb;--purple:#7c3aed;--orange:#ea580c;--teal:#0d9488;--green:#16a34a;
+ --text:#0f172a;--muted:#334155;--dim:#64748b;--b1:#cbd5e1;--s1:#fff;--s2:#f1f5f9;--bg:#f8fafc}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:clamp(12px,2.1vh,26px);padding:1.2vh 1.2vw}
+.sum{height:100%;display:flex;flex-direction:column;justify-content:center;gap:2vh}
+.panel{background:var(--s1);border:1.5px solid var(--b1);border-radius:.9em;padding:1em 1.1em;transition:opacity .35s,box-shadow .35s,border-color .35s}
+.life{flex:0 0 auto}.pipe{flex:0 0 auto;display:flex;flex-direction:column;gap:.7em}
+h2{font-size:1.05em;font-weight:800;margin-bottom:.8em;display:flex;align-items:center;gap:.7em;color:var(--muted)}
+.tag{font-family:'JetBrains Mono',monospace;font-size:.8em;letter-spacing:1px;text-transform:uppercase;padding:.25em .8em;border-radius:20px;color:#fff}
+.life .tag{background:var(--cyan)}.pipe .tag{background:var(--purple)}
+.chain,.stages{display:flex;align-items:stretch;gap:.35em}
+.arr{flex:0 0 1.3em;display:grid;place-items:center;color:var(--dim);font-weight:800;font-size:1.2em}
+.card{flex:1;min-width:0;border:1.5px solid var(--b1);border-top:.35em solid var(--c);border-radius:.6em;padding:.6em .7em;background:var(--s1);display:flex;flex-direction:column;gap:.3em}
+.cn{font:700 .8em 'JetBrains Mono',monospace;color:var(--c)}
+.cname{font-weight:800;font-size:1.05em;line-height:1.15}
+.cmod{font-size:.88em;font-weight:700;color:var(--muted)}
+.cfn{font:500 .78em 'JetBrains Mono',monospace;color:var(--dim);line-height:1.3}
+.cst{margin-top:auto;font:700 .78em 'JetBrains Mono',monospace;color:var(--c);background:color-mix(in srgb,var(--c) 9%,transparent);border-radius:.4em;padding:.25em .5em}
+.stg{flex:1;min-width:0;border:1.5px solid color-mix(in srgb,var(--purple) 40%,var(--b1));border-radius:.6em;background:color-mix(in srgb,var(--purple) 5%,var(--s1));padding:.6em .7em;display:flex;flex-direction:column;gap:.25em}
+.ab{font:800 1.5em 'JetBrains Mono',monospace;color:var(--purple)}
+.sn{font-weight:800;font-size:.98em}
+.sd{font-size:.84em;color:var(--muted);line-height:1.35}
+.phase{display:flex;align-items:stretch;border-radius:.6em;overflow:hidden;border:1.5px solid var(--b1)}
+.pl{flex:0 0 7.5em;display:grid;place-items:center;color:#fff;font-weight:800;letter-spacing:.5px}
+.pd{flex:1;padding:.6em .9em;font-size:.92em;line-height:1.4;color:var(--muted);background:var(--s2)}
+.ev .pl{background:var(--purple)}.up .pl{background:var(--orange)}
+.foot{margin-top:.2em;font:600 .82em 'JetBrains Mono',monospace;color:var(--dim)}
+/* step 0 highlights the lifecycle, step 1 the router pipeline (and lifecycle stage 3, which is that pipeline) */
+body[data-step="0"] .pipe{opacity:.3}
+body[data-step="1"] .life{opacity:.45}
+body[data-step="1"] .life .c3{box-shadow:0 0 0 2px var(--purple)}
+body[data-step="0"] .life,body[data-step="1"] .pipe{border-color:var(--cyan);box-shadow:0 0 0 2px var(--cyan),0 6px 22px rgba(2,132,199,.18)}
+body[data-step="1"] .pipe{border-color:var(--purple);box-shadow:0 0 0 2px var(--purple),0 6px 22px rgba(124,58,237,.18)}
+</style></head>
+<body data-step="0">
+<main class="sum">
+<section class="panel life"><h2><span class="tag">Flit lifecycle</span>from creation to retirement</h2>
+<div class="chain">
+<div class="card c1" style="--c:var(--cyan)"><div class="cn">1</div><div class="cname">Flit Creation</div><div class="cmod">TrafficManager</div><div class="cfn">_GeneratePacket()</div><div class="cst">creation_time = t</div></div>
+<div class="arr">&rarr;</div>
+<div class="card c2" style="--c:var(--blue)"><div class="cn">2</div><div class="cname">Flit Injection</div><div class="cmod">LocalLink</div><div class="cfn">ForwardFlits() / DeliverFlits()</div><div class="cst">itime = t</div></div>
+<div class="arr">&rarr;</div>
+<div class="card c3" style="--c:var(--purple)"><div class="cn">3</div><div class="cname">Router Pipeline</div><div class="cmod">ChannelPipeline</div><div class="cfn">Evaluate &amp; Update phases</div><div class="cst">5-cycle router delay</div></div>
+<div class="arr">&rarr;</div>
+<div class="card c4" style="--c:var(--orange)"><div class="cn">4</div><div class="cname">Inter-Router Transfer</div><div class="cmod">CHILink / NetworkFabric</div><div class="cfn">FlitChannel out, CreditChannel back</div><div class="cst">wire delay 1 cycle</div></div>
+<div class="arr">&rarr;</div>
+<div class="card c5" style="--c:var(--teal)"><div class="cn">5</div><div class="cname">Flit Ejection</div><div class="cmod">LocalLink</div><div class="cfn">into _eject_queues</div><div class="cst">atime = cycle</div></div>
+<div class="arr">&rarr;</div>
+<div class="card c6" style="--c:var(--green)"><div class="cn">6</div><div class="cname">Flit Retirement</div><div class="cmod">TrafficManager</div><div class="cfn">_RetireFlit()</div><div class="cst">flat, nlat, plat, hops</div></div>
+</div></section>
+<section class="panel pipe"><h2><span class="tag">Router pipeline</span>five stages per channel, in two phases every cycle</h2>
+<div class="stages">
+<div class="stg"><div class="ab">IQ</div><div class="sn">Input Queuing</div><div class="sd">Flit is written into a VC buffer; VC state becomes Routing.</div></div>
+<div class="arr">&rarr;</div>
+<div class="stg"><div class="ab">RC</div><div class="sn">Route Compute</div><div class="sd">Output port is computed by the routing algorithm.</div></div>
+<div class="arr">&rarr;</div>
+<div class="stg"><div class="ab">VA</div><div class="sn">VC Allocation</div><div class="sd">A downstream VC is reserved for the output port.</div></div>
+<div class="arr">&rarr;</div>
+<div class="stg"><div class="ab">SA</div><div class="sn">Switch Allocation</div><div class="sd">The flit arbitrates for a crossbar grant.</div></div>
+<div class="arr">&rarr;</div>
+<div class="stg"><div class="ab">ST</div><div class="sn">Switch Traversal</div><div class="sd">The flit crosses the crossbar into the output buffer.</div></div>
+</div>
+<div class="phase ev"><div class="pl">EVALUATE</div><div class="pd">Stamps the cycle in which each stage should run (current cycle plus the stage latency). VA and SA also poll their requests and generate the grants here.</div></div>
+<div class="phase up"><div class="pl">UPDATE</div><div class="pd">Performs the actual state change, only for flits whose timestamp has matured.</div></div>
+<div class="foot">4 channels run their own pipeline: REQ &middot; RSP &middot; DAT &middot; SNP</div>
+</section></main>
+<script>window.hwSlide={goto:function(n){document.body.setAttribute('data-step',String(n));}};</script>
+<script>
+/* Hardware deck bridge: arrow keys / Space are forwarded to the deck, and the deck drives this slide's steps. */
+(function(){
+  function post(m){ try{ parent.postMessage(m,'*'); }catch(e){} }
+  window.addEventListener('keydown',function(e){
+    if(e.code==='ArrowRight'||e.code==='ArrowLeft'||e.code==='Space'){
+      e.preventDefault(); e.stopImmediatePropagation(); post({hw:'key',code:e.code});
+    }
+  },true);
+  window.hwReport=function(n){ post({hw:'step',step:n}); };
+  window.hwPost=post;
+  window.addEventListener('message',function(e){
+    var m=e.data; if(!m||!m.hw||!window.hwSlide) return;
+    if(m.hw==='goto') window.hwSlide.goto(m.step);
+    else if(m.hw==='play'&&window.hwSlide.play) window.hwSlide.play();
+    else if(m.hw==='pause'&&window.hwSlide.pause) window.hwSlide.pause();
+  });
+  window.addEventListener('load',function(){ setTimeout(function(){ post({hw:'ready'}); },0); });
+})();
+</script>
+</body></html>

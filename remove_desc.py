@@ -2,8 +2,8 @@ import os
 import re
 
 files_to_process = [
-    "verification-presentation/index.html",
-    "sdlc-presentation/index.html",
+    "testing-presentation/archive/index.html",
+    "repo-presentation/archive/index.html",
     "presentation/index.html",
     "pcie-presentation/index.html",
     "hardware-presentation/index.html"

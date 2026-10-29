@@ -483,258 +483,12 @@
       cursor: default;
     }
 
-    /* ================================================================
-       SECTION 2.5 — PROGRESS
-    ================================================================ */
-    #hub-progress {
-      justify-content: flex-start;
-      padding: 2rem;
-    }
-
-    .prog-container {
-      display: flex;
-      flex-direction: column;
-      width: 100%;
-      max-width: 95%;
-      gap: 1rem;
-      margin: 0 auto;
-      flex: 1;
-      font-size: 1.15rem;
-    }
-
-    .prog-header {
-      text-align: center;
-      margin-bottom: 0.5rem;
-    }
-
-    .prog-title {
-      font-size: 2.8rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: -0.5px;
-      margin-bottom: 0.2rem;
-    }
-
-    .prog-subtitle {
-      font-size: 1.4rem;
-      color: var(--muted);
-    }
-
-    .prog-main-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1.3fr 1fr 0.7fr;
-      gap: 1rem;
-      align-items: stretch;
-      flex: 1;
-    }
-
-    .prog-col {
-      border-radius: var(--rs);
-      border: 1.5px solid var(--b2);
-      background: var(--s1);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    .prog-col-stack {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-    .prog-col-stack .prog-col {
-      flex: 1;
-    }
-
-    .prog-col-header {
-      padding: 0.8rem;
-      font-weight: 700;
-      font-size: 1.2rem;
-      text-align: center;
-      border-bottom: 1px solid var(--b1);
-    }
-
-    .prog-col-body {
-      padding: 1rem;
-      flex: 1;
-    }
-
-    .prog-item {
-      margin-bottom: 1rem;
-    }
-    .prog-item:last-child {
-      margin-bottom: 0;
-    }
-    .prog-item-title {
-      font-weight: 700;
-      margin-bottom: 0.2rem;
-      font-size: 1.15rem;
-    }
-    .prog-item-desc {
-      color: var(--muted);
-      font-size: 1.1rem;
-    }
-
-    .c-blue .prog-col-header { background: #e0f2fe; color: #075985; border-color: #bae6fd; }
-    .c-blue { border-color: #bae6fd; }
-
-    .c-green .prog-col-header { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
-    .c-green { border-color: #bbf7d0; }
-
-    .c-orange .prog-col-header { background: #ffedd5; color: #9a3412; border-color: #fed7aa; }
-    .c-orange { border-color: #fed7aa; }
-
-    .c-purple .prog-col-header { background: #f3e8ff; color: #6b21a8; border-color: #e9d5ff; }
-    .c-purple { border-color: #e9d5ff; }
-
-    .dev-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-    }
-    .dev-col-title {
-      font-weight: 700;
-      font-size: 1.1rem;
-      color: var(--col-orange);
-      text-align: center;
-      margin-bottom: 0.5rem;
-      text-transform: uppercase;
-    }
-    .dev-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-    .dev-list li {
-      margin-bottom: 0.8rem;
-      display: flex;
-      flex-direction: column;
-    }
-    .dev-list.done li {
-      flex-direction: row;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    .dev-footer {
-      font-size: 0.75rem;
-      color: var(--muted);
-      margin-top: auto;
-      padding-top: 1rem;
-    }
-
-    .key-achievements {
-      display: flex;
-      flex-direction: column;
-      align-items: stretch;
-      background: #f0f9ff;
-    }
-    .ka-text {
-      font-weight: 700;
-      padding: 0.8rem 1rem;
-      text-align: center;
-      background: #e0f2fe;
-      color: #075985;
-      border-bottom: 1px solid #bae6fd;
-      letter-spacing: 2px;
-    }
-    .ka-list {
-      padding: 1rem 1rem 1rem 2rem;
-      font-size: 1.15rem;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-around;
-    }
-    .ka-list li {
-      margin-bottom: 0.5rem;
-    }
-    .ka-list li::marker {
-      color: var(--col-blue);
-    }
-
-    .prog-footer {
-      border-radius: var(--rs);
-      border: 1.5px solid #e9d5ff;
-      background: #fdfaef;
-      overflow: hidden;
-    }
-    .prog-footer-header {
-      background: #f3e8ff;
-      color: #6b21a8;
-      text-align: center;
-      font-size: 1.2rem;
-      font-weight: 700;
-      padding: 0.5rem;
-      border-bottom: 1px solid #e9d5ff;
-    }
-    .prog-footer-body {
-      padding: 1rem 2rem;
-      background: var(--s1);
-    }
-
-    .sdlc-flow-wrap {
-      display: flex;
-      flex-direction: column;
-    }
-    .sdlc-flow-title {
-      font-weight: 700;
-      font-size: 1.15rem;
-      margin-bottom: 0.5rem;
-    }
-    .sdlc-flow {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 5px;
-    }
-    .sdlc-step {
-      padding: 0.6rem 0.5rem;
-      font-weight: 700;
-      font-size: 0.9rem;
-      flex: 1;
-      text-align: center;
+    .subtopic-pill.archive {
+      grid-column: 1 / -1;
+      border-style: dashed;
       background: var(--s2);
-      clip-path: polygon(0% 0%, 90% 0%, 100% 50%, 90% 100%, 0% 100%, 10% 50%);
-    }
-    .sdlc-step:first-child { clip-path: polygon(0% 0%, 90% 0%, 100% 50%, 90% 100%, 0% 100%); }
-    .sdlc-step:last-child { clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%, 10% 50%); }
-
-    .sdlc-step.concept { background: #a5f3fc; color: #0e7490; }
-    .sdlc-step.requirements { background: #bae6fd; color: #0369a1; }
-    .sdlc-step.design { background: #e9d5ff; color: #7e22ce; }
-    .sdlc-step.dev { background: #fed7aa; color: #c2410c; }
-    .sdlc-step.test { background: #bbf7d0; color: #15803d; }
-    .sdlc-step.maint { background: #fbcfe8; color: #be185d; }
-
-    .sdlc-bracket {
-      border-bottom: 2px solid var(--col-orange);
-      border-left: 2px solid var(--col-orange);
-      border-right: 2px solid var(--col-orange);
-      height: 10px;
-      margin-top: 15px;
-      width: 100%;
-      position: relative;
-    }
-    .sdlc-bracket::after {
-      content: "Development & Mesh Implementation";
-      position: absolute;
-      top: 12px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 0.85rem;
-      font-weight: 600;
-      white-space: nowrap;
-    }
-
-    .next-obj-list {
-      padding-left: 1.2rem;
-      font-size: 1.1rem;
-    }
-    .next-obj-list li {
-      margin-bottom: 0.5rem;
-    }
-    .next-obj-list li::marker {
-      color: var(--col-purple);
-      content: '▶ ';
+      color: var(--dim);
+      font-weight: 500;
     }
 
   </style>
@@ -971,16 +725,27 @@
           </div>
           <div class="deck-arrow">&rarr;</div>
         </a>
+        <div class="subtopic-grid">
+          <a class="subtopic-pill" href="recap-presentation/index.html?page=0">Roadmap &amp; CHI Nodes</a>
+          <a class="subtopic-pill" href="recap-presentation/index.html?page=1">6-Port Router</a>
+          <a class="subtopic-pill" href="recap-presentation/index.html?page=2">Ports by Router Position</a>
+          <a class="subtopic-pill" href="recap-presentation/index.html?page=3">System Architecture</a>
+          <a class="subtopic-pill" href="recap-presentation/index.html?page=4">Flit &amp; Pipeline Summary</a>
+          <a class="subtopic-pill archive" href="recap-presentation/archive/index.html">Archive: Recap (July 2026)</a>
+        </div>
       </div>
       <!-- DECK 0B - PROGRESS REPORT -->
       <div class="deck-block" style="--c: var(--col-cyan)">
-        <a class="deck-hdr" href="javascript:void(0)" onclick="Hub.show(3)">
+        <a class="deck-hdr" href="quarterly-presentation/index.html">
           <div class="deck-icon">&#128202;</div>
           <div class="deck-hdr-text">
-            <div class="deck-name">QUARTERLY PROGRESS REPORT (APRIL 2026 - JULY 2026)</div>
+            <div class="deck-name">QUARTERLY PROGRESS REPORT</div>
           </div>
           <div class="deck-arrow">&rarr;</div>
         </a>
+        <div class="subtopic-grid">
+          <a class="subtopic-pill archive" href="quarterly-presentation/archive/index.html">Archive: Quarterly Progress Report (April – July 2026)</a>
+        </div>
       </div>
       <!-- DECK 1 — HARDWARE ARCHITECTURE -->
       <div class="deck-block" style="--c: var(--col-purple)">
@@ -988,23 +753,23 @@
           <div class="deck-icon">⬡</div>
           <div class="deck-hdr-text">
             <div class="deck-name">Hardware Architecture &amp; Router Design</div>
-            <div class="deck-desc">CHI protocol nodes, the 6-port router, buffer sizing, and the 5-stage data path.
-            </div>
+            <div class="deck-desc">The node / device link handshake, router link layer, CHI handshake, updated
+              CHI router, credit mechanism, QoS arbitration and aging, router pipeline, and
+              CHI flit channels.</div>
           </div>
           <div class="deck-arrow">→</div>
         </a>
         <div class="subtopic-grid">
-          <a class="subtopic-pill" href="hardware-presentation/index.html?page=0">Roadmap &amp; CHI Node Integration</a>
-          <a class="subtopic-pill" href="hardware-presentation/index.html?page=1">6-Port Configurable Router
-            Architecture</a>
-          <a class="subtopic-pill" href="hardware-presentation/index.html?page=2">CHI Buffer Sizing &amp; Credit Flow
-            Control</a>
-          <a class="subtopic-pill" href="hardware-presentation/index.html?page=3">Router Data Path &amp; 5-Stage
-            Pipeline</a>
-          <a class="subtopic-pill" href="hardware-presentation/index.html?page=4">Router Functional Blocks</a>
-          <a class="subtopic-pill" href="hardware-presentation/index.html?page=5">Arbiters &amp; Allocators</a>
-          <a class="subtopic-pill" href="hardware-presentation/router-3d-explorer.html">Interactive 3D Router
-            Explorer</a>
+          <a class="subtopic-pill" href="hardware-presentation/index.html?page=0">Node / Device Link</a>
+          <a class="subtopic-pill" href="hardware-presentation/index.html?page=1">Link Layer Interface</a>
+          <a class="subtopic-pill" href="hardware-presentation/index.html?page=2">CHI Handshake</a>
+          <a class="subtopic-pill" href="hardware-presentation/index.html?page=3">CHI Router Architecture</a>
+          <a class="subtopic-pill" href="hardware-presentation/index.html?page=4">Credit Mechanism</a>
+          <a class="subtopic-pill" href="hardware-presentation/index.html?page=5">QoS Arbitration</a>
+          <a class="subtopic-pill" href="hardware-presentation/index.html?page=6">QoS Aging</a>
+          <a class="subtopic-pill" href="hardware-presentation/index.html?page=7">Router Pipeline Flow</a>
+          <a class="subtopic-pill" href="hardware-presentation/index.html?page=8">CHI Flit Channels</a>
+          <a class="subtopic-pill archive" href="hardware-presentation/archive/index.html">Archive: Hardware Architecture &amp; Router Design (July 2026)</a>
         </div>
       </div>
 
@@ -1014,60 +779,73 @@
           <div class="deck-icon">⬡</div>
           <div class="deck-hdr-text">
             <div class="deck-name">Software Development Progress</div>
-            <div class="deck-desc">System architecture, the event scheduler, flit lifecycle, router pipeline, and CHI
-              channels.</div>
+            <div class="deck-desc">How much of the hardware is simulated, system architecture, API server,
+              simulation run flow, and backend module status.</div>
           </div>
           <div class="deck-arrow">→</div>
         </a>
         <div class="subtopic-grid">
-          <a class="subtopic-pill" href="presentation/index.html?page=0">System Architecture</a>
-          <a class="subtopic-pill" href="presentation/flit-lifecycle.html?stage=0">Flit Lifecycle</a>
-          <a class="subtopic-pill" href="presentation/router-pipeline.html">Router Pipeline (Cycle-Accurate)</a>
-          <a class="subtopic-pill" href="presentation/chi-channel-architecture.html?step=0">CHI Channel &amp; Flit
-            Details</a>
+          <a class="subtopic-pill" href="presentation/index.html?page=0">Simulation Coverage</a>
+          <a class="subtopic-pill" href="presentation/index.html?page=1">System Architecture</a>
+          <a class="subtopic-pill" href="presentation/index.html?page=2">API &amp; Drogon Server</a>
+          <a class="subtopic-pill" href="presentation/index.html?page=3">Simulation Run Flow</a>
+          <a class="subtopic-pill" href="presentation/index.html?page=4">Backend Module Status</a>
+          <a class="subtopic-pill archive" href="presentation/archive/index.html">Archive: last meeting's slides (July 2026)</a>
         </div>
       </div>
 
-      <!-- DECK 3 — SDLC RECAP -->
-      <div class="deck-block" style="--c: var(--col-orange)">
-        <a class="deck-hdr" href="sdlc-presentation/index.html">
-          <div class="deck-icon">☑</div>
-          <div class="deck-hdr-text">
-            <div class="deck-name">Software Development Lifecycle</div>
-            <div class="deck-desc">The standard SDLC and current updates and the documentation flow.</div>
-          </div>
-          <div class="deck-arrow">→</div>
-        </a>
-        <div class="subtopic-grid">
-          <a class="subtopic-pill" href="sdlc-presentation/index.html?page=0">Standard SDLC Flow</a>
-          <a class="subtopic-pill" href="sdlc-presentation/index.html?page=1">Pipelined Incremental Model</a>
-          <a class="subtopic-pill" href="sdlc-presentation/index.html?page=2">Requirement Gathering and Analysis</a>
-          <a class="subtopic-pill" href="sdlc-presentation/index.html?page=3">System Design</a>
-          <a class="subtopic-pill" href="sdlc-presentation/index.html?page=4">Development and Coding</a>
-          <a class="subtopic-pill" href="sdlc-presentation/index.html?page=5">Documentation Flow</a>
-        </div>
-      </div>
-
-      <!-- DECK 4 — VERIFICATION & VALIDATION -->
-      <div class="deck-block" style="--c: var(--col-teal)">
-        <a class="deck-hdr" href="verification-presentation/index.html">
+      <!-- DECK 4b — TESTING & VERIFICATION -->
+      <div class="deck-block" style="--c: var(--col-green)">
+        <a class="deck-hdr" href="testing-presentation/index.html">
           <div class="deck-icon">✓</div>
           <div class="deck-hdr-text">
-            <div class="deck-name">Verification &amp; Validation</div>
-            <div class="deck-desc">IEEE V&amp;V lifecycle, testing methodology, bug taxonomy, and the practical
-              verification toolchain.</div>
+            <div class="deck-name">Testing &amp; Verification</div>
+            <div class="deck-desc">Our testing plan, GoogleTest in the project, and the tools we run today and plan to
+              add.</div>
           </div>
           <div class="deck-arrow">→</div>
         </a>
         <div class="subtopic-grid">
-          <a class="subtopic-pill" href="verification-presentation/index.html?page=0">IEEE Standard V&amp;V
-            Lifecycle</a>
-          <a class="subtopic-pill" href="verification-presentation/index.html?page=1">Standard Testing Methodology</a>
-          <a class="subtopic-pill" href="verification-presentation/index.html?page=2">Taxonomy of Failure</a>
-          <a class="subtopic-pill" href="verification-presentation/index.html?page=3">Validation Methods without RTL</a>
-          <a class="subtopic-pill" href="verification-presentation/index.html?page=4">Formal Verification Tools</a>
-          <a class="subtopic-pill" href="verification-presentation/index.html?page=5">The Verification Toolchain</a>
-          <a class="subtopic-pill" href="verification-presentation/index.html?page=6">The Complete Picture</a>
+          <a class="subtopic-pill" href="testing-presentation/index.html?page=0">Testing Plan</a>
+          <a class="subtopic-pill" href="testing-presentation/index.html?page=1">GoogleTest</a>
+          <a class="subtopic-pill" href="testing-presentation/index.html?page=2">Tools &amp; Next Steps</a>
+          <a class="subtopic-pill archive" href="testing-presentation/archive/index.html">Archive: Verification &amp; Validation (July 2026)</a>
+        </div>
+      </div>
+
+      <!-- DECK 4c — REPOSITORY & CI/CD -->
+      <div class="deck-block" style="--c: var(--col-purple)">
+        <a class="deck-hdr" href="repo-presentation/index.html">
+          <div class="deck-icon">⇆</div>
+          <div class="deck-hdr-text">
+            <div class="deck-name">Repository, CI/CD &amp; Documentation</div>
+            <div class="deck-desc">How code moves from a feature branch to a release, how every change is built and
+              tested automatically, and how the design documents are kept.</div>
+          </div>
+          <div class="deck-arrow">→</div>
+        </a>
+        <div class="subtopic-grid">
+          <a class="subtopic-pill" href="repo-presentation/index.html?page=0">Branching Model</a>
+          <a class="subtopic-pill" href="repo-presentation/index.html?page=1">CI/CD Pipeline</a>
+          <a class="subtopic-pill" href="repo-presentation/index.html?page=2">Documentation</a>
+          <a class="subtopic-pill archive" href="repo-presentation/archive/index.html">Archive: Software Development Lifecycle (July 2026)</a>
+        </div>
+      </div>
+
+      <!-- DECK 4d — INTERNAL MESH & NODE ARCHITECTURE (working title; shown after the demo) -->
+      <div class="deck-block" style="--c: var(--col-orange)">
+        <a class="deck-hdr" href="mesh-presentation/index.html">
+          <div class="deck-icon">⊞</div>
+          <div class="deck-hdr-text">
+            <div class="deck-name">Internal Mesh &amp; Node Architecture</div>
+            <div class="deck-desc">Where the internal mesh stands, the RN-F, SN-F and HN-F architecture flow
+              documents, and the architecture document status.</div>
+          </div>
+          <div class="deck-arrow">→</div>
+        </a>
+        <div class="subtopic-grid">
+          <a class="subtopic-pill" href="mesh-presentation/index.html?page=0">Mesh &amp; Node Status</a>
+          <a class="subtopic-pill" href="mesh-presentation/index.html?page=1">Document Status</a>
         </div>
       </div>
 
@@ -1077,17 +855,11 @@
           <div class="deck-icon">⇄</div>
           <div class="deck-hdr-text">
             <div class="deck-name">PCIe &amp; RN-I Bridge</div>
-            <div class="deck-desc">PCIe fundamentals, the device hierarchy off the CHI mesh, RN-F vs RN-I comparison, and the
-              RN-I bridge's inbound/outbound pipeline.</div>
           </div>
           <div class="deck-arrow">→</div>
         </a>
         <div class="subtopic-grid">
-          <a class="subtopic-pill" href="pcie-presentation/index.html?page=0">PCIe Overview &amp; Evolution</a>
-          <a class="subtopic-pill" href="pcie-presentation/index.html?page=1">PCIe Hierarchy &amp; Operations</a>
-          <a class="subtopic-pill" href="pcie-presentation/index.html?page=2">Request Node Comparison: RN-F vs RN-I</a>
-          <a class="subtopic-pill" href="pcie-presentation/index.html?page=3">RN-I Bridge: Full Request-Response Pipeline</a>
-          <a class="subtopic-pill" href="pcie-presentation/index.html?page=4">Address Translation &amp; Ordering Enforcement</a>
+          <a class="subtopic-pill archive" href="pcie-presentation/archive/index.html">Archive: PCIe &amp; RN-I Bridge (July 2026)</a>
         </div>
       </div>
 
@@ -1097,10 +869,12 @@
           <div class="deck-icon">⏱</div>
           <div class="deck-hdr-text">
             <div class="deck-name">Project Timeline</div>
-            <div class="deck-desc">Tentative timeline and Gantt chart for the NoC Simulator development in 2026.</div>
           </div>
           <div class="deck-arrow">→</div>
         </a>
+        <div class="subtopic-grid">
+          <a class="subtopic-pill archive" href="timeline-presentation/archive/index.html">Archive: Project Timeline (July 2026)</a>
+        </div>
       </div>
     </div>
 
@@ -1110,176 +884,11 @@
     </div>
   </div>
 
-  <div id="hub-progress" class="hub-page">
-    <a class="hub-back" href="javascript:void(0)" onclick="Hub.prev()">← Back</a>
-    
-    <div class="prog-container">
-      <div class="prog-header">
-        <div class="prog-title">QUARTERLY PROGRESS REPORT (APRIL 2026 - JULY 2026)</div>
-        <div class="prog-subtitle">Project Title: DEVELOPMENT OF CHI-BASED NETWORK-ON-CHIP (NoC) SIMULATOR</div>
-      </div>
-
-      <div class="prog-main-grid">
-        <!-- Col 1 -->
-        <div class="prog-col c-blue">
-          <div class="prog-col-header">1. REQUIREMENT GATHERING</div>
-          <div class="prog-col-body">
-            <div class="prog-item">
-              <div class="prog-item-title">Requirement Finalization:</div>
-              <div class="prog-item-desc">Functional Requirements of CHI Router Finalized</div>
-            </div>
-            <hr style="border:0; border-top:1px solid var(--b1); margin:0.5rem 0;">
-            <div class="prog-item">
-              <div class="prog-item-title">Architectural Specifications:</div>
-              <div class="prog-item-desc">Core Router Parameters Defined</div>
-            </div>
-            <hr style="border:0; border-top:1px solid var(--b1); margin:0.5rem 0;">
-            <div class="prog-item">
-              <div class="prog-item-title">Reference Platform:</div>
-              <div class="prog-item-desc">Explored BookSim Simulator</div>
-            </div>
-            <hr style="border:0; border-top:1px solid var(--b1); margin:0.5rem 0;">
-            <div class="prog-item">
-              <div class="prog-item-title">Validation Strategy:</div>
-              <div class="prog-item-desc">Investigated Testing Approaches</div>
-            </div>
-            <hr style="border:0; border-top:1px solid var(--b1); margin:0.5rem 0;">
-            <div class="prog-item">
-              <div class="prog-item-title">Node Modeling:</div>
-              <div class="prog-item-desc">Initiated PCIe RN-I Node Study</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Col 2 -->
-        <div class="prog-col c-green">
-          <div class="prog-col-header">2. SYSTEM DESIGN</div>
-          <div class="prog-col-body">
-            <div class="prog-item">
-              <div class="prog-item-title">Router Architecture:</div>
-              <div class="prog-item-desc">Designed 6-Port Router</div>
-            </div>
-            <hr style="border:0; border-top:1px solid var(--b1); margin:0.5rem 0;">
-            <div class="prog-item">
-              <div class="prog-item-title">Pipeline Architecture:</div>
-              <div class="prog-item-desc">Designed 5-Stage CHI Router Pipeline (flow)</div>
-            </div>
-            <hr style="border:0; border-top:1px solid var(--b1); margin:0.5rem 0;">
-            <div class="prog-item">
-              <div class="prog-item-title">High-Level Workflow:</div>
-              <div class="prog-item-desc">Designed NoC Simulator Workflow</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Col 3 -->
-        <div class="prog-col c-orange">
-          <div class="prog-col-header">3. CODING AND DEVELOPMENT</div>
-          <div class="prog-col-body" style="display:flex; flex-direction:column;">
-            <div class="dev-grid">
-              <div>
-                <div class="dev-col-title" style="color:#16a34a;">IMPLEMENTED</div>
-                <ul class="dev-list done">
-                  <li>Event scheduler</li>
-                  <li>Configuration Loader</li>
-                  <li>Traffic Manager</li>
-                  <li>CHI-based Router</li>
-                  <li>5-Stage Router Pipeline</li>
-                  <li>Links</li>
-                  <li>Route Computation Unit</li>
-                </ul>
-              </div>
-              <div style="border-left:1px dashed var(--b1); padding-left:1rem;">
-                <div class="dev-col-title">ONGOING</div>
-                <ul class="dev-list ongoing">
-                  <li><span>Credit-based Flow Control</span></li>
-                  <li><span>Allocator</span></li>
-                  <li><span>Arbiters</span></li>
-                  <li><span>CHI Flits</span></li>
-                  <li><span>Component Integration</span></li>
-                </ul>
-              </div>
-            </div>
-            <div class="dev-footer">
-              * Highlighted components upgraded later for CHI Devices.
-            </div>
-          </div>
-        </div>
-
-        <!-- Col 4: Testing (shortened) stacked with Key Achievements beneath it -->
-        <div class="prog-col-stack">
-          <div class="prog-col c-purple">
-            <div class="prog-col-header">4. TESTING AND VALIDATION</div>
-            <div class="prog-col-body">
-              <div class="prog-item" style="display:flex; gap:0.5rem;">
-                <span style="color:var(--col-purple);">●</span>
-                <span>Initial Module-Level Testing Commenced</span>
-              </div>
-              <hr style="border:0; border-top:1px solid var(--b1); margin:1rem 0;">
-              <div class="prog-item" style="display:flex; gap:0.5rem;">
-                <span style="color:var(--col-purple);">●</span>
-                <span>Validation Methodology & Test Scenarios Prepared</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="prog-col c-blue key-achievements">
-            <div class="ka-text">KEY ACHIEVEMENTS</div>
-            <ul class="ka-list">
-              <li>Successfully Established Requirements</li>
-              <li>Completed High-Level Design & Pipeline Architecture</li>
-              <li>Selected & Analyzed BookSim</li>
-              <li>Completed Implementation of Certain Modules</li>
-              <li>Initiated Testing Pipeline Setup</li>
-            </ul>
-          </div>
-        </div>
-
-        <!-- Col 5: Next Cycle Objectives (replaces old Key Achievements slot) -->
-        <div class="prog-col c-purple">
-          <div class="prog-col-header">NEXT CYCLE OBJECTIVES</div>
-          <div class="prog-col-body">
-            <ul class="next-obj-list">
-              <li>Extend Development for Complete Mesh</li>
-              <li>Integrate CHI Nodes (RN-F, HN-F, SN-F) for End-to-End Transactions</li>
-              <li>Maintain 6-Phase Workflow</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      <!-- Footer -->
-      <div class="prog-footer">
-        <div class="prog-footer-header">CURRENT STATUS & NEXT MILESTONES</div>
-        <div class="prog-footer-body">
-          <div class="sdlc-flow-wrap">
-            <div class="sdlc-flow-title">6-PHASE SDLC WORKFLOW STRUCTURE</div>
-            <div class="sdlc-flow">
-              <div class="sdlc-step concept">Concept / Needs</div>
-              <div class="sdlc-step requirements">Requirements</div>
-              <div class="sdlc-step design">Architecture / Design</div>
-              <div class="sdlc-step dev">Implementation</div>
-              <div class="sdlc-step test">Integration & Test</div>
-              <div class="sdlc-step maint">Operation & Maint.</div>
-            </div>
-            <div class="sdlc-bracket"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="hub-continue-row">
-      <button class="hub-btn ghost" onclick="Hub.prev()">⬅ Back</button>
-      <button class="hub-btn primary" onclick="Hub.next()">Continue →</button>
-    </div>
-  </div>
-
   <script>
     /* Neighbors in the master presentation sequence — the hub is the very start,
        so Prev on the cover wraps to the deck's last slide and Next from the
        content page enters the first deck. */
     const PREV_DECK_URL = "timeline-presentation/index.html?end=1";
-    const NEXT_DECK_URL = "hardware-presentation/index.html";
 
     const Hub = {
       idx: 0,
@@ -1288,17 +897,12 @@
         document.querySelectorAll(".hub-page").forEach((el, i) => el.classList.toggle("active", i === idx));
       },
       next() {
-        /* idx 2 is the TOC — Right now steps into the Recap deck (a separate
-           page) instead of straight into Quarterly Progress, so Recap sits
-           between the TOC and Progress in the arrow-key sequence. */
+        /* idx 2 is the TOC — Right steps into the Recap deck, which leads on to
+           the Quarterly Progress deck. */
         if (this.idx === 2) { window.location.href = "recap-presentation/index.html"; return; }
-        if (this.idx < 3) this.show(this.idx + 1);
-        else window.location.href = NEXT_DECK_URL;
+        this.show(this.idx + 1);
       },
       prev() {
-        /* idx 3 is Quarterly Progress — Left now returns into the Recap
-           deck's last slide instead of jumping straight to the TOC. */
-        if (this.idx === 3) { window.location.href = "recap-presentation/index.html?end=1"; return; }
         if (this.idx > 0) this.show(this.idx - 1);
         else window.location.href = PREV_DECK_URL;
       }
@@ -1313,11 +917,6 @@
        land on the TOC instead of the cover. */
     if (new URLSearchParams(location.search).get("end") === "1") {
       Hub.show(2);
-    }
-    /* Arriving back from hardware-presentation's Prev at its very first step —
-       land on Quarterly Progress (its new predecessor in the sequence). */
-    else if (new URLSearchParams(location.search).get("show") === "progress") {
-      Hub.show(3);
     }
   </script>
 </body>

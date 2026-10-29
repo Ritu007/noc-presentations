@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Architecture Document Status</title>
+<style>
+  :root {
+    --bg1: #ffffff;
+    --bg2: #ffffff;
+    --card: #ffffff;
+    --text: #2b3445;
+    --muted: #6b7690;
+    --head1: #ffe98a;
+    --head2: #ffd6a5;
+    --line: #e6ecf5;
+    --row-alt: #f8fbff;
+    --accent: #7aa7ff;
+    --chip-bg: #e8f0ff;
+    --chip-text: #3b64c4;
+    --done-bg: #e3f8ec;
+    --done-text: #1e7a4a;
+    --prog-bg: #fff3dc;
+    --prog-text: #9a6511;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; }
+  body {
+    font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    color: var(--text);
+    background: linear-gradient(135deg, var(--bg1), var(--bg2)) fixed;
+    padding: 1vh 1.2vw;
+  }
+  .wrap { width: 100%; max-width: none; margin: 0; }
+  h1 {
+    margin: 0 0 2px;
+    font-size: clamp(16px, 1.8vw, 26px);
+    letter-spacing: .3px;
+  }
+  .sub { margin: 0 0 1vh; color: var(--muted); font-size: clamp(11px, 1vw, 14px); }
+  .card {
+    background: var(--card);
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(110, 140, 200, .18);
+    overflow: hidden;
+    border: 1px solid var(--line);
+  }
+  .scroll { overflow: visible; }
+  table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  thead th {
+    background: linear-gradient(90deg, var(--head1), var(--head2));
+    text-align: left;
+    padding: .8vh 1vw;
+    font-size: clamp(10px, min(1.45vw, 2.5vh), 22px);
+    font-weight: 700;
+    color: var(--text);
+  }
+  tbody td {
+    padding: .8vh 1vw;
+    vertical-align: top;
+    border-top: 1px solid var(--line);
+    font-size: clamp(10px, min(1.45vw, 2.5vh), 22px);
+    line-height: 1.3;
+    word-wrap: break-word;
+  }
+  tbody tr:nth-child(even) { background: var(--row-alt); }
+  tbody tr { transition: background .2s; }
+  tbody tr:hover { background: var(--chip-bg); }
+  td.sno { font-weight: 700; color: var(--muted); }
+  td.name { font-weight: 600; }
+  td.id { font-family: Consolas, Menlo, monospace; font-size: clamp(10px, min(1.3vw, 2.3vh), 20px); }
+  
+  .chip {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: var(--chip-bg);
+    color: var(--chip-text);
+    font-weight: 600;
+    font-size: 1em;
+  }
+  .tag {
+    display: inline-block;
+    margin-bottom: 3px;
+    padding: 1px 9px;
+    border-radius: 999px;
+    font-size: .75em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+  }
+  .tag.done { background: var(--done-bg); color: var(--done-text); }
+  .tag.prog { background: var(--prog-bg); color: var(--prog-text); }
+  .status p { margin: 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <div class="scroll">
+      <table>
+        <colgroup><col style="width:5%"><col style="width:20%"><col style="width:19%"><col style="width:7%"><col style="width:49%"></colgroup>
+        <thead>
+          <tr>
+            <th>S.No.</th>
+            <th>Document Name</th>
+            <th>Document ID</th>
+            <th>Version</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="sno">1.</td>
+            <td class="name">Router Architecture Specification (RAS)</td>
+            <td class="id">CHI-ROUTER-RAS-001</td>
+            <td class="ver"><span class="chip">1.0</span></td>
+            <td class="status"><span class="tag done">Reviewed</span><p>Reviewed by the C-DAC Hyderabad NoC Team.</p></td>
+          </tr>
+          <tr>
+            <td class="sno">2.</td>
+            <td class="name">Router Architecture Specification (RAS)</td>
+            <td class="id">CHI-ROUTER-RAS-001</td>
+            <td class="ver"><span class="chip">2.0</span></td>
+            <td class="status"><span class="tag done">Updated</span><p>Updated to incorporate the feedback and recommendations from the C-DAC Hyderabad NoC Team and forwarded to the SW Team.</p></td>
+          </tr>
+          <tr>
+            <td class="sno">3.</td>
+            <td class="name">RN-F T1 Architecture Specification (RNFT1AS)</td>
+            <td class="id">CHI-RN-RNFT1AS-002</td>
+            <td class="ver"><span class="chip">1.0</span></td>
+            <td class="status"><span class="tag prog">In Progress</span><p>Architecture development is in progress, based on the specifications provided by the C-DAC Hyderabad Team and the CHI Issue E.c protocol specification.</p></td>
+          </tr>
+          <tr>
+            <td class="sno">4.</td>
+            <td class="name">SN-F T1 Architecture Specification (SNFT1AS)</td>
+            <td class="id">CHI-SN-SNFT1AS-003</td>
+            <td class="ver"><span class="chip">1.0</span></td>
+            <td class="status"><span class="tag prog">In Progress</span><p>Architecture development is in progress, based on the specifications provided by the C-DAC Hyderabad Team and the CHI Issue E.c protocol specification.</p></td>
+          </tr>
+          <tr>
+            <td class="sno">5.</td>
+            <td class="name">HN-F Architecture Specification (HNFAS)</td>
+            <td class="id">CHI-HN-HNFAS-004</td>
+            <td class="ver"><span class="chip">1.0</span></td>
+            <td class="status"><span class="tag prog">In Progress</span><p>Architecture development is ongoing based on the CHI Issue E.c protocol specification.</p></td>
+          </tr>
+          <tr>
+            <td class="sno">6.</td>
+            <td class="name">RN-I Architecture Specification (RNIAS)</td>
+            <td class="id">CHI-RN-RNIAS-005</td>
+            <td class="ver"><span class="chip">1.0</span></td>
+            <td class="status"><span class="tag prog">In Progress</span><p>Architecture specification development is ongoing, focusing on the PCIe protocol, PCIe controller specifications, and CHI Issue E.c. The scope also includes defining the RN-I port's responsibilities beyond protocol conversion (AXI/ACE-Lite to CHI).</p></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<script>window.hwSlide={goto:function(){}};</script>
+<script>
+/* Hardware deck bridge: arrow keys / Space are forwarded to the deck, and the deck drives this slide's steps. */
+(function(){
+  function post(m){ try{ parent.postMessage(m,'*'); }catch(e){} }
+  window.addEventListener('keydown',function(e){
+    if(e.code==='ArrowRight'||e.code==='ArrowLeft'||e.code==='Space'){
+      e.preventDefault(); e.stopImmediatePropagation(); post({hw:'key',code:e.code});
+    }
+  },true);
+  window.hwReport=function(n){ post({hw:'step',step:n}); };
+  window.hwPost=post;
+  window.addEventListener('message',function(e){
+    var m=e.data; if(!m||!m.hw||!window.hwSlide) return;
+    if(m.hw==='goto') window.hwSlide.goto(m.step);
+    else if(m.hw==='play'&&window.hwSlide.play) window.hwSlide.play();
+    else if(m.hw==='pause'&&window.hwSlide.pause) window.hwSlide.pause();
+  });
+  window.addEventListener('load',function(){ setTimeout(function(){ post({hw:'ready'}); },0); });
+})();
+</script>
+</body>
+</html>

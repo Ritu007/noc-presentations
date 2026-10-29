@@ -245,8 +245,8 @@ const STEPS = [
 ];
 
 /* Neighbors in the master presentation sequence */
-const PREV_DECK_URL = "../sdlc-presentation/index.html?end=1";
-const NEXT_DECK_URL = "../pcie-presentation/index.html";
+const PREV_DECK_URL = "../index.html";
+const NEXT_DECK_URL = "../index.html";
 
 /* Application State */
 const App = {
@@ -449,7 +449,7 @@ const App = {
     window.addEventListener("keydown", (e) => {
       if (document.getElementById("landing-view").style.display !== "none") {
         if (e.key === "ArrowRight") { e.preventDefault(); Landing.enter(0); }
-        else if (e.key === "ArrowLeft") { e.preventDefault(); window.location.href = "../index.html?end=1"; }
+        else if (e.key === "ArrowLeft") { e.preventDefault(); window.location.href = "../index.html"; }
         return;
       }
       if (e.key === "ArrowRight") this.next();

@@ -595,7 +595,7 @@
 
     <div class="spacer"></div>
     <button class="runbtn" id="runBtn"><span class="dot"></span><span id="runTxt">Running</span></button>
-    <button class="deck-nav-btn deck-nav-next" onclick="window.location.href=NEXT_DECK_URL" title="Continue to Software Development Progress (ArrowRight)">Continue →</button>
+    <button class="deck-nav-btn deck-nav-next" onclick="window.location.href=NEXT_DECK_URL" title="Back to the current presentation (ArrowRight)">Current Presentation →</button>
   </div>
 
   <div class="main">
@@ -1552,7 +1552,7 @@
   /* ---------------- init ---------------- */
   /* ---------------- deck navigation (chained sub-page) ---------------- */
   var PREV_DECK_URL = "index.html?end=1";
-  var NEXT_DECK_URL = "../presentation/index.html";
+  var NEXT_DECK_URL = "../index.html";
 
   function bindDeckNav(){
     document.addEventListener("keydown", function(e){

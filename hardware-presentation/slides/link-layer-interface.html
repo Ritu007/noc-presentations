@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Link Layer Router Interface Signal Animation</title>
+    <link rel="icon" href="data:,">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 8px;
+            font-family: 'Inter', sans-serif;
+            background-color: #ffffff;
+            color: #0f172a;
+        }
+        @media (min-width: 768px) { body { padding: 16px; } }
+        .code-font { font-family: 'Fira Code', monospace; }
+
+        /* Header */
+        header {
+            width: 100%;
+            margin-bottom: 12px;
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            padding: 16px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,.1);
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+        h1 { margin: 0; font-size: 1.25rem; font-weight: 800; color: #0f172a; }
+        @media (min-width: 768px) { h1 { font-size: 1.5rem; } }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 16px;
+            background: rgba(226,232,240,.8);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+        }
+        .group { display: flex; align-items: center; gap: 12px; }
+        .group-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+        .group-label.tx { color: #b45309; }
+        .group-label.rx { color: #047857; }
+        .pill {
+            display: flex; align-items: center; gap: 6px;
+            background: #fff; padding: 4px 10px;
+            border-radius: 4px; border: 1px solid #cbd5e1;
+            box-shadow: 0 1px 2px rgba(0,0,0,.08);
+        }
+        .pill .t { font-size: 10px; font-weight: 700; color: #475569; }
+        .divider { width: 1px; height: 24px; background: #cbd5e1; }
+        @media (max-width: 1023px) { .divider { display: none; } }
+
+        /* Toggle switch */
+        .sw {
+            position: relative; display: inline-flex; align-items: center;
+            height: 20px; width: 36px; padding: 0; border: 0;
+            border-radius: 9999px; background: #94a3b8;
+            cursor: pointer; transition: background-color .2s; outline: none;
+        }
+        .sw .thumb {
+            display: inline-block; height: 12px; width: 12px; border-radius: 50%;
+            background: #fff; transform: translateX(2px); transition: transform .2s;
+        }
+        .sw.on .thumb { transform: translateX(18px); }
+        .sw.on-tx { background: #f59e0b; }
+        .sw.on-rx { background: #10b981; }
+        .sw:disabled { opacity: .5; cursor: not-allowed; }
+
+        .status { font-size: 10px; font-weight: 700; color: #64748b; min-width: 18px; }
+        .status.on-tx { color: #d97706; }
+        .status.on-rx { color: #059669; }
+
+        .auto-btn {
+            margin-left: auto; padding: 6px 12px; font-size: 12px; font-weight: 700;
+            border: 0; border-radius: 6px; background: #0e7490; color: #fff;
+            cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,.2); transition: background-color .2s;
+        }
+        .auto-btn:hover { background: #0891b2; }
+
+        /* Diagram viewport */
+        main {
+            width: 100%;
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: auto;
+            background: #fff;
+            border-radius: 16px;
+            border: 1px solid #cbd5e1;
+            padding: 8px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,.1);
+        }
+
+        .link-ellipse { transition: opacity .5s; }
+
+        /* Highlighted signals are static: solid coloured line, no motion */
+    </style>
+</head>
+<body>
+
+    <!-- Header Controls -->
+    <header>
+        <h1>LINK LAYER: ROUTER INTERFACE</h1>
+
+        <div class="controls">
+            <!-- Outbound (TX) -->
+            <div class="group">
+                <span class="group-label tx">Outbound Link (TX)</span>
+
+                <div class="pill">
+                    <span class="t">STAGE 1 (RDY)</span>
+                    <button id="toggleTxRdyBtn" class="sw" onclick="toggleTXRdy()"><span class="thumb"></span></button>
+                    <span id="txRdyStatus" class="status code-font">0</span>
+                </div>
+
+                <div class="pill">
+                    <span class="t">STAGE 2 (CHANNELS)</span>
+                    <button id="toggleTxChBtn" class="sw" onclick="toggleTXCh()" disabled><span class="thumb"></span></button>
+                    <span id="txChStatus" class="status code-font">OFF</span>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Inbound (RX) -->
+            <div class="group">
+                <span class="group-label rx">Inbound Link (RX)</span>
+
+                <div class="pill">
+                    <span class="t">STAGE 1 (RDY)</span>
+                    <button id="toggleRxRdyBtn" class="sw" onclick="toggleRXRdy()"><span class="thumb"></span></button>
+                    <span id="rxRdyStatus" class="status code-font">0</span>
+                </div>
+
+                <div class="pill">
+                    <span class="t">STAGE 2 (CHANNELS)</span>
+                    <button id="toggleRxChBtn" class="sw" onclick="toggleRXCh()" disabled><span class="thumb"></span></button>
+                    <span id="rxChStatus" class="status code-font">OFF</span>
+                </div>
+            </div>
+
+            <button id="stageBtn" class="auto-btn" onclick="triggerAutoSequence()">▶ Next Stage</button>
+        </div>
+    </header>
+
+    <!-- Main Diagram Viewport -->
+    <main>
+        <svg id="diagramSvg" viewBox="0 0 1000 1170" preserveAspectRatio="xMidYMid meet" style="background-color: #ffffff; width: 100%; height: calc(100vh - 150px); min-height: 700px;">
+            <defs>
+                <!-- One arrowhead shape for every signal, fixed size regardless of line thickness.
+                     orient="auto" makes it follow each line's direction (left or right). -->
+                <marker id="arrow-dim" viewBox="0 0 14 14" refX="0" refY="7" markerWidth="14" markerHeight="14" markerUnits="userSpaceOnUse" orient="auto">
+                    <path d="M 0 0 L 14 7 L 0 14 z" fill="#94a3b8" />
+                </marker>
+                <marker id="arrow-tx" viewBox="0 0 14 14" refX="0" refY="7" markerWidth="14" markerHeight="14" markerUnits="userSpaceOnUse" orient="auto">
+                    <path d="M 0 0 L 14 7 L 0 14 z" fill="#d97706" />
+                </marker>
+                <marker id="arrow-rx" viewBox="0 0 14 14" refX="0" refY="7" markerWidth="14" markerHeight="14" markerUnits="userSpaceOnUse" orient="auto">
+                    <path d="M 0 0 L 14 7 L 0 14 z" fill="#059669" />
+                </marker>
+
+                <radialGradient id="txGlow" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stop-color="#fef3c7" stop-opacity="0.8"/>
+                    <stop offset="70%" stop-color="#f59e0b" stop-opacity="0.4"/>
+                    <stop offset="100%" stop-color="#d97706" stop-opacity="0.0"/>
+                </radialGradient>
+                <radialGradient id="rxGlow" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stop-color="#d1fae5" stop-opacity="0.8"/>
+                    <stop offset="70%" stop-color="#10b981" stop-opacity="0.4"/>
+                    <stop offset="100%" stop-color="#059669" stop-opacity="0.0"/>
+                </radialGradient>
+            </defs>
+            <!-- Diagram content is generated by the script below so both directions share identical drawing code -->
+        </svg>
+    </main>
+
+    <script>
+        // ---------- Layout constants ----------
+        const NS = 'http://www.w3.org/2000/svg';
+        const svg = document.getElementById('diagramSvg');
+        const X_L = 150;      // right edge of left router block
+        const X_R = 850;      // left edge of right router block
+        const HEAD = 14;      // arrowhead length (line stops here so the tip touches the block)
+        const DIM = '#94a3b8';
+
+        const CHANNELS = [
+            { id: 'req', name: 'REQ', bits: 162, w: 5 },
+            { id: 'dat', name: 'DAT', bits: 756, w: 6 },
+            { id: 'rsp', name: 'RSP', bits: 73,  w: 4 },
+            { id: 'snp', name: 'SNP', bits: 126, w: 4.5 },
+        ];
+
+        const SIDES = {
+            tx: { title: 'Outbound link', titleY: 35,  rdyY: 75,  y0: 95,  fwd: 'right', color: '#d97706', tint: '#fde68a', ellipseId: 'txLinkEllipse', glow: 'txGlow' },
+            rx: { title: 'Inbound link',  titleY: 605, rdyY: 645, y0: 670, fwd: 'left',  color: '#059669', tint: '#a7f3d0', ellipseId: 'rxLinkEllipse', glow: 'rxGlow' },
+        };
+
+        function el(tag, attrs, parent, text) {
+            const e = document.createElementNS(NS, tag);
+            for (const k in attrs) e.setAttribute(k, attrs[k]);
+            if (text !== undefined) e.textContent = text;
+            if (parent) parent.appendChild(e);
+            return e;
+        }
+
+        // Registry used by the toggle logic
+        const registry = { tx: { rdy: null, lines: [] }, rx: { rdy: null, lines: [] } };
+
+        // Draw one signal: dim base line + animated overlay, arrow, name, bit width
+        function drawSignal(side, idSuffix, y, dir, width, name, bits, isRdy) {
+            const cfg = SIDES[side];
+            const x1 = dir === 'right' ? X_L : X_R;
+            const x2 = dir === 'right' ? X_R - HEAD : X_L + HEAD;
+            const lineId = `line_${side}_${idSuffix}`;
+            const flowId = `flow_${side}_${idSuffix}`;
+
+            el('line', { x1, y1: y, x2, y2: y, stroke: DIM, 'stroke-width': width, id: lineId, 'marker-end': 'url(#arrow-dim)' }, svg);
+            el('line', { x1, y1: y, x2, y2: y, stroke: cfg.color, 'stroke-width': width, id: flowId, opacity: 0 }, svg);
+
+            el('text', { x: 500, y: y - 8, fill: '#1e293b', 'font-size': 15, 'font-weight': 700, 'text-anchor': 'middle', class: 'code-font' }, svg, name);
+            el('text', { x: 785, y: y - 8, fill: '#0284c7', 'font-size': 15, 'font-weight': 800, 'text-anchor': 'end', class: 'code-font' }, svg, bits === 1 ? '1 bit' : bits + ' bits');
+
+            const item = { line: lineId, flow: flowId };
+            if (isRdy) registry[side].rdy = item; else registry[side].lines.push(item);
+        }
+
+        function drawRouter(x, topLabel, bottomLabel) {
+            const cx = x + 70;
+            el('rect', { x, y: 20, width: 140, height: 1130, rx: 8, fill: '#dbeafe', stroke: '#60a5fa', 'stroke-width': 2 }, svg);
+            el('text', { x: cx, y: 585, fill: '#1e3a8a', 'font-size': 28, 'font-weight': 900, 'text-anchor': 'middle', 'dominant-baseline': 'middle', 'letter-spacing': 4, transform: `rotate(-90 ${cx} 585)` }, svg, 'ROUTER');
+            el('text', { x: cx, y: 330, fill: '#1e3a8a', 'font-size': 22, 'font-weight': 800, 'text-anchor': 'middle' }, svg, topLabel);
+            el('text', { x: cx, y: 900, fill: '#1e3a8a', 'font-size': 22, 'font-weight': 800, 'text-anchor': 'middle' }, svg, bottomLabel);
+        }
+
+        function buildDiagram() {
+            // Router blocks: the left router's TX is the right router's RX (and vice versa)
+            drawRouter(10, 'TX', 'RX');
+            drawRouter(850, 'RX', 'TX');
+
+            for (const side of ['tx', 'rx']) {
+                const cfg = SIDES[side];
+                const back = cfg.fwd === 'right' ? 'left' : 'right';
+
+                // Link ellipse + title
+                el('ellipse', { id: cfg.ellipseId, cx: 182, cy: side === 'tx' ? 312 : 887, rx: 16, ry: 258, fill: `url(#${cfg.glow})`, stroke: cfg.color, 'stroke-width': 2, opacity: 0.4, class: 'link-ellipse' }, svg);
+                el('text', { x: 500, y: cfg.titleY, fill: '#0f172a', 'font-size': 18, 'font-weight': 800, 'text-anchor': 'middle' }, svg, cfg.title);
+
+                // Stage 1 ready signal
+                drawSignal(side, 'rdy', cfg.rdyY, cfg.fwd, 2, 'rdyto_rcv_crds', 1, true);
+
+                // Stage 2 channels
+                CHANNELS.forEach((ch, i) => {
+                    const y0 = cfg.y0 + i * 120;
+                    const P = ch.name;
+                    el('rect', { x: 200, y: y0, width: 600, height: 108, rx: 8, fill: '#f8fafc', stroke: '#e2e8f0', 'stroke-width': 1.5 }, svg);
+                    el('text', { x: 215, y: y0 + 22, fill: '#0f172a', 'font-size': 18, 'font-weight': 800 }, svg, P);
+
+                    const pre = side.toUpperCase();
+                    drawSignal(side, `${ch.id}_v`, y0 + 42, cfg.fwd, 2,    `${pre}${P}FLITV`, 1);
+                    drawSignal(side, `${ch.id}_f`, y0 + 68, cfg.fwd, ch.w, `${pre}${P}FLIT`,  ch.bits);
+                    drawSignal(side, `${ch.id}_c`, y0 + 94, back,    2,    `${pre}${P}LCRDV`, 1);
+                });
+            }
+        }
+
+        // ---------- State ----------
+        const state = { tx: { rdy: false, ch: false }, rx: { rdy: false, ch: false } };
+
+        function toggleTXRdy() { state.tx.rdy = !state.tx.rdy; if (!state.tx.rdy) state.tx.ch = false; updateUI(); }
+        function toggleTXCh()  { if (!state.tx.rdy) return; state.tx.ch = !state.tx.ch; updateUI(); }
+        function toggleRXRdy() { state.rx.rdy = !state.rx.rdy; if (!state.rx.rdy) state.rx.ch = false; updateUI(); }
+        function toggleRXCh()  { if (!state.rx.rdy) return; state.rx.ch = !state.rx.ch; updateUI(); }
+
+        function setSignal(item, active, side) {
+            const cfg = SIDES[side];
+            const line = document.getElementById(item.line);
+            const flow = document.getElementById(item.flow);
+            flow.setAttribute('opacity', '0');   // overlay no longer used (no moving dashes)
+            flow.removeAttribute('class');
+            if (active) {
+                line.setAttribute('stroke', cfg.color);                 // solid highlight
+                line.setAttribute('marker-end', `url(#arrow-${side})`); // matching coloured arrowhead
+            } else {
+                line.setAttribute('stroke', DIM);
+                line.setAttribute('marker-end', 'url(#arrow-dim)');
+            }
+        }
+
+        function setSwitch(btn, on, side) {
+            btn.classList.toggle('on', on);
+            btn.classList.toggle(`on-${side}`, on);
+        }
+
+        function setStatus(span, on, side, textOn, textOff) {
+            span.textContent = on ? textOn : textOff;
+            span.classList.toggle(`on-${side}`, on);
+        }
+
+        function updateSide(side, K) {
+            const st = state[side];
+            const ellipse = document.getElementById(SIDES[side].ellipseId);
+            const rdyBtn = document.getElementById(`toggle${K}RdyBtn`);
+            const chBtn = document.getElementById(`toggle${K}ChBtn`);
+
+            setSwitch(rdyBtn, st.rdy, side);
+            setStatus(document.getElementById(`${side}RdyStatus`), st.rdy, side, '1', '0');
+
+            chBtn.disabled = !st.rdy;
+            setSwitch(chBtn, st.ch, side);
+            setStatus(document.getElementById(`${side}ChStatus`), st.ch, side, 'ON', 'OFF');
+
+            ellipse.style.opacity = st.ch ? '1' : (st.rdy ? '0.7' : '0.4');
+
+            setSignal(registry[side].rdy, st.rdy, side);
+            registry[side].lines.forEach(item => setSignal(item, st.ch, side));
+        }
+
+        function updateUI() {
+            updateSide('tx', 'Tx');
+            updateSide('rx', 'Rx');
+        }
+
+        // Click-to-advance: each click highlights the next of 4 stages; the click after stage 4 resets.
+        const STAGES = [
+            { label: 'TX Stage 1 (RDY)',      apply: () => { state.tx.rdy = true; } },
+            { label: 'TX Stage 2 (Channels)', apply: () => { state.tx.ch  = true; } },
+            { label: 'RX Stage 1 (RDY)',      apply: () => { state.rx.rdy = true; } },
+            { label: 'RX Stage 2 (Channels)', apply: () => { state.rx.ch  = true; } },
+        ];
+        let stageIdx = 0;   // number of stages currently highlighted (0-4)
+
+        function updateStageButton() {
+            const btn = document.getElementById('stageBtn');
+            btn.textContent = stageIdx < STAGES.length
+                ? `▶ Next: ${STAGES[stageIdx].label}  [${stageIdx}/4]`
+                : '↺ Reset  [4/4]';
+        }
+
+        function triggerAutoSequence() {
+            if (stageIdx >= STAGES.length) {
+                state.tx.rdy = state.tx.ch = state.rx.rdy = state.rx.ch = false;
+                stageIdx = 0;
+            } else {
+                STAGES[stageIdx].apply();
+                stageIdx++;
+            }
+            updateUI();
+            updateStageButton();
+        }
+
+        window.onload = function () {
+            buildDiagram();
+            updateUI();
+            updateStageButton();
+        };
+    </script>
+<style id="hw-fit">
+/* fit inside the deck frame: the deck drives the five stages, so the slide's own control panel is hidden */
+header{display:none}
+body{padding-top:4px}
+main{overflow:visible;padding:4px}
+#diagramSvg{height:auto!important;min-height:0!important;width:min(100%,900px)!important;display:block}
+</style>
+<script>
+/* step n: 0 idle, 1 TX stage 1 (RDY), 2 TX stage 2 (channels), 3 RX stage 1, 4 RX stage 2.
+   The page scrolls to the outbound half (0-2) or the inbound half (3-4) so the lit signals stay in view. */
+function hwScroll(n){
+  var r=document.getElementById('diagramSvg').getBoundingClientRect(), k=r.height/1170;
+  var top=n===0?0:window.scrollY+r.top+(n>=3?600:0)*k-8;
+  window.scrollTo({top:top,behavior:'auto'});
+}
+window.hwSlide={goto:function(n){
+  hwScroll(n);
+  state.tx.rdy=n>=1; state.tx.ch=n>=2; state.rx.rdy=n>=3; state.rx.ch=n>=4;
+  stageIdx=n;
+  updateUI();
+}};
+</script>
+<script>
+/* Hardware deck bridge: arrow keys / Space are forwarded to the deck, and the deck drives this slide's steps. */
+(function(){
+  function post(m){ try{ parent.postMessage(m,'*'); }catch(e){} }
+  window.addEventListener('keydown',function(e){
+    if(e.code==='ArrowRight'||e.code==='ArrowLeft'||e.code==='Space'){
+      e.preventDefault(); e.stopImmediatePropagation(); post({hw:'key',code:e.code});
+    }
+  },true);
+  window.hwReport=function(n){ post({hw:'step',step:n}); };
+  window.hwPost=post;
+  window.addEventListener('message',function(e){
+    var m=e.data; if(!m||!m.hw||!window.hwSlide) return;
+    if(m.hw==='goto') window.hwSlide.goto(m.step);
+    else if(m.hw==='play'&&window.hwSlide.play) window.hwSlide.play();
+    else if(m.hw==='pause'&&window.hwSlide.pause) window.hwSlide.pause();
+  });
+  window.addEventListener('load',function(){ setTimeout(function(){ post({hw:'ready'}); },0); });
+})();
+</script>
+</body>
+</html>
