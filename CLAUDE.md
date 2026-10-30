@@ -4,12 +4,13 @@
 Interactive HTML/CSS/JS presentation for a Network-on-Chip (NoC) Simulator, built for C-DAC.
 Plain static files, no build step, opened directly in a browser. Entry point: `index.html` (hub:
 Cover → Team → Table of Contents). The master clicker flow, in order:
-recap → quarterly → hardware → software progress → testing → repo/CI-CD/docs → (live demo, not a page) → mesh & node architecture → pcie → timeline → thank-you.
+recap → quarterly → hardware → software progress → testing → repo/CI-CD/docs → (live demo, not a page) → mesh & node architecture → timeline → thank-you.
 - `recap-presentation/` (Recap: roadmap & CHI nodes, 6-port router, ports by router position, system architecture,
   flit lifecycle & router pipeline summary). Same iframe + `postMessage` slide bridge as `hardware-presentation/`;
   slides 1, 2 and 4 wrap pages of the archived hardware / software decks (roadmap and architecture show only their
   finished state, with no bottom text: a step with an empty `desc` hides the bottom band).
-- `quarterly-presentation/` (Quarterly Progress Report) — placeholder, content to be added
+- `quarterly-presentation/` (Quarterly Progress Report, Aug–Oct 2026: a one-page dashboard slide in an iframe, same bridge as
+  `hardware-presentation/`; its single step has no `desc`, which hides the bottom band)
 - `hardware-presentation/` (Hardware Architecture & Router Design: node/device link handshake, link-layer
   interface, CHI handshake, CHI router architecture, credit mechanism, QoS arbitration, QoS aging, router pipeline flow, CHI flit channels). Each page embeds a standalone slide from
   `hardware-presentation/slides/` in an iframe; the slide forwards ArrowLeft/ArrowRight/Space to the deck
@@ -22,7 +23,8 @@ recap → quarterly → hardware → software progress → testing → repo/CI-C
 - `mesh-presentation/` (Internal Mesh & Node Architecture, working title: the deck has no name yet; shown after the demo that follows the repo deck):
   internal mesh status, the RN-F/SN-F/HN-F architecture flow documents, and the architecture document status table. Same iframe + `postMessage` slide bridge as
   `hardware-presentation/`. The title lives in `TITLE` in the hub block, the deck's `index.html`, and the other decks' landing cards.
-- `pcie-presentation/` (PCIe & RN-I Bridge) — placeholder, content to be added
+- `pcie-presentation/` (PCIe & RN-I Bridge) — no current deck: only `archive/` remains, linked from the hub TOC
+  (its exits return to the hub Table of Contents, since there is no deck landing page)
 - `timeline-presentation/` (Project Timeline: the 2026 Gantt chart as a native HTML table; its single step has no `desc`, which hides the bottom band)
 - `thank-you/` (closing page)
 

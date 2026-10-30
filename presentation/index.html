@@ -238,10 +238,11 @@ body {
 @keyframes ws-push { 0% { transform: translateX(0); opacity: 0; } 12% { opacity: 1; } 88% { opacity: 1; } 100% { transform: translateX(-190px); opacity: 0; } }
 .srv-strip { font-family: 'JetBrains Mono', monospace; font-size: .82em; color: var(--dim); text-align: center; background: var(--s2); border-radius: .5em; padding: .5em .7em; }
 .routes { display: flex; flex-direction: column; gap: .5em; }
-.rt { display: flex; align-items: center; gap: .6em; padding: .65em .8em; border: 1.5px solid var(--b1); border-radius: .55em; background: var(--s1); font-family: 'JetBrains Mono', monospace; font-size: .86em; transition: background .3s, border-color .3s; }
+.rt { display: flex; flex-wrap: wrap; align-items: center; gap: .3em .6em; padding: .65em .8em; border: 1.5px solid var(--b1); border-radius: .55em; background: var(--s1); font-family: 'JetBrains Mono', monospace; font-size: .86em; transition: background .3s, border-color .3s; }
 .rt .verb { font-weight: 800; color: var(--c); min-width: 3.1em; }
 .rt .path { flex: 1; color: var(--text); font-weight: 600; }
 .rt .arr { color: var(--dim); }
+.rt .note { flex-basis: 100%; padding-left: 3.7em; font-family: 'Inter', sans-serif; font-size: .92em; color: var(--dim); }
 .rt .fn { font-weight: 700; color: var(--c); }
 .pillar.active .rt { animation: rt-hit 4.8s ease-in-out infinite; }
 .pillar.active .rt:nth-child(2) { animation-delay: 1.2s; }
@@ -333,6 +334,9 @@ body {
 .cv-pnote { font-weight: 500; font-size: 10px; fill: var(--muted); }
 .cv-ok { font-weight: 800; font-size: 16px; fill: var(--col-green); text-anchor: middle; }
 .cv-no { font-weight: 700; font-size: 10px; fill: var(--col-red); text-anchor: middle; }
+.cv-part { font-weight: 700; font-size: 10px; fill: var(--col-yellow); text-anchor: middle; }
+.cv-prow.part { fill: color-mix(in srgb, var(--col-yellow) 8%, var(--s1)); stroke: var(--col-yellow); stroke-dasharray: 4 3; }
+.cv-prow.part + .cv-pn { fill: var(--text); }
 .cv-gh-box { fill: color-mix(in srgb, var(--col-orange) 4%, var(--s1)); stroke: var(--col-orange); stroke-width: 2; }
 .cv-gh-ring { fill: none; stroke: var(--col-orange); stroke-width: 2; stroke-dasharray: 4 3; }
 .cv-gh-dot { fill: none; stroke: var(--col-orange); stroke-width: 2; }
@@ -500,13 +504,6 @@ body {
         </div>
         <div class="landing-card-arrow">↗</div>
       </a>
-      <a class="landing-card" href="../pcie-presentation/index.html">
-        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-blue), var(--col-cyan))">⇄</div>
-        <div class="landing-card-text">
-          <div class="landing-card-name">PCIe &amp; RN-I Bridge</div>
-        </div>
-        <div class="landing-card-arrow">↗</div>
-      </a>
     </div>
   </div>
 </div>
@@ -538,7 +535,6 @@ body {
     <div class="flow-switch-lbl">Switch Flow</div>
     <a class="flow-switch-item fs-blue current" href="index.html?flow=architecture">System Architecture</a>
     <a class="flow-switch-item fs-teal" href="../testing-presentation/index.html">Testing & Verification ↗</a>
-    <a class="flow-switch-item fs-pink" href="../pcie-presentation/index.html">PCIe & RN-I Bridge ↗</a>
   </div>
   <div class="nav-group-label">Presentation Pages</div>
   <button class="nav-item active" id="nav-0" onclick="App.goToPage(0)">
@@ -612,25 +608,21 @@ body {
         <text class="cv-pn" x="890" y="140">LatencyTimeline</text><text class="cv-pnote" x="890" y="153">live latency graph</text><text class="cv-ok" x="1150" y="148">✓</text>
         <rect class="cv-prow" x="876" y="168" width="292" height="36" rx="7"/>
         <text class="cv-pn" x="890" y="184">RouterOccupancyTimeline</text><text class="cv-pnote" x="890" y="197">buffer heatmap</text><text class="cv-ok" x="1150" y="192">✓</text>
-        <rect class="cv-prow todo" x="876" y="212" width="292" height="36" rx="7"/>
-        <text class="cv-pn" x="890" y="228">Throughput monitor</text><text class="cv-pnote" x="890" y="241">per-VC occupancy too</text><text class="cv-no" x="1148" y="234">to do</text>
+        <rect class="cv-prow part" x="876" y="212" width="292" height="36" rx="7"/>
+        <text class="cv-pn" x="890" y="228">Throughput monitor</text><text class="cv-pnote" x="890" y="241">accepted done · per-VC missing</text><text class="cv-part" x="1148" y="234">partial</text>
         <rect class="cv-prow todo" x="876" y="256" width="292" height="36" rx="7"/>
         <text class="cv-pn" x="890" y="272">CSV / JSON export</text><text class="cv-pnote" x="890" y="285">results to file</text><text class="cv-no" x="1148" y="278">to do</text>
       </g>
       <!-- Not simulated yet -->
       <g class="cv cv-g4 cv-hid idle" id="cv-ghost-rings"></g>
       <g class="cv cv-g4 cv-hid idle">
-        <rect class="cv-gh-box" x="860" y="336" width="324" height="212" rx="14"/>
-        <text class="cv-h" x="880" y="364" fill="#ea580c">NOT SIMULATED YET</text>
+        <rect class="cv-gh-box" x="860" y="336" width="324" height="134" rx="14"/>
+        <text class="cv-h" x="880" y="364" fill="#ea580c">NOT SIMULATED</text>
         <line x1="876" y1="374" x2="1168" y2="374" stroke="#cbd5e1" stroke-width="1.2"/>
         <circle class="cv-gh-dot" cx="886" cy="396" r="4"/><text class="cv-gn" x="900" y="400">Node Layer: RN-F · HN-F · SN-F</text>
         <text class="cv-pnote" x="900" y="414">replaces today's generic nodes (dashed rings)</text>
         <circle class="cv-gh-dot" cx="886" cy="436" r="4"/><text class="cv-gn" x="900" y="440">CHI coherence + P-credits</text>
         <text class="cv-pnote" x="900" y="454">needs the Node Layer first</text>
-        <circle class="cv-gh-dot" cx="886" cy="476" r="4"/><text class="cv-gn" x="900" y="480">Torus / ring topologies</text>
-        <text class="cv-pnote" x="900" y="494">mesh only today</text>
-        <circle class="cv-gh-dot" cx="886" cy="516" r="4"/><text class="cv-gn" x="900" y="520">Adaptive routing</text>
-        <text class="cv-pnote" x="900" y="534">XY only today</text>
       </g>
       <!-- Legend (always visible) -->
       <g>
@@ -648,25 +640,26 @@ body {
       <div class="lane fx" id="lane-0" style="--c:var(--col-cyan)">
         <div class="lane-head">
           <span class="lane-name">Frontend · Web Client</span>
-          <span class="tech-badges"><span class="tech">React</span><span class="tech">TypeScript</span><span class="tech">Material UI</span><span class="tech">Projects → browser localStorage</span></span>
+          <span class="tech-badges"><span class="tech">React</span><span class="tech">TypeScript</span><span class="tech">Material UI</span><span class="tech">Vite</span><span class="tech">Tailwind</span><span class="tech">axios</span><span class="tech">Projects → localStorage + .nocsim.json files</span></span>
         </div>
         <div class="blocks" style="--n:4">
-          <div class="blk"><div class="blk-t">Configuration</div><div class="blk-d">Stepper form with parameter validation and a live JSON preview.</div></div>
+          <div class="blk"><div class="blk-t">Configuration</div><div class="blk-d">Tabbed form with a Design Rule Check and a live JSON preview.</div></div>
           <div class="blk"><div class="blk-t">Visual Editor</div><div class="blk-d">Visual 2D mesh layout and node assignment.</div></div>
-          <div class="blk"><div class="blk-t">Simulation</div><div class="blk-d">Test cases, traffic pattern, injection rate and run control.</div></div>
-          <div class="blk"><div class="blk-t">Analysis</div><div class="blk-d">Latency graphs and live router-buffer heatmaps.</div></div>
+          <div class="blk"><div class="blk-t">Simulation</div><div class="blk-d">Test cases, traffic pattern, injection rate and run control, plus a Live Simulation tab with the live latency graph and heatmap.</div></div>
+          <div class="blk"><div class="blk-t">Analysis</div><div class="blk-d">Post-simulation metrics and graphs.</div></div>
         </div>
       </div>
       <div class="link idle" id="link-0"><span class="link-lbl">⇅ JSON over HTTP · REST + WebSocket</span></div>
       <div class="lane fx" id="lane-1" style="--c:var(--col-blue)">
         <div class="lane-head">
           <span class="lane-name">Middleware · In-Process Web Server</span>
-          <span class="tech-badges"><span class="tech">Drogon (C++17)</span><span class="tech">REST API</span><span class="tech">WebSocket /ws/v1</span><span class="tech">4 worker threads</span></span>
+          <span class="tech-badges"><span class="tech">Drogon (C++20)</span><span class="tech">REST API</span><span class="tech">WebSocket /ws/v1</span><span class="tech">4 request threads</span></span>
         </div>
-        <div class="blocks" style="--n:3">
-          <div class="blk"><div class="blk-t">REST Endpoints</div><div class="blk-d">Start a run, poll its status, fetch its results: <b>POST</b> /api/v1/runs · <b>GET</b> /api/v1/runs/{id}.</div></div>
-          <div class="blk"><div class="blk-t">WebSocket Live Hub</div><div class="blk-d">Pushes live latency and heatmap updates to the client.</div></div>
+        <div class="blocks" style="--n:4">
+          <div class="blk"><div class="blk-t">REST Endpoints</div><div class="blk-d">Start a run, get a run by id, fetch results: <b>POST</b> /api/v1/runs · <b>GET</b> /api/v1/runs/{id}. Also /results, /latency, /heatmap, /flit-trace, /health and /version.</div></div>
+          <div class="blk"><div class="blk-t">WebSocket Live Hub</div><div class="blk-d">Pushes live latency, heatmap and run-state updates to the client.</div></div>
           <div class="blk"><div class="blk-t">In-Memory Run Registry</div><div class="blk-d">Keeps the 50 most recent runs. No database; nothing persists.</div></div>
+          <div class="blk"><div class="blk-t">Run Executor</div><div class="blk-d">One worker thread per run, because Core is not thread-safe. Separate from the 4 request threads.</div></div>
         </div>
       </div>
       <div class="link idle" id="link-1"><span class="link-lbl">⇅ in-process C++ calls · Core linked in as a library</span></div>
@@ -677,7 +670,7 @@ body {
         </div>
         <div class="blocks" style="--n:4">
           <div class="blk"><div class="blk-t">ConfigLoader &amp; SimulationEngine</div><div class="blk-d">Turns the config into an immutable SimConfig, then builds and runs the simulation.</div></div>
-          <div class="blk"><div class="blk-t">NoC Fabric &amp; Routers</div><div class="blk-d">2D mesh, 5-stage IQ → RC → VA → SA → ST pipeline, credit flow control.</div></div>
+          <div class="blk"><div class="blk-t">NoC Fabric (Routers &amp; Links)</div><div class="blk-d">2D mesh with XY routing (its only algorithm), 5-stage IQ → RC → VA → SA → ST pipeline, credit flow control.</div></div>
           <div class="blk"><div class="blk-t">Traffic Manager</div><div class="blk-d">Synthetic traffic: uniform, hotspot, tornado, neighbor, bitcomp.</div></div>
           <div class="blk"><div class="blk-t">Performance Analyzer</div><div class="blk-d">FlitMetrics, LatencyTimeline, RouterOccupancyTimeline.</div></div>
         </div>
@@ -701,7 +694,7 @@ body {
                 <path class="amsg ret api-anim" d="M316,64 L110,64" stroke="#2563eb" marker-end="url(#m-blue)"/>
                 <text class="alb" x="210" y="84">reply</text>
               </svg>
-              <div class="mode-cap">Start a run, get its status and results</div>
+              <div class="mode-cap">Start a run, fetch its results</div>
             </div>
             <div>
               <div class="mode-hd"><span class="tech" style="--c:var(--col-blue)">WebSocket</span><span class="mode-cap">Stays open, server pushes</span></div>
@@ -712,18 +705,18 @@ body {
                 <circle class="pushdot" cx="296" cy="50" r="6"/><circle class="pushdot" cx="296" cy="50" r="6"/><circle class="pushdot" cx="296" cy="50" r="6"/>
                 <text class="alb" x="210" y="92">connection stays open</text>
               </svg>
-              <div class="mode-cap">Live latency and heatmap updates</div>
+              <div class="mode-cap">Live latency, heatmap and run-state updates</div>
             </div>
           </div>
         </div>
         <div class="pillar fx idle" id="pillar-1" style="--c:var(--col-blue)">
           <div class="pillar-hdr"><h3>2. What the server does</h3><p>Every message finds its C++ function</p></div>
           <div class="pillar-body">
-            <div class="srv-strip">start-up: read config.json (port 8080, 4 threads) · check port is free</div>
+            <div class="srv-strip">start-up: read config.json (port 8080, 4 request threads, CORS origins) · register features · bind port 8080 (Windows also checks it is free)</div>
             <div class="routes">
-              <div class="rt"><span class="verb">POST</span><span class="path">/api/v1/runs</span><span class="arr">→</span><span class="fn">StartRun()</span></div>
-              <div class="rt"><span class="verb">GET</span><span class="path">/api/v1/runs/{id}</span><span class="arr">→</span><span class="fn">GetStatus()</span></div>
-              <div class="rt"><span class="verb">GET</span><span class="path">…/results</span><span class="arr">→</span><span class="fn">GetResults()</span></div>
+              <div class="rt"><span class="verb">POST</span><span class="path">/api/v1/runs</span><span class="arr">→</span><span class="fn">RunsController::Create</span><span class="note">replies 202 Accepted; the run continues in the background</span></div>
+              <div class="rt"><span class="verb">GET</span><span class="path">/api/v1/runs/{id}</span><span class="arr">→</span><span class="fn">RunsController::Get</span></div>
+              <div class="rt"><span class="verb">GET</span><span class="path">…/results</span><span class="arr">→</span><span class="fn">RunsController::Results</span></div>
               <div class="rt"><span class="verb">WS</span><span class="path">/ws/v1</span><span class="arr">→</span><span class="fn">live updates</span></div>
             </div>
             <div class="srv-strip">app.run(): message in → handler → reply, until Ctrl+C</div>
@@ -755,7 +748,7 @@ body {
       <line class="seq-life" x1="950" y1="58" x2="950" y2="572"/>
       <rect class="seq-lane-box" x="30"  y="4" width="240" height="50" rx="10" stroke="#0284c7"/>
       <text class="seq-lane-lbl" x="150" y="25" fill="#0284c7">React GUI (browser)</text>
-      <text class="seq-lane-sub" x="150" y="43">REST client</text>
+      <text class="seq-lane-sub" x="150" y="43">REST + WebSocket client</text>
       <rect class="seq-lane-box" x="430" y="4" width="240" height="50" rx="10" stroke="#2563eb"/>
       <text class="seq-lane-lbl" x="550" y="25" fill="#2563eb">Drogon Server</text>
       <text class="seq-lane-sub" x="550" y="43">noc_server</text>
@@ -770,21 +763,21 @@ body {
         <text class="note-s" x="150" y="104">config → JSON</text>
         <path class="msg" d="M272,92 L546,92" marker-end="url(#m-cyan)"/>
         <text class="msg-lbl" x="410" y="85">POST /api/v1/runs</text>
-        <text class="msg-sub" x="410" y="107">{"rows":4, "cols":4, …}</text>
+        <text class="msg-sub" x="410" y="107">{"topology":{"rows":4,…},"traffic":{…},…}</text>
         <g class="badge"><circle cx="30" cy="73" r="11"/><text x="30" y="73">1</text></g>
       </g>
       <!-- 2: handler + validation -->
       <g class="seq idle" id="seq-2" style="--c:var(--col-blue)">
         <rect class="note" x="430" y="129" width="240" height="38" rx="8"/>
-        <text class="note-t" x="550" y="146">StartRun() checks config</text>
-        <text class="note-s" x="550" y="160">ConfigLoader · bad config → error</text>
+        <text class="note-t" x="550" y="146">Create → RunService</text>
+        <text class="note-s" x="550" y="160">ConfigLoader · 422 bad · 409 busy</text>
         <g class="badge"><circle cx="430" cy="129" r="11"/><text x="430" y="129">2</text></g>
       </g>
       <!-- 3: worker thread -->
       <g class="seq idle" id="seq-3" style="--c:var(--col-blue)">
         <rect class="note" x="430" y="185" width="240" height="38" rx="8"/>
         <text class="note-t" x="550" y="202">Start a worker thread</text>
-        <text class="note-s" x="550" y="216">RunExecutor</text>
+        <text class="note-s" x="550" y="216">RunExecutor (std::jthread)</text>
         <path class="msg" d="M672,204 L946,204" marker-end="url(#m-blue)"/>
         <text class="msg-lbl" x="810" y="197">spawn run thread</text>
         <g class="badge"><circle cx="430" cy="185" r="11"/><text x="430" y="185">3</text></g>
@@ -793,28 +786,32 @@ body {
       <g class="seq idle" id="seq-4" style="--c:var(--col-purple)">
         <rect class="note" x="830" y="241" width="240" height="38" rx="8"/>
         <text class="note-t" x="950" y="258">SimulationEngine(cfg)</text>
-        <text class="note-s" x="950" y="272">while (!done) Step();</text>
+        <text class="note-s" x="950" y="272">while (!loop.IsDone()) loop.Step();</text>
         <g class="badge"><circle cx="830" cy="241" r="11"/><text x="830" y="241">4</text></g>
       </g>
       <!-- 5: immediate reply -->
       <g class="seq idle" id="seq-5" style="--c:var(--col-blue)">
         <rect class="note" x="430" y="297" width="240" height="38" rx="8"/>
-        <text class="note-t" x="550" y="314">Reply immediately</text>
+        <text class="note-t" x="550" y="314">Reply 202 Accepted</text>
         <text class="note-s" x="550" y="328">before the run finishes</text>
         <path class="msg ret" d="M428,316 L154,316" marker-end="url(#m-blue)"/>
-        <text class="msg-lbl" x="290" y="309">queued</text>
-        <text class="msg-sub" x="290" y="331">{"run_id":"r_1a5e…","status":"queued"}</text>
+        <text class="msg-lbl" x="290" y="309">202 Accepted</text>
+        <text class="msg-sub" x="290" y="331" style="font-size:9px">{"run_id":"r_…","status":"queued","channels":{…}}</text>
         <g class="badge"><circle cx="430" cy="297" r="11"/><text x="430" y="297">5</text></g>
       </g>
-      <!-- 6: polling -->
+      <!-- 6: subscribe to the run's state channel (no polling) -->
       <g class="seq idle" id="seq-6" style="--c:var(--col-cyan)">
         <rect class="note" x="30" y="353" width="240" height="38" rx="8"/>
-        <text class="note-t" x="150" y="370">Poll every 1.5 s</text>
-        <text class="note-s" x="150" y="384">asks for the run's status</text>
+        <text class="note-t" x="150" y="370">Subscribe to the state channel</text>
+        <text class="note-s" x="150" y="384">runs.{id}.state</text>
         <path class="msg" d="M272,366 L546,366" marker-end="url(#m-cyan)"/>
-        <text class="msg-lbl" x="410" y="359">GET /api/v1/runs/r_1a5e…</text>
+        <text class="msg-lbl" x="410" y="359">subscribe on /ws/v1</text>
         <g class="bl"><path class="msg ret" d="M548,382 L274,382" marker-end="url(#m-blue)"/>
-        <text class="msg-sub" x="410" y="397">{"status":"running","cycle":2724}</text></g>
+        <text class="msg-sub" x="410" y="397">{"status":"running",</text>
+        <text class="msg-sub" x="410" y="408" style="font-size:9.5px">"progress":{"phase":"measure","cycle":2724}}</text>
+        <path class="msg ret" d="M548,436 L274,436" marker-end="url(#m-blue)"/>
+        <text class="msg-lbl" x="410" y="428">live latency + heatmap pushed</text>
+        <text class="msg-sub" x="410" y="451">runs.{id}.latency · runs.{id}.heatmap</text></g>
         <text class="pill-note" x="950" y="376">still simulating…</text>
         <g class="badge"><circle cx="30" cy="353" r="11"/><text x="30" y="353">6</text></g>
       </g>
@@ -829,18 +826,18 @@ body {
       <g class="seq idle" id="seq-8" style="--c:var(--col-cyan)">
         <rect class="note" x="30" y="465" width="240" height="38" rx="8"/>
         <text class="note-t" x="150" y="482">Fetch the results</text>
-        <text class="note-s" x="150" y="496">once the run is done</text>
+        <text class="note-s" x="150" y="496">when the state says completed</text>
         <path class="msg" d="M272,478 L546,478" marker-end="url(#m-cyan)"/>
         <text class="msg-lbl" x="410" y="471">GET /api/v1/runs/…/results</text>
         <g class="bl"><path class="msg ret" d="M548,494 L274,494" marker-end="url(#m-blue)"/>
-        <text class="msg-sub" x="410" y="509">{"outcome":"drained","latency":28.48…}</text></g>
+        <text class="msg-sub" x="410" y="509" style="font-size:9px">{"outcome":"drained","cycles":{…},"phases":{…}}</text></g>
         <g class="badge"><circle cx="30" cy="465" r="11"/><text x="30" y="465">8</text></g>
       </g>
       <!-- 9: show results -->
       <g class="seq idle" id="seq-9" style="--c:var(--col-green)">
         <rect class="note" x="30" y="521" width="240" height="38" rx="8"/>
         <text class="note-t" x="150" y="538">Show the results</text>
-        <text class="note-s" x="150" y="552">latency · throughput</text>
+        <text class="note-s" x="150" y="552">outcome · cycles · latency</text>
         <g class="badge"><circle cx="30" cy="521" r="11"/><text x="30" y="521">9</text></g>
       </g>
     </svg>
@@ -880,12 +877,12 @@ body {
             <div class="mrow" style="--l:0"><span class="mn">NodeRegistry</span><span class="mnote"></span><span class="st ok">✅</span></div>
             <div class="mrow" style="--l:0"><span class="mn">DevicePortDriver</span><span class="mnote"></span><span class="st ok">✅</span></div>
             <div class="mrow" style="--l:0"><span class="mn">Fabric</span><span class="mnote"></span><span class="st ok">✅</span></div>
-            <div class="mrow" style="--l:1"><span class="mn">Topology</span><span class="mnote">mesh only; torus / ring planned</span><span class="st ok">✅</span></div>
+            <div class="mrow" style="--l:1"><span class="mn">Topology</span><span class="mnote">mesh</span><span class="st ok">✅</span></div>
             <div class="mrow" style="--l:1"><span class="mn">Router</span><span class="mnote">4 CHI channels</span><span class="st ok">✅</span></div>
             <div class="mrow" style="--l:2"><span class="mn">ChannelPipeline</span><span class="mnote">IQ · RC · VA/RA · SA · ST</span><span class="st ok">✅</span></div>
             <div class="mrow" style="--l:2"><span class="mn">Allocation policies</span><span class="mnote">VA / RA</span><span class="st ok">✅</span></div>
             <div class="mrow" style="--l:2"><span class="mn">Allocators / Arbiters</span><span class="mnote"></span><span class="st ok">✅</span></div>
-            <div class="mrow" style="--l:2"><span class="mn">Routing</span><span class="mnote">MeshXY; adaptive planned</span><span class="st ok">✅</span></div>
+            <div class="mrow" style="--l:2"><span class="mn">Routing</span><span class="mnote">MeshXY</span><span class="st ok">✅</span></div>
             <div class="mrow" style="--l:2"><span class="mn">Shared types</span><span class="mnote">port, VC, credits, occupancy</span><span class="st ok">✅</span></div>
             <div class="mrow" style="--l:1"><span class="mn">Interconnect</span><span class="mnote">Link / Channel</span><span class="st ok">✅</span></div>
           </div>
@@ -903,14 +900,15 @@ body {
         <div class="mcard fx idle" id="mcard-4" style="--c:var(--col-teal)">
           <div class="mcard-hdr"><h3>Performance Analyzer &amp; Common</h3><span class="st wip">🟡 Core done · export missing</span></div>
           <div class="mrows">
+            <div class="mrow" style="--l:0"><span class="mn">PerformanceAnalyzer</span><span class="mnote">class + FlitLatency, Timeline, flit report</span><span class="st ok">✅</span></div>
             <div class="mrow" style="--l:0"><span class="mn">FlitMetrics</span><span class="mnote">events + report</span><span class="st ok">✅</span></div>
             <div class="mrow" style="--l:0"><span class="mn">LatencyTimeline</span><span class="mnote">live latency graph</span><span class="st ok">✅</span></div>
             <div class="mrow" style="--l:0"><span class="mn">RouterOccupancyTimeline</span><span class="mnote">heatmap</span><span class="st ok">✅</span></div>
-            <div class="mrow" style="--l:0"><span class="mn">StatsAccumulator</span><span class="mnote">no histogram / variance</span><span class="st ok">✅</span></div>
-            <div class="mrow" style="--l:0"><span class="mn">Throughput monitor</span><span class="mnote">per-VC occupancy too</span><span class="st todo">🔴</span></div>
+            <div class="mrow" style="--l:0"><span class="mn">StatsAccumulator</span><span class="mnote">no histogram / variance; BookSim Stats has both (credit stats)</span><span class="st ok">✅</span></div>
+            <div class="mrow" style="--l:0"><span class="mn">Throughput monitor</span><span class="mnote">accepted throughput done; per-VC occupancy missing</span><span class="st wip">🟡</span></div>
             <div class="mrow" style="--l:0"><span class="mn">CSV / JSON export</span><span class="mnote"></span><span class="st todo">🔴</span></div>
             <div class="mrow" style="--l:0"><span class="mn">MetricsSelector</span><span class="mnote">empty placeholder</span><span class="st todo">🔴</span></div>
-            <div class="mrow" style="--l:0"><span class="mn">Common</span><span class="mnote">trace, NodeID, Phase</span><span class="st ok">✅</span></div>
+            <div class="mrow" style="--l:0"><span class="mn">Common</span><span class="mnote">trace, NodeID, Phase, FlitJourney</span><span class="st ok">✅</span></div>
           </div>
         </div>
         <div class="mcard fx idle" id="mcard-5" style="--c:var(--col-pink)">
@@ -919,7 +917,7 @@ body {
             <div class="mrow" style="--l:0"><span class="mn">app</span><span class="mnote">startup, config, CORS, port check</span><span class="st ok">✅</span></div>
             <div class="mrow" style="--l:0"><span class="mn">common</span><span class="mnote">errors, json, live hub, time</span><span class="st ok">✅</span></div>
             <div class="mrow" style="--l:0"><span class="mn">system</span><span class="mnote">health, version</span><span class="st ok">✅</span></div>
-            <div class="mrow" style="--l:0"><span class="mn">simulation</span><span class="mnote">runs, latency, heatmap</span><span class="st ok">✅</span></div>
+            <div class="mrow" style="--l:0"><span class="mn">simulation</span><span class="mnote">runs, latency, heatmap, flit-trace</span><span class="st ok">✅</span></div>
             <div class="mrow" style="--l:0"><span class="mn">live</span><span class="mnote">WebSocket /ws/v1</span><span class="st ok">✅</span></div>
             <div class="mrow" style="--l:0"><span class="mn">list-runs, stop</span><span class="mnote">needed for the demo</span><span class="st todo">🔴</span></div>
             <div class="mrow" style="--l:0"><span class="mn">designs, testcases, validate, meta</span><span class="mnote"></span><span class="st todo">🔴</span></div>
@@ -960,9 +958,9 @@ body {
 ================================================================ */
 const ARCH_STEPS = [
   { num:1, name:"Frontend — React Web Client", badge:"Frontend", badgeColor:"cyan",
-    desc:"A React + TypeScript single-page app in the browser: configure the NoC, build a test case, start a run and view the results. Projects are saved in the browser's localStorage." },
+    desc:"A React + TypeScript single-page app in the browser: configure the NoC, build a test case, start a run and view the results. Projects are saved in the browser's localStorage and can be exported and imported as .nocsim.json files." },
   { num:2, name:"Middleware — Drogon Web Server", badge:"Middleware", badgeColor:"blue",
-    desc:"A C++ web server turns the GUI's REST and WebSocket messages into function calls, and keeps the 50 most recent runs in memory." },
+    desc:"A C++20 web server turns the GUI's REST and WebSocket messages into function calls. Each run gets its own worker thread (Core is not thread-safe), and the 50 most recent runs stay in memory." },
   { num:3, name:"Backend — C++ Simulation Engine", badge:"Backend", badgeColor:"purple",
     desc:"Core is linked into the server as a library. It builds the NoC from the config and steps it cycle by cycle." },
 ];
@@ -970,29 +968,29 @@ const API_STEPS = [
   { num:1, name:"How GUI and server talk", badge:"API", badgeColor:"cyan",
     desc:"The GUI and the simulator are separate programs, so they exchange JSON messages: REST for commands, WebSocket for live updates." },
   { num:2, name:"What the server does", badge:"Server", badgeColor:"blue",
-    desc:"Drogon matches each incoming message to one of our C++ handler functions and sends the reply back." },
+    desc:"Drogon matches each incoming message to one of our C++ handler functions and sends the reply back. POST answers 202 Accepted straight away and the run continues on a worker thread, so the GUI then follows it by subscribing to the run's state channel on the WebSocket." },
   { num:3, name:"Why Drogon", badge:"Drogon", badgeColor:"purple",
     desc:"Drogon does the networking, so we write only the handlers. Three reasons we use it." },
 ];
 const FLOW_STEPS = [
   { num:1, name:"User clicks Run", badge:"GUI", badgeColor:"cyan",
-    desc:"The GUI sends the configuration as JSON in POST /api/v1/runs." },
+    desc:"The GUI sends the configuration as JSON in POST /api/v1/runs, in three sections: topology, traffic and simulation." },
   { num:2, name:"Server checks the config", badge:"Server", badgeColor:"blue",
-    desc:"Drogon finds the handler. StartRun() validates the config with Core's ConfigLoader; a bad config gets an error reply." },
+    desc:"RunsController::Create checks the content type and that the body is valid JSON. RunService::Submit then converts it to INI, loads it with Core's ConfigLoader and checks the run limits. A bad config gets 422, and 409 means a run is already active." },
   { num:3, name:"Start a worker thread", badge:"Server", badgeColor:"blue",
-    desc:"The simulation gets its own thread (RunExecutor), so the server stays free to answer other requests meanwhile." },
+    desc:"RunExecutor::Start launches a std::jthread for the run, so the server stays free to answer other requests meanwhile." },
   { num:4, name:"Core runs the simulation", badge:"Core", badgeColor:"purple",
-    desc:"On that thread, Core builds SimulationEngine(cfg) and calls Step() until the run is done." },
-  { num:5, name:"Immediate reply", badge:"Server", badgeColor:"blue",
-    desc:"The server replies before the simulation finishes, with a run_id and status “queued”, so the GUI never freezes on long runs." },
-  { num:6, name:"GUI polls for status", badge:"GUI", badgeColor:"cyan",
-    desc:"Every 1.5 s the GUI asks GET /api/v1/runs/{id} and gets the status and current cycle. The server already offers a WebSocket that pushes updates instead; the GUI doesn't use it yet." },
+    desc:"On that thread, Core builds SimulationEngine(cfg) and steps the loop until it is done. After every step it checks for cancellation and records the latency and heatmap windows." },
+  { num:5, name:"Reply 202 Accepted", badge:"Server", badgeColor:"blue",
+    desc:"Create replies at once with 202 Accepted, a Location header and the run_id (r_…), the status “queued” and the WebSocket channels for this run. It doesn't wait for the run, so the GUI never freezes on long runs." },
+  { num:6, name:"GUI subscribes to the run's state", badge:"GUI", badgeColor:"cyan",
+    desc:"There is no polling. The GUI subscribes to runs.{id}.state on /ws/v1 and the server pushes every status change, with the current phase and cycle. The live latency and heatmap updates arrive the same way, on runs.{id}.latency and runs.{id}.heatmap." },
   { num:7, name:"Simulation finishes", badge:"Core", badgeColor:"purple",
-    desc:"The run passes through Warmup, Measure and Drain, then completes." },
+    desc:"The run passes through Warmup, Measure and Drain, then completes. The outcome is “drained”, or “drain_limit_reached” if the Drain phase runs out of cycles." },
   { num:8, name:"Fetch the results", badge:"GUI", badgeColor:"cyan",
-    desc:"The GUI calls GET /api/v1/runs/{id}/results. The server collects Core's metrics and replies with the results JSON." },
+    desc:"When the WebSocket state reports completed, the GUI calls GET /api/v1/runs/{id}/results. Asking before the run is finished would return 409. The reply holds the outcome, cycles, phases and in_flight, with latency as flat and nlat objects (mean, min, max)." },
   { num:9, name:"Show the results", badge:"GUI", badgeColor:"green",
-    desc:"The GUI shows the run results. The latency and heatmap charts on the Analysis page are the next GUI piece; the server already provides their data." },
+    desc:"The GUI shows the run results. The live latency graph and router heatmap sit in the Live Simulation tab of the Simulation screen, and the Analysis screen shows the post-simulation metrics and graphs." },
 ];
 const MODULE_STEPS = [
   { num:1, name:"Shell & Configuration", badge:"Implemented", badgeColor:"purple",
@@ -1000,11 +998,11 @@ const MODULE_STEPS = [
   { num:2, name:"Simulation Kernel & Traffic Generator", badge:"Implemented", badgeColor:"cyan",
     desc:"The engine, the per-cycle loop and the Warmup → Measure → Drain phases are done, with a traffic generator offering 5 patterns and 2 injection processes." },
   { num:3, name:"NoC Fabric", badge:"Implemented", badgeColor:"blue",
-    desc:"Mesh topology, the 5-stage router pipeline on 4 CHI channels, allocators, XY routing and the credit-based links are done. Torus, ring and adaptive routing are not." },
+    desc:"Mesh topology, the 5-stage router pipeline on 4 CHI channels, allocators, XY routing and the credit-based links are done." },
   { num:4, name:"Protocol & Node Layer", badge:"Node Layer next", badgeColor:"orange",
     desc:"The CHI flit vocabulary is in place; its opcodes still need checking against the spec. The Node Layer (RN-F, HN-F, SN-F coherence, P-credits) has not started and is the largest remaining piece." },
   { num:5, name:"Performance Analyzer & Common", badge:"Partly done", badgeColor:"teal",
-    desc:"Latency, occupancy and flit metrics work end to end and feed the GUI. The throughput monitor, CSV / JSON export and metric selection are still to do." },
+    desc:"Latency, occupancy and flit metrics work end to end and feed the GUI, and accepted throughput is calculated too. Per-VC occupancy, CSV / JSON export and metric selection are still to do." },
   { num:6, name:"Server (Drogon)", badge:"Demo scope", badgeColor:"pink",
     desc:"Runs, latency, heatmap and the WebSocket channels are served, all in memory. Listing runs and stopping a run are still needed for the demo; persistence comes after." },
 ];
@@ -1016,9 +1014,9 @@ const COVERAGE_STEPS = [
   { num:3, name:"Traffic Manager", badge:"Simulated", badgeColor:"cyan",
     desc:"A layer around the whole mesh decides when and where each node sends: uniform, hotspot, tornado, neighbor or bitcomp patterns, with Bernoulli or on-off injection." },
   { num:4, name:"Performance Analyzer", badge:"Partly done", badgeColor:"teal",
-    desc:"Probes on routers and nodes feed FlitMetrics, LatencyTimeline and RouterOccupancyTimeline, which drive the GUI charts. The throughput monitor and CSV / JSON export are still to do." },
-  { num:5, name:"Not Simulated Yet", badge:"Next", badgeColor:"orange",
-    desc:"RN-F, HN-F and SN-F nodes (the Node Layer, with CHI coherence and P-credits) are missing, as are torus / ring topologies and adaptive routing. Today's runs exercise the interconnect on its own." },
+    desc:"Probes on routers and nodes feed FlitMetrics, LatencyTimeline and RouterOccupancyTimeline, which drive the GUI charts. Accepted throughput is calculated too. Per-VC occupancy and CSV / JSON export are still to do." },
+  { num:5, name:"Not Simulated", badge:"Gaps", badgeColor:"orange",
+    desc:"RN-F, HN-F and SN-F nodes (the Node Layer, with CHI coherence and P-credits) are missing and are the next piece. Today's runs exercise the interconnect on its own." },
 ];
 const PAGES = [
   { id:"coverage",     label:"Simulation Coverage",   steps: COVERAGE_STEPS, render: renderCoverage },

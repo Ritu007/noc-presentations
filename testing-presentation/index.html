@@ -427,13 +427,6 @@ body {
         </div>
         <div class="landing-card-arrow">↗</div>
       </a>
-      <a class="landing-card" href="../pcie-presentation/index.html">
-        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-blue), var(--col-cyan))">⇄</div>
-        <div class="landing-card-text">
-          <div class="landing-card-name">PCIe &amp; RN-I Bridge</div>
-        </div>
-        <div class="landing-card-arrow">↗</div>
-      </a>
     </div>
   </div>
 </div>
@@ -459,7 +452,6 @@ body {
     <div class="flow-switch-lbl">Switch Flow</div>
     <a class="flow-switch-item fs-teal current" href="index.html?flow=testing">Testing &amp; Verification</a>
     <a class="flow-switch-item fs-purple" href="../repo-presentation/index.html">Repo, CI/CD &amp; Docs ↗</a>
-    <a class="flow-switch-item fs-blue" href="../pcie-presentation/index.html">PCIe &amp; RN-I Bridge ↗</a>
   </div>
   <div class="nav-group-label">Presentation Pages</div>
   <button class="nav-item active" id="nav-0" onclick="App.goToPage(0)">
@@ -490,11 +482,11 @@ body {
         <div class="zone-ttl">Who owns testing</div>
         <div class="zone-sub">No separate QA team: testing is part of every change.</div>
         <div class="own-flow">
-          <div class="own" style="--k:var(--col-teal)"><div class="own-who">Hardware / protocol team</div><div class="own-what">Defines what must be true</div><div class="own-how">Requirements taken from the CHI spec.</div></div>
+          <div class="own" style="--k:var(--col-teal)"><div class="own-who">Hardware team</div><div class="own-what">Requirement definition</div><div class="own-how">Defines requirements and creates the test cases.</div></div>
           <div class="own-arrow">→</div>
-          <div class="own" style="--k:var(--col-blue)"><div class="own-who">Developers</div><div class="own-what">Prove it in code</div><div class="own-how">Tests written in the same pull request as the feature.</div></div>
+          <div class="own" style="--k:var(--col-blue)"><div class="own-who">Software dev team</div><div class="own-what">Test case implementation</div><div class="own-how">Implements test cases in the same PR as the feature.</div></div>
           <div class="own-arrow">→</div>
-          <div class="own" style="--k:var(--col-purple)"><div class="own-who">Two reviewers</div><div class="own-what">On every protocol change</div><div class="own-how">One developer and one hardware-team member.</div></div>
+          <div class="own" style="--k:var(--col-purple)"><div class="own-who">Both teams</div><div class="own-what">Review</div><div class="own-how">On every new requirement or requirement change.</div></div>
         </div>
       </div>
       <div class="zone fx idle" id="zone-1" style="--c:var(--col-blue)">
@@ -540,7 +532,7 @@ body {
           </div>
         </div>
         <div class="col fx idle" id="col-2" style="--c:var(--col-orange)">
-          <div class="col-hdr"><h3>3. Where we are</h3><p>Test counts today</p></div>
+          <div class="col-hdr"><h3>3. Current status</h3><p>Test counts today</p></div>
           <div class="col-body">
             <div class="stats">
               <div class="stat"><div class="stat-n">237</div><div class="stat-l">Core tests</div><div class="stat-s">run in CI</div></div>
@@ -548,7 +540,6 @@ body {
             </div>
             <div class="next-hd">Next</div>
             <ul class="next-list">
-              <li>Convert the 3 older <code>assert()</code>-based test programs to GTest.</li>
               <li>Add the Server tests to CI.</li>
             </ul>
           </div>
@@ -643,7 +634,7 @@ body {
 ================================================================ */
 const PLAN_STEPS = [
   { num:1, name:"Who owns testing", badge:"Plan", badgeColor:"teal",
-    desc:"There is no separate QA team. The hardware team says what must be true, developers prove it in code in the same pull request, and protocol changes get two reviewers." },
+    desc:"Hardware team: requirement definition and test case creation. Software dev team: test case implementation in the same PR as the feature. New requirement or requirement change: reviewed by both teams." },
   { num:2, name:"What we test", badge:"Levels", badgeColor:"blue",
     desc:"Four levels, from one class on its own up to a full mesh run. Protocol conformance against the CHI spec is planned, not yet in place." },
 ];
@@ -652,8 +643,8 @@ const GTEST_STEPS = [
     desc:"GoogleTest is Google's C++ testing library. A test calls our code and checks the result; a failure names the test, the line, and the expected versus actual values." },
   { num:2, name:"How it fits our project", badge:"GoogleTest", badgeColor:"teal",
     desc:"CMake fetches it at build time, tests live in one folder per module, and GitHub Actions runs the whole suite automatically." },
-  { num:3, name:"Where we are", badge:"Status", badgeColor:"orange",
-    desc:"237 tests in Core and 138 in the Server. The Server tests run locally only for now; adding them to CI is next, along with converting three older assert()-based programs." },
+  { num:3, name:"Current status", badge:"Status", badgeColor:"orange",
+    desc:"237 tests in Core and 138 in the Server. The Server tests run locally only for now; adding them to CI is next." },
 ];
 const TOOLS_STEPS = [
   { num:1, name:"GoogleTest + CTest", badge:"In use", badgeColor:"blue",

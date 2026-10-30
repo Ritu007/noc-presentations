@@ -408,6 +408,12 @@
       box-shadow: 0 4px 14px color-mix(in srgb, var(--c) 15%, transparent);
     }
 
+    /* Header for a deck with no current presentation (archive only): not a link */
+    .deck-hdr.static:hover {
+      border-color: var(--b1);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+
     .deck-icon {
       width: 46px;
       height: 46px;
@@ -740,6 +746,7 @@
           <div class="deck-icon">&#128202;</div>
           <div class="deck-hdr-text">
             <div class="deck-name">QUARTERLY PROGRESS REPORT</div>
+            <div class="deck-desc">Progress from August to October 2026, the key achievements, and the next milestones.</div>
           </div>
           <div class="deck-arrow">&rarr;</div>
         </a>
@@ -849,15 +856,15 @@
         </div>
       </div>
 
-      <!-- DECK 5 — PCIe & RN-I BRIDGE -->
+      <!-- PCIe & RN-I BRIDGE — archive only, not part of the clicker flow -->
       <div class="deck-block" style="--c: var(--col-blue)">
-        <a class="deck-hdr" href="pcie-presentation/index.html">
+        <div class="deck-hdr static">
           <div class="deck-icon">⇄</div>
           <div class="deck-hdr-text">
             <div class="deck-name">PCIe &amp; RN-I Bridge</div>
+            <div class="deck-desc">Archive only: no deck in this meeting.</div>
           </div>
-          <div class="deck-arrow">→</div>
-        </a>
+        </div>
         <div class="subtopic-grid">
           <a class="subtopic-pill archive" href="pcie-presentation/archive/index.html">Archive: PCIe &amp; RN-I Bridge (July 2026)</a>
         </div>

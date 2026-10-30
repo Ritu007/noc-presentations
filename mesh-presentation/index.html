@@ -366,13 +366,6 @@ body {
         </div>
         <div class="landing-card-arrow">↗</div>
       </a>
-      <a class="landing-card" href="../pcie-presentation/index.html">
-        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-blue), var(--col-cyan))">⇄</div>
-        <div class="landing-card-text">
-          <div class="landing-card-name">PCIe &amp; RN-I Bridge</div>
-        </div>
-        <div class="landing-card-arrow">↗</div>
-      </a>
       <a class="landing-card" href="../timeline-presentation/index.html">
         <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-pink), var(--col-orange))">⏱</div>
         <div class="landing-card-text">
@@ -405,7 +398,6 @@ body {
     <div class="flow-switch-lbl">Switch Flow</div>
     <a class="flow-switch-item fs-orange current" href="index.html?flow=deck">Internal Mesh &amp; Node Architecture</a>
     <a class="flow-switch-item fs-purple" href="../repo-presentation/index.html">Repository &amp; CI/CD ↗</a>
-    <a class="flow-switch-item fs-blue" href="../pcie-presentation/index.html">PCIe &amp; RN-I Bridge ↗</a>
   </div>
   <div class="nav-group-label">Presentation Pages</div>
   <button class="nav-item active" id="nav-0" onclick="App.goToPage(0)">
@@ -483,7 +475,7 @@ const PAGES = [
 ];
 /* Neighbors in the master presentation sequence */
 const PREV_DECK_URL = "../repo-presentation/index.html?end=1";
-const NEXT_DECK_URL = "../pcie-presentation/index.html";
+const NEXT_DECK_URL = "../timeline-presentation/index.html";
 /* ================================================================
    RENDER HELPERS
 ================================================================ */
