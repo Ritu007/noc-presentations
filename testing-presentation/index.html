@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NoC Simulator — Testing &amp; Verification</title>
-<meta name="description" content="How the NoC Simulator is tested: the testing plan, GoogleTest, and the tools we run and plan to add (ASan/UBSan, LCov).">
+<meta name="description" content="How the NoC Simulator is tested: the testing plan, GoogleTest, the tools we run and plan to add (ASan/UBSan, LCov), and the CI/CD pipeline.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -266,6 +266,15 @@ body {
 .cmp-hdr small { font-family: 'JetBrains Mono', monospace; font-size: .72em; font-weight: 700; opacity: .95; white-space: nowrap; }
 .cmp-card dl { padding: 0 .9em .3em; }
 .cmp-card .kv dd { font-size: .9em; }
+/* ---- Page 4: CI/CD pipeline ---- */
+.cicd-slide { max-width: 1150px; font-size: calc(var(--u) * 1.2); }
+.stages { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .4em .35em; }
+.stg { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: .84em; color: var(--c); background: color-mix(in srgb, var(--c) 8%, var(--s1)); border: 1.5px solid color-mix(in srgb, var(--c) 40%, var(--b1)); border-radius: .5em; padding: .35em .65em; white-space: nowrap; }
+.sa { color: var(--b2); font-weight: 800; }
+.trig { padding: .5em 0; border-top: 1px dashed var(--b1); }
+.trig b { display: block; color: var(--text); font-size: 1.02em; }
+.trig span { font-size: .92em; }
+.gate-note { font-size: .85em; color: var(--dim); font-style: italic; }
 @media (max-width: 1000px) { .cols3, .tools-slide, .cmp { grid-template-columns: 1fr; } .own-flow { grid-template-columns: 1fr; } .own-arrow { display: none; } }
 
 /* ================================================================
@@ -385,7 +394,7 @@ body {
         <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-teal), var(--col-green))">✓</div>
         <div class="landing-card-text">
           <div class="landing-card-name">Testing in Practice</div>
-          <div class="landing-card-desc">Our testing plan, how GoogleTest fits the project, and the tools we run today and plan to add.</div>
+          <div class="landing-card-desc">Our testing plan, how GoogleTest fits the project, the tools we run today and plan to add, and our CI/CD pipeline.</div>
         </div>
         <div class="landing-card-arrow">→</div>
       </div>
@@ -413,17 +422,10 @@ body {
         </div>
         <div class="landing-card-arrow">↗</div>
       </a>
-      <a class="landing-card" href="../repo-presentation/index.html">
-        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-purple), var(--col-orange))">⇆</div>
-        <div class="landing-card-text">
-          <div class="landing-card-name">Repository, CI/CD &amp; Documentation</div>
-        </div>
-        <div class="landing-card-arrow">↗</div>
-      </a>
       <a class="landing-card" href="../mesh-presentation/index.html">
         <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-orange), var(--col-pink))">⊞</div>
         <div class="landing-card-text">
-          <div class="landing-card-name">Internal Mesh &amp; Node Architecture</div>
+          <div class="landing-card-name">Summary and Documentation</div>
         </div>
         <div class="landing-card-arrow">↗</div>
       </a>
@@ -451,7 +453,7 @@ body {
   <div class="flow-switch">
     <div class="flow-switch-lbl">Switch Flow</div>
     <a class="flow-switch-item fs-teal current" href="index.html?flow=testing">Testing &amp; Verification</a>
-    <a class="flow-switch-item fs-purple" href="../repo-presentation/index.html">Repo, CI/CD &amp; Docs ↗</a>
+    <a class="flow-switch-item fs-orange" href="../mesh-presentation/index.html">Summary &amp; Documentation ↗</a>
   </div>
   <div class="nav-group-label">Presentation Pages</div>
   <button class="nav-item active" id="nav-0" onclick="App.goToPage(0)">
@@ -468,6 +470,11 @@ body {
     <div class="nav-status-icon" id="nav-st-2"></div>
     <div class="nav-text"><div class="nav-num">03</div><div class="nav-name">Tools &amp; Next Steps</div></div>
     <div class="nav-color-dot" style="background:var(--col-orange)"></div>
+  </button>
+  <button class="nav-item" id="nav-3" onclick="App.goToPage(3)">
+    <div class="nav-status-icon" id="nav-st-3"></div>
+    <div class="nav-text"><div class="nav-num">04</div><div class="nav-name">CI/CD Pipeline</div></div>
+    <div class="nav-color-dot" style="background:var(--col-blue)"></div>
   </button>
   <div class="nav-kbd-hint">
     <span class="kbd">←</span><span class="kbd">→</span> navigate &nbsp;·&nbsp;
@@ -603,6 +610,22 @@ body {
       </div>
     </div>
   </div>
+  <!-- ── PAGE 4: CI/CD PIPELINE ── -->
+  <div id="page-cicd" class="page-view">
+    <div class="slide cicd-slide">
+      <div class="col fx" id="cicd-0" style="--c:var(--col-blue)">
+        <div class="col-hdr"><h3>Our CI/CD pipeline</h3><p>GitHub Actions</p></div>
+        <div class="col-body">
+          <div class="stages"><span class="stg">push</span><span class="sa">→</span><span class="stg">build</span><span class="sa">→</span><span class="stg">run all tests</span><span class="sa">→</span><span class="stg">save test report</span><span class="sa">→</span><span class="stg">✅ / ❌ on GitHub</span></div>
+          <div>
+            <div class="trig"><b>Every push, any branch</b><span>Linux gcc build and the full test suite, as a quick check.</span></div>
+            <div class="trig"><b>Pull request into dev / staging / main</b><span>The same on Linux gcc, Linux clang and Windows MSVC.</span></div>
+          </div>
+          <div class="gate-note">Reviewers hold a merge until CI is green; GitHub does not enforce it on our plan.</div>
+        </div>
+      </div>
+    </div>
+  </div>
 </main>
 <!-- ══════════════════════════════════════════════════════════════
      NOW BAND (full-width, readable explanation)
@@ -654,14 +677,19 @@ const TOOLS_STEPS = [
   { num:3, name:"ASan / UBSan and LCov", badge:"Next", badgeColor:"orange",
     desc:"The next two steps, neither set up yet. ASan / UBSan catch memory errors and undefined behaviour; LCov shows which code the tests never reach." },
 ];
+const CICD_STEPS = [
+  { num:1, name:"Our CI/CD pipeline", badge:"Actions", badgeColor:"blue",
+    desc:"GitHub Actions builds each push and runs all the tests, saves a report and shows ✅ or ❌ on GitHub. Pull requests get the wider build: Linux gcc, Linux clang and Windows MSVC." },
+];
 const PAGES = [
   { id:"plan",  label:"Testing Plan",       steps: PLAN_STEPS,  render: renderPlan },
   { id:"gtest", label:"GoogleTest",         steps: GTEST_STEPS, render: renderGtest },
   { id:"tools", label:"Tools & Next Steps", steps: TOOLS_STEPS, render: renderTools },
+  { id:"cicd",  label:"CI/CD Pipeline",     steps: CICD_STEPS,  render: renderCicd },
 ];
 /* Neighbors in the master presentation sequence */
 const PREV_DECK_URL = "../presentation/index.html?end=1";
-const NEXT_DECK_URL = "../repo-presentation/index.html";
+const NEXT_DECK_URL = "../mesh-presentation/index.html";
 /* ================================================================
    RENDER HELPERS
 ================================================================ */
@@ -688,6 +716,9 @@ function renderTools(stepIdx) {
     el.classList.add(lit.includes(r) ? "active" : r < lit[0] ? "done" : "idle");
   });
   document.querySelectorAll(".detail").forEach((d, k) => d.classList.toggle("on", k === stepIdx));
+}
+function renderCicd(stepIdx) {
+  applyStates(["cicd-0"], stepIdx);
 }
 function renderPips(total, current) {
   const wrap = document.getElementById("prog-pips");

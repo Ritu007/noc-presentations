@@ -408,12 +408,6 @@
       box-shadow: 0 4px 14px color-mix(in srgb, var(--c) 15%, transparent);
     }
 
-    /* Header for a deck with no current presentation (archive only): not a link */
-    .deck-hdr.static:hover {
-      border-color: var(--b1);
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-    }
-
     .deck-icon {
       width: 46px;
       height: 46px;
@@ -490,11 +484,46 @@
     }
 
     .subtopic-pill.archive {
-      grid-column: 1 / -1;
       border-style: dashed;
       background: var(--s2);
       color: var(--dim);
       font-weight: 500;
+    }
+
+    /* Archives of the previous meeting: all together, below the decks */
+    .archive-section {
+      --c: var(--col-blue);
+      width: 100%;
+      max-width: 95%;
+      margin-top: 2rem;
+      padding-top: 1.4rem;
+      border-top: 1px dashed var(--b2);
+    }
+
+    .archive-title {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .archive-sub {
+      font-size: .85rem;
+      color: var(--dim);
+      margin-top: 2px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .archive-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: .6rem;
+      margin-top: .9rem;
+    }
+
+    @media (max-width: 900px) {
+      .archive-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
     }
 
   </style>
@@ -737,7 +766,6 @@
           <a class="subtopic-pill" href="recap-presentation/index.html?page=2">Ports by Router Position</a>
           <a class="subtopic-pill" href="recap-presentation/index.html?page=3">System Architecture</a>
           <a class="subtopic-pill" href="recap-presentation/index.html?page=4">Flit &amp; Pipeline Summary</a>
-          <a class="subtopic-pill archive" href="recap-presentation/archive/index.html">Archive: Recap (July 2026)</a>
         </div>
       </div>
       <!-- DECK 0B - PROGRESS REPORT -->
@@ -750,9 +778,6 @@
           </div>
           <div class="deck-arrow">&rarr;</div>
         </a>
-        <div class="subtopic-grid">
-          <a class="subtopic-pill archive" href="quarterly-presentation/archive/index.html">Archive: Quarterly Progress Report (April – July 2026)</a>
-        </div>
       </div>
       <!-- DECK 1 — HARDWARE ARCHITECTURE -->
       <div class="deck-block" style="--c: var(--col-purple)">
@@ -760,23 +785,20 @@
           <div class="deck-icon">⬡</div>
           <div class="deck-hdr-text">
             <div class="deck-name">Hardware Architecture &amp; Router Design</div>
-            <div class="deck-desc">The node / device link handshake, router link layer, CHI handshake, updated
+            <div class="deck-desc">The complete and simplified link handshakes compared, CHI handshake, updated
               CHI router, credit mechanism, QoS arbitration and aging, router pipeline, and
               CHI flit channels.</div>
           </div>
           <div class="deck-arrow">→</div>
         </a>
         <div class="subtopic-grid">
-          <a class="subtopic-pill" href="hardware-presentation/index.html?page=0">Node / Device Link</a>
-          <a class="subtopic-pill" href="hardware-presentation/index.html?page=1">Link Layer Interface</a>
-          <a class="subtopic-pill" href="hardware-presentation/index.html?page=2">CHI Handshake</a>
-          <a class="subtopic-pill" href="hardware-presentation/index.html?page=3">CHI Router Architecture</a>
-          <a class="subtopic-pill" href="hardware-presentation/index.html?page=4">Credit Mechanism</a>
-          <a class="subtopic-pill" href="hardware-presentation/index.html?page=5">QoS Arbitration</a>
-          <a class="subtopic-pill" href="hardware-presentation/index.html?page=6">QoS Aging</a>
-          <a class="subtopic-pill" href="hardware-presentation/index.html?page=7">Router Pipeline Flow</a>
-          <a class="subtopic-pill" href="hardware-presentation/index.html?page=8">CHI Flit Channels</a>
-          <a class="subtopic-pill archive" href="hardware-presentation/archive/index.html">Archive: Hardware Architecture &amp; Router Design (July 2026)</a>
+          <a class="subtopic-pill" href="hardware-presentation/index.html?page=0">Link Handshake Comparison</a>
+          <a class="subtopic-pill" href="hardware-presentation/index.html?page=1">CHI Handshake</a>
+          <a class="subtopic-pill" href="hardware-presentation/index.html?page=2">Router Architecture &amp; Pipeline</a>
+          <a class="subtopic-pill" href="hardware-presentation/index.html?page=3">Credit Mechanism</a>
+          <a class="subtopic-pill" href="hardware-presentation/index.html?page=4">QoS Arbitration</a>
+          <a class="subtopic-pill" href="hardware-presentation/index.html?page=5">QoS Aging</a>
+          <a class="subtopic-pill" href="hardware-presentation/index.html?page=6">CHI Flit Channels</a>
         </div>
       </div>
 
@@ -797,7 +819,6 @@
           <a class="subtopic-pill" href="presentation/index.html?page=2">API &amp; Drogon Server</a>
           <a class="subtopic-pill" href="presentation/index.html?page=3">Simulation Run Flow</a>
           <a class="subtopic-pill" href="presentation/index.html?page=4">Backend Module Status</a>
-          <a class="subtopic-pill archive" href="presentation/archive/index.html">Archive: last meeting's slides (July 2026)</a>
         </div>
       </div>
 
@@ -807,8 +828,8 @@
           <div class="deck-icon">✓</div>
           <div class="deck-hdr-text">
             <div class="deck-name">Testing &amp; Verification</div>
-            <div class="deck-desc">Our testing plan, GoogleTest in the project, and the tools we run today and plan to
-              add.</div>
+            <div class="deck-desc">Our testing plan, GoogleTest in the project, the tools we run today and plan to
+              add, and our CI/CD pipeline.</div>
           </div>
           <div class="deck-arrow">→</div>
         </a>
@@ -816,57 +837,25 @@
           <a class="subtopic-pill" href="testing-presentation/index.html?page=0">Testing Plan</a>
           <a class="subtopic-pill" href="testing-presentation/index.html?page=1">GoogleTest</a>
           <a class="subtopic-pill" href="testing-presentation/index.html?page=2">Tools &amp; Next Steps</a>
-          <a class="subtopic-pill archive" href="testing-presentation/archive/index.html">Archive: Verification &amp; Validation (July 2026)</a>
+          <a class="subtopic-pill" href="testing-presentation/index.html?page=3">CI/CD Pipeline</a>
         </div>
       </div>
 
-      <!-- DECK 4c — REPOSITORY & CI/CD -->
-      <div class="deck-block" style="--c: var(--col-purple)">
-        <a class="deck-hdr" href="repo-presentation/index.html">
-          <div class="deck-icon">⇆</div>
-          <div class="deck-hdr-text">
-            <div class="deck-name">Repository, CI/CD &amp; Documentation</div>
-            <div class="deck-desc">How code moves from a feature branch to a release, how every change is built and
-              tested automatically, and how the design documents are kept.</div>
-          </div>
-          <div class="deck-arrow">→</div>
-        </a>
-        <div class="subtopic-grid">
-          <a class="subtopic-pill" href="repo-presentation/index.html?page=0">Branching Model</a>
-          <a class="subtopic-pill" href="repo-presentation/index.html?page=1">CI/CD Pipeline</a>
-          <a class="subtopic-pill" href="repo-presentation/index.html?page=2">Documentation</a>
-          <a class="subtopic-pill archive" href="repo-presentation/archive/index.html">Archive: Software Development Lifecycle (July 2026)</a>
-        </div>
-      </div>
-
-      <!-- DECK 4d — INTERNAL MESH & NODE ARCHITECTURE (working title; shown after the demo) -->
+      <!-- DECK 4d — SUMMARY AND DOCUMENTATION (shown after the demo) -->
       <div class="deck-block" style="--c: var(--col-orange)">
         <a class="deck-hdr" href="mesh-presentation/index.html">
           <div class="deck-icon">⊞</div>
           <div class="deck-hdr-text">
-            <div class="deck-name">Internal Mesh &amp; Node Architecture</div>
+            <div class="deck-name">Summary and Documentation</div>
             <div class="deck-desc">Where the internal mesh stands, the RN-F, SN-F and HN-F architecture flow
-              documents, and the architecture document status.</div>
+              documents, the architecture document status, and how our documentation is kept.</div>
           </div>
           <div class="deck-arrow">→</div>
         </a>
         <div class="subtopic-grid">
           <a class="subtopic-pill" href="mesh-presentation/index.html?page=0">Mesh &amp; Node Status</a>
           <a class="subtopic-pill" href="mesh-presentation/index.html?page=1">Document Status</a>
-        </div>
-      </div>
-
-      <!-- PCIe & RN-I BRIDGE — archive only, not part of the clicker flow -->
-      <div class="deck-block" style="--c: var(--col-blue)">
-        <div class="deck-hdr static">
-          <div class="deck-icon">⇄</div>
-          <div class="deck-hdr-text">
-            <div class="deck-name">PCIe &amp; RN-I Bridge</div>
-            <div class="deck-desc">Archive only: no deck in this meeting.</div>
-          </div>
-        </div>
-        <div class="subtopic-grid">
-          <a class="subtopic-pill archive" href="pcie-presentation/archive/index.html">Archive: PCIe &amp; RN-I Bridge (July 2026)</a>
+          <a class="subtopic-pill" href="mesh-presentation/index.html?page=2">Documentation</a>
         </div>
       </div>
 
@@ -879,9 +868,22 @@
           </div>
           <div class="deck-arrow">→</div>
         </a>
-        <div class="subtopic-grid">
-          <a class="subtopic-pill archive" href="timeline-presentation/archive/index.html">Archive: Project Timeline (July 2026)</a>
-        </div>
+      </div>
+    </div>
+
+    <!-- ARCHIVES — previous meeting, not part of the clicker flow -->
+    <div class="archive-section">
+      <div class="archive-title">Archives</div>
+      <div class="archive-sub">Previous meeting · not part of this presentation</div>
+      <div class="archive-grid">
+        <a class="subtopic-pill archive" href="recap-presentation/archive/index.html">Recap (July 2026)</a>
+        <a class="subtopic-pill archive" href="quarterly-presentation/archive/index.html">Quarterly Progress Report (April – July 2026)</a>
+        <a class="subtopic-pill archive" href="hardware-presentation/archive/index.html">Hardware Architecture &amp; Router Design (July 2026)</a>
+        <a class="subtopic-pill archive" href="presentation/archive/index.html">Software Development Progress (July 2026)</a>
+        <a class="subtopic-pill archive" href="testing-presentation/archive/index.html">Verification &amp; Validation (July 2026)</a>
+        <a class="subtopic-pill archive" href="repo-presentation/archive/index.html">Software Development Lifecycle (July 2026)</a>
+        <a class="subtopic-pill archive" href="pcie-presentation/archive/index.html">PCIe &amp; RN-I Bridge (July 2026)</a>
+        <a class="subtopic-pill archive" href="timeline-presentation/archive/index.html">Project Timeline (July 2026)</a>
       </div>
     </div>
 

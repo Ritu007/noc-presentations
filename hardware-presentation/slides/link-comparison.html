@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Link Handshake: Complete vs Simplified</title>
+<style>
+  :root {
+    --ink: #0f172a; --text: #1e293b; --muted: #64748b; --wire: #94a3b8; --line: #e2e8f0; --panel: #f8fafc;
+    --block: #dbeafe; --block-s: #60a5fa; --block-t: #1e3a8a;
+    --rm: #dc2626; --rm-bg: #fee2e2; --rm-ghost: #e8a8a8;
+    --sw: #7c3aed; --sw-bg: #ede9fe;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: #fff; }
+  body { padding: 0 10px 10px; font-family: 'Segoe UI', system-ui, sans-serif; color: var(--ink); }
+  .pin { position: sticky; top: 0; z-index: 2; background: #fff; padding: 6px 0 8px; }
+  .legend { display: flex; justify-content: center; gap: 2.2rem; font-size: 14px; font-weight: 600; color: var(--text); padding-bottom: 6px; }
+  .titles { display: grid; grid-template-columns: 1fr 1fr; gap: 2.8%; text-align: center; }
+  .legend span { display: inline-flex; align-items: center; gap: .5rem; }
+  .sw { width: 30px; height: 12px; border-radius: 3px; }
+  .sw.kept { background: none; border-top: 3px solid var(--wire); height: 0; }
+  .sw.rm { background: var(--rm-bg); border: 1.5px solid var(--rm); }
+  .sw.swap { background: var(--sw-bg); border: 1.5px solid var(--sw); }
+  svg { width: 100%; height: auto; display: block; }
+  text { font-family: 'Segoe UI', system-ui, sans-serif; }
+
+  .title { font-size: 21px; font-weight: 800; color: var(--ink); }
+  .title-sub { font-size: 15px; font-weight: 600; color: var(--muted); margin-left: .5rem; }
+  .block { fill: var(--block); stroke: var(--block-s); stroke-width: 1.5; }
+  .block-t { font-size: 18px; font-weight: 800; letter-spacing: 3px; fill: var(--block-t); text-anchor: middle; }
+  .link-t { font-size: 15px; font-weight: 800; fill: var(--ink); text-anchor: middle; }
+  .ch-box { fill: var(--panel); stroke: var(--line); }
+  .ch-t { font-size: 15px; font-weight: 800; fill: var(--ink); text-anchor: middle; }
+  .ch-chip { fill: var(--panel); }
+
+  .wire { stroke: var(--wire); stroke-width: 1.6; }
+  .wire.bus { stroke-width: 4; }
+  .head { fill: var(--wire); }
+  .name { font: 600 14px Consolas, Menlo, monospace; fill: var(--text); text-anchor: middle; }
+  .bits { font: 700 12.5px Consolas, Menlo, monospace; fill: #0284c7; text-anchor: end; }
+
+  .band.rm { fill: var(--rm-bg); stroke: var(--rm); }
+  .band.swap { fill: var(--sw-bg); stroke: var(--sw); }
+  .rm .wire { stroke: var(--rm); stroke-width: 2.2; }
+  .rm .head { fill: var(--rm); }
+  .rm .name { fill: var(--rm); font-weight: 700; }
+  .rm .bits { fill: var(--rm); }
+  .swap .wire { stroke: var(--sw); stroke-width: 2.2; }
+  .swap .head { fill: var(--sw); }
+  .swap .name { fill: var(--sw); font-weight: 700; }
+  .swap .bits { fill: var(--sw); }
+
+  /* a signal the simplified link no longer has: its row stays empty, so the two panels line up */
+  .ghost .wire { stroke: var(--rm-ghost); stroke-width: 1.2; stroke-dasharray: 5 5; }
+  .ghost .name { fill: var(--rm-ghost); font-weight: 500; text-decoration: line-through; }
+</style>
+</head>
+<body>
+<div class="pin" id="pin">
+  <div class="legend">
+    <span><i class="sw kept"></i>Unchanged</span>
+    <span><i class="sw rm"></i>Removed in the simplified link</span>
+    <span><i class="sw swap"></i>REQ / ACK pair replaced by one signal</span>
+  </div>
+  <div class="titles">
+    <div class="title">Complete handshake<span class="title-sub">Node ↔ Device</span></div>
+    <div class="title">Simplified handshake<span class="title-sub">Router ↔ Router</span></div>
+  </div>
+</div>
+<svg id="dia" role="img" aria-label="Complete node to device link beside the simplified router to router link, with removed and replaced signals highlighted"></svg>
+<script>
+(function () {
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.getElementById('dia');
+  const mk = (tag, attrs, parent, text) => {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (text !== undefined) e.textContent = text;
+    parent.appendChild(e);
+    return e;
+  };
+
+  const CH = ['REQ', 'DAT', 'RSP', 'SNP'];
+  const BITS = {
+    complete:   { TX: { REQ: 162, DAT: 756, RSP: 73, SNP: 126 }, RX: { REQ: 162, DAT: 756, RSP: 73, SNP: 126 } },
+    simplified: { TX: { REQ: 162, DAT: 756, RSP: 73, SNP: 126 }, RX: { REQ: 162, DAT: 756, RSP: 73, SNP: 126 } },
+  };
+  const PANEL_W = 640, GAP = 36, BLOCK_W = 46, P = 24, HEAD = 10, CH_GAP = 10, CHIP_W = 52;
+  const W = PANEL_W * 2 + GAP;
+  const NS_TOP = 18;
+
+  /* Both panels walk the same rows, so a signal and its counterpart always sit at the same height */
+  function panel(ox, spec) {
+    const root = mk('g', { transform: `translate(${ox},0)` }, svg);
+    const xL = BLOCK_W, xR = PANEL_W - BLOCK_W, mid = PANEL_W / 2;
+    const marks = {};
+
+    function sig(y, dir, name, bits, kind, bus, rows) {
+      const g = mk('g', { class: kind || '' }, root);
+      const wy = y + (rows === 2 ? P / 2 : 0);
+      if (kind === 'rm' || kind === 'swap') {
+        mk('rect', { class: 'band ' + kind, x: xL + 3, y: y - 18.5, width: xR - xL - 6, height: P * (rows || 1) - 2, rx: 3 }, g);
+      }
+      mk('line', { class: 'wire' + (bus ? ' bus' : ''), x1: xL, y1: wy, x2: xR, y2: wy }, g);
+      if (kind !== 'ghost') {
+        mk('polygon', { class: 'head', points: dir > 0 ? `${xR},${wy} ${xR - HEAD},${wy - 5} ${xR - HEAD},${wy + 5}` : `${xL},${wy} ${xL + HEAD},${wy - 5} ${xL + HEAD},${wy + 5}` }, g);
+      }
+      mk('text', { class: 'name', x: mid, y: wy - 5 }, g, name);
+      if (kind !== 'ghost') mk('text', { class: 'bits', x: xR - 16, y: wy - 5 }, g, bits === 1 ? '1 bit' : bits + ' bits');
+    }
+
+    let y = NS_TOP + P;
+    sig(y, 1, 'TXSACTIVE', 1, spec.full ? 'rm' : 'ghost'); y += P;
+    sig(y, -1, 'RXSACTIVE', 1, spec.full ? 'rm' : 'ghost'); y += P;
+
+    ['TX', 'RX'].forEach((D) => {
+      const out = D === 'TX' ? 1 : -1;
+      marks[D] = y - 8;
+      y += 12;
+      mk('text', { class: 'link-t', x: mid, y: y }, root, D === 'TX' ? 'Outbound link (TX)' : 'Inbound link (RX)');
+      y += P + 2;
+      if (spec.full) {
+        const first = D === 'TX' ? ['TXLINKACTIVEREQ', 1] : ['RXLINKACTIVEACK', 1];
+        const second = D === 'TX' ? ['TXLINKACTIVEACK', -1] : ['RXLINKACTIVEREQ', -1];
+        sig(y, first[1], first[0], 1, 'swap'); y += P;
+        sig(y, second[1], second[0], 1, 'swap'); y += P;
+      } else {
+        sig(y, out, 'rdyto_rcv_crds', 1, 'swap', false, 2);
+        y += P * 2;
+      }
+      CH.forEach((c) => {
+        y += CH_GAP;
+        mk('rect', { class: 'ch-box', x: xL + 3, y: y - 20, width: xR - xL - 6, height: P * 4 + 2, rx: 4 }, root);
+        const y0 = y;
+        sig(y, out, `${D}${c}FLITPEND`, 1, spec.full ? 'rm' : 'ghost'); y += P;
+        sig(y, out, `${D}${c}FLITV`, 1); y += P;
+        sig(y, out, `${D}${c}FLIT`, BITS[spec.key][D][c], '', true); y += P;
+        sig(y, -out, `${D}${c}LCRDV`, 1); y += P;
+        mk('rect', { class: 'ch-chip', x: xL + 16, y: y0 + P * 1.5 - 22, width: CHIP_W, height: 24, rx: 4 }, root);
+        mk('text', { class: 'ch-t', x: xL + 16 + CHIP_W / 2, y: y0 + P * 1.5 - 5 }, root, c);
+      });
+      marks[D + 'end'] = y - 14;
+    });
+
+    const h = y - NS_TOP - 8;
+    [[0, spec.left], [xR, spec.right]].forEach(([x, label]) => {
+      mk('rect', { class: 'block', x: x, y: NS_TOP, width: BLOCK_W, height: h, rx: 6 }, root);
+      ['TX', 'RX'].forEach((D) => {
+        const cx = x + BLOCK_W / 2, cy = (marks[D] + marks[D + 'end']) / 2;
+        mk('text', { class: 'block-t', x: cx, y: cy, 'dominant-baseline': 'middle', transform: `rotate(-90 ${cx} ${cy})` }, root, label);
+      });
+    });
+    return { bottom: NS_TOP + h, inbound: marks.RX };
+  }
+
+  const a = panel(0, { key: 'complete', full: true, left: 'NODE', right: 'DEVICE' });
+  panel(PANEL_W + GAP, { key: 'simplified', full: false, left: 'ROUTER', right: 'ROUTER' });
+  const H = a.bottom + 2;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+
+  /* step 0 shows the outbound link, step 1 scrolls to the inbound link: a clicker cannot scroll */
+  let view = 0;
+  function show() {
+    const r = svg.getBoundingClientRect(), k = r.height / H;
+    const top = view === 0 ? 0 : r.top + window.scrollY + a.inbound * k - document.getElementById('pin').offsetHeight;
+    window.scrollTo({ top: top });
+  }
+  window.hwSlide = { goto: function (n) { view = n; show(); } };
+  window.addEventListener('resize', show);
+})();
+</script>
+<script>
+/* Hardware deck bridge: arrow keys / Space are forwarded to the deck, and the deck drives this slide's steps. */
+(function(){
+  function post(m){ try{ parent.postMessage(m,'*'); }catch(e){} }
+  window.addEventListener('keydown',function(e){
+    if(e.code==='ArrowRight'||e.code==='ArrowLeft'||e.code==='Space'){
+      e.preventDefault(); e.stopImmediatePropagation(); post({hw:'key',code:e.code});
+    }
+  },true);
+  window.hwReport=function(n){ post({hw:'step',step:n}); };
+  window.hwPost=post;
+  window.addEventListener('message',function(e){
+    var m=e.data; if(!m||!m.hw||!window.hwSlide) return;
+    if(m.hw==='goto') window.hwSlide.goto(m.step);
+    else if(m.hw==='play'&&window.hwSlide.play) window.hwSlide.play();
+    else if(m.hw==='pause'&&window.hwSlide.pause) window.hwSlide.pause();
+  });
+  window.addEventListener('load',function(){ setTimeout(function(){ post({hw:'ready'}); },0); });
+})();
+</script>
+</body>
+</html>

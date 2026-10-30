@@ -4,26 +4,25 @@
 Interactive HTML/CSS/JS presentation for a Network-on-Chip (NoC) Simulator, built for C-DAC.
 Plain static files, no build step, opened directly in a browser. Entry point: `index.html` (hub:
 Cover → Team → Table of Contents). The master clicker flow, in order:
-recap → quarterly → hardware → software progress → testing → repo/CI-CD/docs → (live demo, not a page) → mesh & node architecture → timeline → thank-you.
+recap → quarterly → hardware → software progress → testing → (live demo, not a page) → summary and documentation → timeline → thank-you.
 - `recap-presentation/` (Recap: roadmap & CHI nodes, 6-port router, ports by router position, system architecture,
   flit lifecycle & router pipeline summary). Same iframe + `postMessage` slide bridge as `hardware-presentation/`;
   slides 1, 2 and 4 wrap pages of the archived hardware / software decks (roadmap and architecture show only their
   finished state, with no bottom text: a step with an empty `desc` hides the bottom band).
 - `quarterly-presentation/` (Quarterly Progress Report, Aug–Oct 2026: a one-page dashboard slide in an iframe, same bridge as
   `hardware-presentation/`; its single step has no `desc`, which hides the bottom band)
-- `hardware-presentation/` (Hardware Architecture & Router Design: node/device link handshake, link-layer
-  interface, CHI handshake, CHI router architecture, credit mechanism, QoS arbitration, QoS aging, router pipeline flow, CHI flit channels). Each page embeds a standalone slide from
+- `hardware-presentation/` (Hardware Architecture & Router Design: complete vs simplified link handshake comparison, CHI handshake, CHI router architecture and pipeline, credit mechanism, QoS arbitration, QoS aging, CHI flit channels). Each page embeds a standalone slide from
   `hardware-presentation/slides/` in an iframe; the slide forwards ArrowLeft/ArrowRight/Space to the deck
   via `postMessage` and the deck tells it which step to show (see `Slides` in the deck's `index.html`).
 - `presentation/` (Software Development Progress: simulation coverage, architecture, API/Drogon, run flow,
   backend module status)
-- `testing-presentation/` (Testing & Verification: testing plan, GoogleTest, tools & next steps)
-- `repo-presentation/` (Repository, CI/CD & Documentation: branching model, CI/CD pipeline,
-  documentation)
-- `mesh-presentation/` (Internal Mesh & Node Architecture, working title: the deck has no name yet; shown after the demo that follows the repo deck):
-  internal mesh status, the RN-F/SN-F/HN-F architecture flow documents, and the architecture document status table. Same iframe + `postMessage` slide bridge as
-  `hardware-presentation/`. The title lives in `TITLE` in the hub block, the deck's `index.html`, and the other decks' landing cards.
-- `pcie-presentation/` (PCIe & RN-I Bridge) — no current deck: only `archive/` remains, linked from the hub TOC
+- `testing-presentation/` (Testing & Verification: testing plan, GoogleTest, tools & next steps, CI/CD pipeline)
+- `repo-presentation/` (no current deck: only `archive/` remains, the Software Development Lifecycle, linked from the hub TOC Archives section;
+  its exits return to the hub Table of Contents, since there is no deck landing page)
+- `mesh-presentation/` (Summary and Documentation; the folder keeps its old name; shown after the demo that follows the testing deck):
+  internal mesh status, the RN-F/SN-F/HN-F architecture flow documents, the architecture document status table, and documentation. Same iframe + `postMessage` slide bridge as
+  `hardware-presentation/`. The title lives in the hub block, the deck's `index.html`, and the other decks' landing cards.
+- `pcie-presentation/` (PCIe & RN-I Bridge) — no current deck: only `archive/` remains, linked from the hub TOC Archives section
   (its exits return to the hub Table of Contents, since there is no deck landing page)
 - `timeline-presentation/` (Project Timeline: the 2026 Gantt chart as a native HTML table; its single step has no `desc`, which hides the bottom band)
 - `thank-you/` (closing page)
@@ -36,7 +35,7 @@ fill in their pages later by replacing the `blank` page and `*_STEPS` in the dec
 Material presented in a previous review meeting lives in `<deck>/archive/` (previous recap in `recap-presentation/archive/`, previous quarterly
 report, hardware, PCIe & RN-I, timeline, software progress, V&V in `testing-presentation/archive/`,
 SDLC in `repo-presentation/archive/`). An archive is NOT part of the clicker flow: it is linked only
-from its deck's landing page (a dashed "Last meeting" card) and from the hub TOC (a dashed pill),
+from its deck's landing page (a dashed "Last meeting" card) and from the "Archives" section at the bottom of the hub TOC (a dashed pill),
 and every exit (ArrowLeft/ArrowRight at either end, back links) returns to that deck's
 `index.html` landing page — never onward into the next deck. Archived sub-pages (for example
 `hardware-presentation/archive/router-3d-explorer.html`) keep their internal chaining.

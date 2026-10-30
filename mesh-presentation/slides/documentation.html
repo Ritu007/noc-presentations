@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Documentation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f8fafc; --s1: #ffffff; --s2: #f1f5f9; --b1: #cbd5e1;
+    --text: #0f172a; --muted: #334155; --dim: #64748b;
+    --col-cyan: #0284c7; --col-blue: #2563eb; --col-purple: #7c3aed;
+    --col-orange: #ea580c; --col-green: #16a34a; --col-teal: #0d9488;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); display: flex; align-items: center; justify-content: center; padding: 1rem; }
+  .slide { --u: clamp(11px, 2.4vh, 24px); font-size: var(--u); width: 100%; max-width: 1600px; display: grid; grid-template-columns: 5fr 7fr; gap: 1em; align-items: stretch; }
+  .fx { transition: opacity .35s, box-shadow .35s, border-color .35s; }
+  .fx.idle { opacity: .38; }
+  .fx.active { border-color: var(--c); box-shadow: 0 0 0 2px var(--c), 0 6px 22px color-mix(in srgb, var(--c) 22%, transparent); }
+  .col { display: flex; flex-direction: column; background: var(--s1); border: 1.5px solid var(--b1); border-radius: .9em; overflow: hidden; }
+  .col-hdr { background: var(--c); color: #fff; padding: .8em 1.1em; }
+  .col-hdr h3 { font-size: 1.3em; font-weight: 800; }
+  .col-hdr p { font-size: .88em; opacity: .92; margin-top: .15em; }
+  .col-body { flex: 1; padding: 1em 1.1em 1.1em; display: flex; flex-direction: column; justify-content: space-evenly; gap: .9em; color: var(--muted); line-height: 1.4; }
+  .ticks { list-style: none; display: flex; flex-direction: column; gap: .5em; }
+  .ticks li { position: relative; padding-left: 1.5em; }
+  .ticks li::before { content: '✓'; position: absolute; left: 0; color: var(--col-green); font-weight: 800; }
+  .tree { font-family: 'JetBrains Mono', monospace; font-size: .78em; line-height: 1.6; white-space: pre; overflow: hidden; background: var(--s2); border: 1px solid var(--b1); border-radius: .5em; padding: .7em .9em; color: var(--text); }
+  .tree .t { color: var(--dim); }
+  .tree .h { color: var(--c); font-weight: 700; }
+  .fam-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .8em; flex: 1; }
+  .fam { display: flex; flex-direction: column; gap: .35em; padding: .75em .9em; background: var(--s1); border: 1.5px solid color-mix(in srgb, var(--k) 35%, var(--b1)); border-left: 5px solid var(--k); border-radius: .7em; }
+  .fam-n { font-weight: 800; font-size: 1.12em; color: var(--text); }
+  .fam-n small { font-family: 'JetBrains Mono', monospace; font-size: .62em; font-weight: 700; color: var(--k); margin-left: .5em; letter-spacing: .5px; }
+  .fam-c { font-size: .93em; color: var(--muted); }
+  .fam-f { font-family: 'JetBrains Mono', monospace; font-size: .74em; color: var(--dim); line-height: 1.55; overflow-wrap: anywhere; }
+  .fam-f .wip { color: var(--col-orange); font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="col fx" id="doc-0" style="--c:var(--col-teal)">
+    <div class="col-hdr"><h3>1. Docs live next to the code</h3><p>Markdown files in the Git repo</p></div>
+    <div class="col-body">
+      <ul class="ticks">
+        <li>Reviewed in pull requests, like code.</li>
+        <li>Versioned with the code.</li>
+        <li>Updated in the same PR as the change they describe.</li>
+      </ul>
+<div class="tree"><span class="h">System Design Documents/</span>
+<span class="t">├──</span> 01-System-Design/          <span class="h">HLDD</span>
+<span class="t">├──</span> 02-Pipeline-Design/        <span class="h">LLDD</span> · flows
+<span class="t">├──</span> 03-Module-Design/          <span class="h">LLDD</span> · per module
+<span class="t">├──</span> 04-GUI-Design/             <span class="h">GUI</span>
+<span class="t">├──</span> 05-Architecture-Decisions/ the "why"
+<span class="t">├──</span> 06-Testing-Strategy/
+<span class="t">└──</span> 07-Reference/BookSim2/     reference notes</div>
+    </div>
+  </div>
+  <div class="col fx idle" id="doc-1" style="--c:var(--col-blue)">
+    <div class="col-hdr"><h3>2. Four document families</h3><p>What each one covers</p></div>
+    <div class="col-body">
+      <div class="fam-grid">
+        <div class="fam" style="--k:var(--col-blue)"><div class="fam-n">High-Level Design<small>HLDD</small></div><div class="fam-c">What the system is, who owns what, how modules connect, and why we chose it that way.</div><div class="fam-f">NoC_Simulator_System_Design.md<br>Module_Roles_and_Responsibilities.md<br>Architecture_Decisions.md</div></div>
+        <div class="fam" style="--k:var(--col-purple)"><div class="fam-n">Low-Level Design<small>LLDD</small></div><div class="fam-c">Class-level design, one page per Core module, and a flit's journey cycle by cycle.</div><div class="fam-f">NoC_Module_Design.md<br>Flit_Lifecycle.md<br>03-Module-Design/ (one page per module)</div></div>
+        <div class="fam" style="--k:var(--col-cyan)"><div class="fam-n">GUI Design<small>GUI</small></div><div class="fam-c">How the GUI talks to Core (REST + WebSocket), the data model, and the screen-by-screen design.</div><div class="fam-f">GUI_Design_DRAFT.md <span class="wip">(being finalised)</span><br>Server/README.md (API reference)</div></div>
+        <div class="fam" style="--k:var(--col-teal)"><div class="fam-n">Supporting<small>OTHER</small></div><div class="fam-c">Testing plan and CI, release history, and BookSim2 reference notes.</div><div class="fam-f">TESTING_STRATEGY.md<br>CHANGELOG.md<br>07-Reference/BookSim2/</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+window.hwSlide={goto:function(step){
+  ["doc-0","doc-1"].forEach(function(id,i){
+    var el=document.getElementById(id);
+    el.classList.remove("idle","active","done");
+    el.classList.add(i<step?"done":i===step?"active":"idle");
+  });
+}};
+</script>
+<script>
+/* Hardware deck bridge: arrow keys / Space are forwarded to the deck, and the deck drives this slide's steps. */
+(function(){
+  function post(m){ try{ parent.postMessage(m,'*'); }catch(e){} }
+  window.addEventListener('keydown',function(e){
+    if(e.code==='ArrowRight'||e.code==='ArrowLeft'||e.code==='Space'){
+      e.preventDefault(); e.stopImmediatePropagation(); post({hw:'key',code:e.code});
+    }
+  },true);
+  window.hwReport=function(n){ post({hw:'step',step:n}); };
+  window.hwPost=post;
+  window.addEventListener('message',function(e){
+    var m=e.data; if(!m||!m.hw||!window.hwSlide) return;
+    if(m.hw==='goto') window.hwSlide.goto(m.step);
+    else if(m.hw==='play'&&window.hwSlide.play) window.hwSlide.play();
+    else if(m.hw==='pause'&&window.hwSlide.pause) window.hwSlide.pause();
+  });
+  window.addEventListener('load',function(){ setTimeout(function(){ post({hw:'ready'}); },0); });
+})();
+</script>
+</body>
+</html>

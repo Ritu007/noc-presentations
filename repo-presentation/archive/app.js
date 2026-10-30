@@ -166,8 +166,8 @@ const STEPS = [
 
 /* Neighbors in the master presentation sequence — this deck now sits between
    Software Development Progress's last sub-page and Verification & Validation. */
-const PREV_DECK_URL = "../index.html";
-const NEXT_DECK_URL = "../index.html";
+const PREV_DECK_URL = "../../index.html?end=1";
+const NEXT_DECK_URL = "../../index.html?end=1";
 
 /* Page 0's "Pipelined Incremental SDLC Model" diagram — Time Block reveal order. */
 const TB_ORDER = ["tb1", "tb2", "tb3", "tb4", "tb5"];
@@ -400,7 +400,7 @@ const App = {
     window.addEventListener("keydown", (e) => {
       if (document.getElementById("landing-view").style.display !== "none") {
         if (e.key === "ArrowRight") { e.preventDefault(); Landing.enter(0); }
-        else if (e.key === "ArrowLeft") { e.preventDefault(); window.location.href = "../index.html"; }
+        else if (e.key === "ArrowLeft") { e.preventDefault(); window.location.href = "../../index.html?end=1"; }
         return;
       }
       if (e.key === "ArrowRight") this.next();

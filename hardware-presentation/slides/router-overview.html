@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CHI Router: Architecture and Pipeline</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#F2F6FB;
+  --surface:#FFFFFF;
+  --ink:#1B2A41;
+  --muted:#5B6B82;
+  --hair:#D3DDEA;
+  --line:#8EA2BF;
+  --router:#E6EEF8;
+  --router-edge:#B3C6DE;
+  --core:#F0F5FC;
+  --core-edge:#A7BCD9;
+  --req:#2F7BD0;
+  --dat:#E08A1E;
+  --rsp:#2E9E6B;
+  --snp:#8A5CD3;
+  --crd:#D6456B;
+  --link:#6A83A6;
+  --accent:#0E7C86;
+  --accent-soft:#D9F1F2;
+  --l0:#DEE4F9;
+  --l0-edge:#8F9DDA;
+  --l1:#D5F0ED;
+  --l1-edge:#77C3BC;
+  --f-display:'IBM Plex Sans Condensed','Arial Narrow',Arial,sans-serif;
+  --f-body:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --f-mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+/* ---------- SVG ---------- */
+#fig text{font-family:var(--f-body)}
+.router{fill:var(--router);stroke:var(--router-edge);stroke-width:1.2}
+.core-box{fill:var(--core);stroke:var(--core-edge);stroke-width:1.4}
+.l0{fill:var(--l0);stroke:var(--l0-edge);stroke-width:1.2}
+.l1{fill:var(--l1);stroke:var(--l1-edge);stroke-width:1.2}
+.t-big{font-family:var(--f-display);font-weight:700;fill:var(--ink)}
+.core-title{font:700 78px var(--f-display);fill:var(--ink);text-anchor:middle;letter-spacing:2px}
+.lab{font-size:30px;text-anchor:middle}
+.lab-s{font-size:16px;text-anchor:middle}
+.brace{fill:none;stroke:var(--line);stroke-width:1.2}
+.oval{fill:none;stroke:var(--line);stroke-width:1}
+.sig-name{font:500 14px var(--f-mono);fill:var(--ink);text-anchor:middle;paint-order:stroke;stroke:var(--surface);stroke-width:4px;stroke-linejoin:round}
+.bits{font:500 13px var(--f-mono);fill:var(--ink)}
+.chname{font:700 16px var(--f-body);fill:var(--ink);text-anchor:middle;paint-order:stroke;stroke:var(--surface);stroke-width:4px;stroke-linejoin:round}
+.lk-title{font:600 15px var(--f-body);fill:var(--ink)}
+.sig{transition:opacity .45s ease}
+@media (prefers-reduced-motion:reduce){
+  *{transition-duration:.01ms!important;animation:none!important}
+}
+html,body{margin:0;background:#fff;color:var(--ink);font-family:var(--f-body)}
+.view{height:100vh;padding:8px 12px;display:flex;gap:18px;overflow:hidden}
+.view.arch{align-items:center}
+.view.arch svg{flex:1;min-width:0;height:calc(100vh - 16px);display:block}
+.panel{flex:0 0 28%;display:flex;flex-direction:column;gap:18px}
+.panel h2,.view.pipe h2{font-family:var(--f-display);font-weight:700;font-size:30px;line-height:1.15;margin:0}
+ul.points{margin:0;padding:0 0 0 24px;display:flex;flex-direction:column;gap:16px;font-size:21px;line-height:1.4}
+.view.pipe{flex-direction:column;gap:6px}
+.view.pipe p{margin:0;font-size:18px;color:var(--muted)}
+.view.pipe svg{flex:1;min-height:0;width:100%;display:block}
+/* pipeline */
+#d text{font-family:Arial,Helvetica,sans-serif}
+.arr{fill:none;stroke:#475569;stroke-width:1;marker-end:url(#ah)}
+.arr.dbl{marker-start:url(#ah)}
+.arr.dash{stroke-dasharray:3 2}
+.xline{fill:none;stroke:#475569;stroke-width:1}
+.wa{fill:#fff;stroke:#64748b;stroke-width:.9}
+</style>
+</head>
+<body>
+<section class="view arch" id="view-0">
+  <svg id="fig" viewBox="-92 0 1114 902" data-step="0" role="img" aria-label="CHI router in the centre with four neighbouring routers, links L0 and L1, and outbound and inbound REQ, DAT, RSP and SNP channels on the left">
+          <!-- neighbour routers -->
+          <rect class="router" x="341" y="2" width="465" height="68" rx="3"/>
+          <text class="t-big" x="573.5" y="52" text-anchor="middle" font-size="40">ROUTER</text>
+          <rect class="router" x="341" y="830" width="465" height="68" rx="3"/>
+          <text class="t-big" x="573.5" y="880" text-anchor="middle" font-size="40">ROUTER</text>
+          <rect class="router" x="-88" y="160" width="70" height="580" rx="3"/>
+          <text class="t-big" transform="translate(-50 450) rotate(-90)" text-anchor="middle" dominant-baseline="central" font-size="26" letter-spacing="3">ROUTER</text>
+          <text class="t-big lab" x="-58" y="300" font-size="24">TX</text>
+          <text class="t-big lab" x="-58" y="600" font-size="24">RX</text>
+          <path class="brace" d="M-30 192 h6 v250 h-6"/>
+          <path class="brace" d="M-30 460 h6 v250 h-6"/>
+          <rect class="router" x="950" y="215" width="70" height="475" rx="3"/>
+          <text class="t-big" transform="translate(985 452) rotate(90)" text-anchor="middle" dominant-baseline="central" font-size="26" letter-spacing="3">ROUTER</text>
+
+          <!-- L0 and L1 -->
+          <g transform="translate(916 107) rotate(45)"><rect class="l0" x="-78" y="-38" width="156" height="76" rx="3"/></g>
+          <text class="t-big" x="916" y="120" text-anchor="middle" font-size="36">L0</text>
+          <g transform="translate(218 795) rotate(45)"><rect class="l1" x="-78" y="-38" width="156" height="76" rx="3"/></g>
+          <text class="t-big" x="218" y="808" text-anchor="middle" font-size="36">L1</text>
+
+          <!-- central router -->
+          <rect class="core-box" x="287" y="160" width="573" height="580" rx="3"/>
+          <path class="brace" d="M322 228 h6 v210 h-6"/>
+          <path class="brace" d="M322 466 h6 v210 h-6"/>
+          <text class="t-big lab" x="362" y="345">RX</text>
+          <text class="t-big lab" x="362" y="585">TX</text>
+          <path class="brace" d="M372 163 v6 h121 v-6"/>
+          <text class="t-big lab" x="432.5" y="198">TX</text>
+          <path class="brace" d="M552 163 v6 h121 v-6"/>
+          <text class="t-big lab" x="612.5" y="198">RX</text>
+          <path class="brace" d="M376 737 v-6 h121 v6"/>
+          <text class="t-big lab" x="436.5" y="716">RX</text>
+          <path class="brace" d="M563 737 v-6 h121 v6"/>
+          <text class="t-big lab" x="623.5" y="716">TX</text>
+          <path class="brace" d="M852 334 h6 v120 h-6"/>
+          <text class="t-big lab" x="822" y="398">TX</text>
+          <path class="brace" d="M852 522 h6 v120 h-6"/>
+          <text class="t-big lab" x="822" y="590">RX</text>
+          <text class="t-big lab-s" x="819" y="184">RX</text>
+          <text class="t-big lab-s" x="836" y="210">TX</text>
+          <text class="t-big lab-s" x="305" y="702">RX</text>
+          <text class="t-big lab-s" x="328" y="731">TX</text>
+
+          <g id="links"></g>
+
+          <g><text class="core-title" x="573.5" y="474">ROUTER</text></g>
+
+        </svg>
+  <aside class="panel">
+    <h2>Updated CHI Router Architecture</h2>
+    <ul class="points">
+      <li>The VA stage is replaced by a Resource Allocation (RA) stage, which checks the downstream credit availability.</li>
+      <li>If credits are available, the resource is allocated to one of the available flits in the buffers (FIFOs), based on QoS and age.</li>
+      <li>QoS, the CHI handshake and the CHI-based credit mechanism are integrated.</li>
+      <li>A proposed age-based priority algorithm avoids flit starvation.</li>
+    </ul>
+  </aside>
+</section>
+<section class="view pipe" id="view-1">
+  <h2>Router Pipeline</h2>
+  <p>The pipeline and flow-control unit for a single CHI channel. The other channels follow the same pipeline.</p>
+  <svg id="d" viewBox="14 62 884 440" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg"></svg>
+</section>
+<script>
+(function(){
+'use strict';
+var NS='http://www.w3.org/2000/svg';
+var cs=getComputedStyle(document.documentElement);
+function tok(n){return cs.getPropertyValue(n).trim();}
+var C={req:tok('--req'),dat:tok('--dat'),rsp:tok('--rsp'),snp:tok('--snp'),crd:tok('--crd'),link:tok('--link'),acc:tok('--accent'),line:tok('--line'),hair:tok('--hair')};
+var CH=[['REQ',C.req,'162 bits'],['DAT',C.dat,'756 bits'],['RSP',C.rsp,'73 bits'],['SNP',C.snp,'126 bits']];
+var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function el(tag,attrs,parent){
+  var n=document.createElementNS(NS,tag);
+  for(var k in attrs){ if(attrs[k]!==undefined) n.setAttribute(k,attrs[k]); }
+  if(parent) parent.appendChild(n);
+  return n;
+}
+function txt(parent,x,y,s,cls,extra){
+  var a={x:x,y:y,class:cls};
+  if(extra){ for(var k in extra) a[k]=extra[k]; }
+  var t=el('text',a,parent); t.textContent=s; return t;
+}
+function f(v){return v.toFixed(1);}
+
+/* ---- flowing flit dots ---- */
+var dots=[];
+function addFlow(parent,d,color,n,speed,seed,r){
+  var path=el('path',{d:d,fill:'none',stroke:'none'},parent);
+  var len=path.getTotalLength();
+  for(var i=0;i<n;i++){
+    var c=el('circle',{r:r||2.2,fill:color},parent);
+    dots.push({c:c,path:path,len:len,speed:speed,ph:((i/n)+(seed||0))%1});
+  }
+}
+function place(t){
+  for(var i=0;i<dots.length;i++){
+    var d=dots[i];
+    var s=(t*d.speed+d.ph*d.len)%d.len;
+    var p=d.path.getPointAtLength(s);
+    d.c.setAttribute('cx',f(p.x)); d.c.setAttribute('cy',f(p.y));
+    d.c.style.opacity=Math.min(1,Math.min(s,d.len-s)/8);
+  }
+}
+
+/* ---- shapes ---- */
+function head(p,x,y,dir,color,s){
+  var d=dir==='r'?-1:1;
+  el('polygon',{points:x+','+y+' '+f(x+d*s*1.7)+','+f(y-s*0.7)+' '+f(x+d*s*1.7)+','+f(y+s*0.7),fill:color},p);
+}
+function vhead(p,x,y,dir,color,s){
+  var d=dir==='d'?-1:1;
+  el('polygon',{points:x+','+y+' '+f(x-s*0.7)+','+f(y+d*s*1.7)+' '+f(x+s*0.7)+','+f(y+d*s*1.7),fill:color},p);
+}
+function bigArrow(p,x1,y1,x2,y2,color){
+  var dx=x2-x1,dy=y2-y1,L=Math.hypot(dx,dy),ux=dx/L,uy=dy/L,px=-uy,py=ux,bw=3.2,hw=9,hl=11;
+  var bx=x2-ux*hl,by=y2-uy*hl;
+  var pts=[[x1+px*bw,y1+py*bw],[bx+px*bw,by+py*bw],[bx+px*hw,by+py*hw],[x2,y2],[bx-px*hw,by-py*hw],[bx-px*bw,by-py*bw],[x1-px*bw,y1-py*bw]];
+  el('polygon',{points:pts.map(function(q){return f(q[0])+','+f(q[1]);}).join(' '),fill:color,'fill-opacity':.14,stroke:color,'stroke-width':1.3,'stroke-linejoin':'round'},p);
+}
+function biArrow(p,x1,y1,x2,y2,color){
+  var dx=x2-x1,dy=y2-y1,L=Math.hypot(dx,dy),ux=dx/L,uy=dy/L,px=-uy,py=ux,bw=2.6,hw=7,hl=9;
+  function P(a,b){return f(x1+ux*a+px*b)+','+f(y1+uy*a+py*b);}
+  var pts=[P(0,0),P(hl,hw),P(hl,bw),P(L-hl,bw),P(L-hl,hw),P(L,0),P(L-hl,-hw),P(L-hl,-bw),P(hl,-bw),P(hl,-hw)];
+  el('polygon',{points:pts.join(' '),fill:color,'fill-opacity':.14,stroke:color,'stroke-width':1.3,'stroke-linejoin':'round'},p);
+}
+
+var links=document.getElementById('links');
+
+/* ---- one signal row on the left link ---- */
+var BITS_X=222, R=17;
+function sigRow(o){
+  var g=el('g',{class:'sig','data-k':o.k},links);
+  var right=o.dir==='r';
+  var xs=right?o.x1:o.x2, xe=right?o.x2:o.x1;
+  var thick=o.k==='flit';
+  var lineEnd=right?xe-7:xe+7;
+  el('line',{class:'ln',x1:right?o.x1:o.x2,y1:o.y,x2:lineEnd,y2:o.y,stroke:o.color,'stroke-width':thick?2.4:1.2},g);
+  head(g,xe,o.y,o.dir,o.color,thick?5.5:4);
+  addFlow(g,'M'+xs+' '+o.y+' L'+xe+' '+o.y,o.color,thick?2:1,thick?58:o.k==='crd'?44:70,o.seed,thick?2.5:2);
+  txt(g,(o.x1+o.x2)/2,o.y+4.4,o.name,'sig-name');
+  txt(g,BITS_X,o.y+4.4,o.bits,'bits');
+}
+function header(h,name,color){
+  var g=el('g',{class:'sig','data-k':'hdr'},links);
+  el('line',{x1:-18,y1:h+R,x2:90,y2:h+R,stroke:color,'stroke-width':1.2},g);
+  el('line',{x1:90,y1:h,x2:90,y2:h+R*2,stroke:color,'stroke-width':1.2},g);
+  txt(g,36,h+R+4.8,name,'chname');
+}
+function drawLink(out){
+  var b=out?{title:184,rdy:202,h0:222}:{title:452,rdy:470,h0:490};
+  var p=out?'TX':'RX';
+  txt(links,-8,b.title,out?'Outbound link':'Inbound link','lk-title');
+  sigRow({y:b.rdy,x1:-16,x2:216,dir:out?'r':'l',name:'rdyto_rcv_crds',bits:'1 bit',color:C.crd,k:'crd',seed:out?.1:.6});
+  CH.forEach(function(c,i){
+    var h=b.h0+i*(R*3+5), name=c[0], col=c[1];
+    header(h,name,col);
+    sigRow({y:h,x1:90,x2:216,dir:out?'r':'l',name:p+name+'FLITV',bits:'1 bit',color:col,k:'valid',seed:i*.23});
+    sigRow({y:h+R,x1:90,x2:216,dir:out?'r':'l',name:p+name+'FLIT',bits:c[2],color:col,k:'flit',seed:i*.17+.3});
+    sigRow({y:h+R*2,x1:90,x2:216,dir:out?'l':'r',name:p+name+'LCRDV',bits:'1 bit',color:C.crd,k:'crd',seed:i*.29+.5});
+  });
+}
+drawLink(true);
+drawLink(false);
+
+/* ---- link bundles to the four neighbouring routers ---- */
+var COL=[C.req,C.dat,C.rsp,C.snp];
+function vBundle(xs,thinX,yTail,yTip,cy){
+  var up=yTip<yTail;
+  xs.forEach(function(x,i){
+    var g=el('g',{class:'sig','data-k':'flit'},links);
+    bigArrow(g,x,yTail,x,yTip,COL[i]);
+    addFlow(g,'M'+x+' '+yTail+' L'+x+' '+yTip,COL[i],2,62,i*.21,2.5);
+  });
+  var g2=el('g',{class:'sig','data-k':'crd'},links);
+  el('line',{class:'ln',x1:thinX,y1:yTail,x2:thinX,y2:yTip+(up?6:-6),stroke:C.crd,'stroke-width':1.2},g2);
+  vhead(g2,thinX,yTip,up?'u':'d',C.crd,4);
+  addFlow(g2,'M'+thinX+' '+yTail+' L'+thinX+' '+yTip,C.crd,1,48,.4,2);
+  var cx=(xs[0]+thinX)/2;
+  el('ellipse',{class:'oval',cx:cx,cy:cy,rx:(thinX-xs[0])/2+16,ry:12},links);
+}
+function hBundle(ys,thinY,xTail,xTip,cx){
+  var rightward=xTip>xTail;
+  ys.forEach(function(y,i){
+    var g=el('g',{class:'sig','data-k':'flit'},links);
+    bigArrow(g,xTail,y,xTip,y,COL[i]);
+    addFlow(g,'M'+xTail+' '+y+' L'+xTip+' '+y,COL[i],2,62,i*.21,2.5);
+  });
+  var g2=el('g',{class:'sig','data-k':'crd'},links);
+  el('line',{class:'ln',x1:xTail,y1:thinY,x2:xTip+(rightward?-6:6),y2:thinY,stroke:C.crd,'stroke-width':1.2},g2);
+  head(g2,xTip,thinY,rightward?'r':'l',C.crd,4);
+  addFlow(g2,'M'+xTail+' '+thinY+' L'+xTip+' '+thinY,C.crd,1,48,.4,2);
+  var cy=(ys[0]+thinY)/2+ (ys[0]>thinY?(ys[ys.length-1]-thinY)/2-(ys[0]-thinY)/2:0);
+  el('ellipse',{class:'oval',cx:cx,cy:(Math.min(thinY,ys[0])+Math.max(thinY,ys[ys.length-1]))/2,rx:12,ry:Math.abs(ys[ys.length-1]-thinY)/2+16},links);
+}
+vBundle([380,405,430,455],485,160,72,116);
+vBundle([560,585,610,635],665,72,160,116);
+vBundle([384,409,434,459],489,828,742,786);
+vBundle([571,596,621,646],676,742,828,786);
+hBundle([370,395,420,445],340,862,948,905);
+hBundle([556,581,606,631],530,948,862,905);
+
+/* ---- L0 and L1 links ---- */
+function cornerFlow(g,x1,y1,x2,y2,seed){
+  addFlow(g,'M'+x1+' '+y1+' L'+x2+' '+y2,C.link,1,34,seed,2.3);
+}
+(function(){
+  var defs=[[880,125,845,160],[903,148,860,191],[240,763,287,716],[262,785,307,740]];
+  defs.forEach(function(a,i){
+    var g=el('g',{class:'sig','data-k':'link'},links);
+    biArrow(g,a[0],a[1],a[2],a[3],C.link);
+    var mx=(a[0]+a[2])/2,my=(a[1]+a[3])/2;
+    el('ellipse',{class:'oval',cx:mx,cy:my,rx:15,ry:6,transform:'rotate(45 '+mx+' '+my+')'},g);
+    cornerFlow(g,a[0],a[1],a[2],a[3],i*.25);
+    cornerFlow(g,a[2],a[3],a[0],a[1],i*.25+.5);
+  });
+})();
+
+/* ---- animation loop ---- */
+if(reduce){ place(0); }
+else{
+  (function loop(ts){ place(ts/1000); requestAnimationFrame(loop); })(0);
+}
+})();
+</script>
+<script>
+(function(){
+const NS='http://www.w3.org/2000/svg';
+function el(tag,attrs,parent){
+  const e=document.createElementNS(NS,tag);
+  for(const k in attrs){ if(attrs[k]!==null && attrs[k]!==undefined) e.setAttribute(k,attrs[k]); }
+  if(parent) parent.appendChild(e);
+  return e;
+}
+const svg=document.getElementById('d');
+const SCALE=1.3, MIN=7.2;
+
+/* ---------- markers ---------- */
+const defs=el('defs',{},svg);
+function marker(id,color){
+  const m=el('marker',{id,markerUnits:'userSpaceOnUse',markerWidth:6,markerHeight:6,refX:5.5,refY:3,orient:'auto-start-reverse'},defs);
+  el('path',{d:'M0,0 L6,3 L0,6 z',fill:color},m);
+}
+marker('ah','#475569'); marker('ahb','#2563eb'); marker('aho','#ea580c');
+
+/* ---------- helpers ---------- */
+function T(p,x,y,s,o={}){
+  const t=el('text',{x,y,'text-anchor':o.a||'middle','font-size':Math.max((o.s||6)*SCALE,o.min??MIN),'font-weight':o.w||400,fill:o.c||'#0f172a',
+    transform:o.r?`rotate(${o.r} ${x} ${y})`:null},p);
+  t.textContent=s; return t;
+}
+function TL(p,x,y,arr,o={}){ arr.forEach((s,i)=>T(p,x,y+i*(o.lh||7)*1.25,s,o)); }
+function R(p,x,y,w,h,fill,stroke,o={}){
+  return el('rect',{x,y,width:w,height:h,rx:o.rx??2,fill,stroke,'stroke-width':o.sw||.9,'stroke-dasharray':o.dash||null,class:o.plain?null:'shape'},p);
+}
+function A(p,d,cls=''){ return el('path',{d,class:'arr '+cls},p); }
+function WA(p,x1,x2,y){   // hollow wide arrow (flit data)
+  el('polygon',{points:`${x1},${y-3.5} ${x2-8},${y-3.5} ${x2-8},${y-7} ${x2},${y} ${x2-8},${y+7} ${x2-8},${y+3.5} ${x1},${y+3.5}`,class:'wa'},p);
+}
+function G(stages,cls=''){ return el('g',{class:'blk '+cls,'data-s':stages.join(',')},svg); }
+function badge(p,x,y,n,color='#1e293b'){
+  if(n>7) return;
+  el('circle',{cx:x,cy:y,r:6,fill:color,stroke:'#fff','stroke-width':1},p);
+  T(p,x,y+2.4,String(n),{s:7,w:700,c:'#fff'});
+}
+
+/* frame */
+el('rect',{x:22,y:70,width:868,height:422,rx:6,fill:'#fff',stroke:'#94a3b8','stroke-width':.8},svg);
+
+const PORTS=['E','W','N','S','L0','L1'];
+const CH=['REQ','DAT','SNP','RSP'];
+
+/* ================= STAGE 1 : input ports + decoder ================= */
+(function(){
+  const g=G([1]);
+  T(g,72,80,'INPUT PORTS',{s:6.5,w:700});
+  PORTS.forEach((nm,i)=>{
+    const y0=90+i*67;
+    R(g,55,y0,53,56,nm==='N'?'#bbf7d0':'#dbeafe',nm==='N'?'#16a34a':'#60a5fa');
+    CH.forEach((c,k)=>{
+      const ry=y0+4+k*13;
+      el('rect',{x:57,y:ry,width:26,height:11,fill:'#fff',stroke:'#334155','stroke-width':.6},g);
+      T(g,70,ry+8,c,{s:6.2});
+      A(g,`M22,${ry+5.5} H57`);
+    });
+    T(g,96,y0+31,nm,{s:8,w:700});
+  });
+  // dotted fan to decoder
+  el('path',{d:'M108,224 L203,92 M108,280 L203,372',fill:'none',stroke:'#334155','stroke-width':.8,'stroke-dasharray':'2 2'},g);
+  // signals into decoder
+  T(g,116,139,'rdyto_rcv_crds',{s:5.5,a:'start'}); A(g,'M178,137 H203');
+  T(g,150,177,'REQ',{s:7,w:700,a:'start'}); A(g,'M178,175 H203');
+  T(g,134,211,'DAT',{s:7,w:700,a:'start'}); A(g,'M163,209 H203');
+  T(g,128,271,'SNP',{s:7,w:700,a:'end'});
+  el('path',{d:'M141,238 Q135,238 135,244 V260 Q135,267 130,267 Q135,267 135,274 V290 Q135,296 141,296',fill:'none',stroke:'#334155','stroke-width':.8},g);
+  T(g,146,254,'SNPFLITV',{s:5.3,a:'start'}); A(g,'M190,252 H203');
+  T(g,146,269,'SNPFLIT',{s:5.3,a:'start'}); A(g,'M186,267 H203');
+  T(g,186,261,'126 bits',{s:4.5,min:6.2});
+  T(g,146,285,'LCRDV',{s:5.3,a:'start'}); A(g,'M203,283 H178');
+  T(g,160,321,'RSP',{s:7,w:700,a:'start'}); A(g,'M186,319 H203');
+  // decoder
+  R(g,203,92,97,280,'#a5f3fc','#0891b2');
+  TL(g,251,207,['Decoder Logic','FSMs'],{s:7,w:700,lh:9});
+  TL(g,251,232,['(Activation of links and','other modules, select','empty VCs to write','Flit)'],{s:5.4,lh:7.2});
+  badge(g,203,92,1);
+})();
+
+/* ================= STAGE 2 : pipeline demuxes -> BW, VSM ================= */
+(function(){
+  const dm=[[92,148],[160,224],[237,292],[305,358]];            // REQ, DAT, SNP, RSP demux extents
+  const cellY=(base,j)=>base+11*j+4.75;                         // BW VC cell centres
+  const target={0:352, 1:352, 2:241, 3:290};                    // REQ,DAT -> L1 VCs, SNP -> N VCs, RSP -> W VCs
+  const elbow={0:j=>358-4*j, 1:j=>344-3*j, 2:null, 3:j=>338+5*j};
+  // select lines: decoder -> each demux individually (shown with the decoder in stage 1)
+  const sel=(g,y1)=>{ A(g,`M300,${y1+6} H317 V${y1-4}`); T(g,309,y1+3.5,'sel',{s:4.2,c:'#475569',min:5.8}); };
+  const gs=G([1]), gd=G([]);                      // only the SNP select line is lit in the Decode stage
+  dm.forEach(([y0,y1],k)=>sel(k===2?gs:gd,y1));
+  dm.forEach(([y0,y1],k)=>{
+    // only the SNP demux belongs to the Buffer Write stage highlight
+    const g=G(k===2?[2]:[]);
+    el('polygon',{points:`305,${y0+10} 330,${y0} 330,${y1} 305,${y1-10}`,fill:'#f1f5f9',stroke:'#334155','stroke-width':.9,class:'shape'},g);
+    T(g,318,(y0+y1)/2,`Pipeline${k+1} ${CH[k]}`,{s:4.6,w:700,r:-90,min:6.2});
+    A(g,`M300,${(y0+y1)/2} H305`);
+    if(k===2) sel(g,y1);
+    for(let j=0;j<4;j++){
+      const ys=y0+(j+.5)*(y1-y0)/4, yt=cellY(target[k],j);
+      if(k===2) A(g,`M330,${yt} H385`);   // straight into the N port VC cells
+      else A(g,`M330,${ys.toFixed(1)} H346`);   // other demuxes: plain outward arrows
+    }
+  });
+  const v=G([2]);
+  R(v,363,92,98,56,'#d8b4fe','#9333ea');
+  TL(v,412,104,['VC STATE MACHINE','and','CONTROL UNIT'],{s:6,w:700,lh:7.6});
+  T(v,412,143,'(QoS/Age per channel etc.)',{s:5.2});
+  A(v,'M398,148 V217','dbl'); A(v,'M424,148 V217','dbl');
+})();
+
+/* ================= BW (stages 2,3,6) ================= */
+(function(){
+  const g=G([2,3,6]);
+  R(g,385,217,92,183,'#f8fafc','#334155');
+  TL(g,431,226,['BUFFER WRITE','(BW)'],{s:6,w:700,lh:7});
+  const groups=[['N',241],['W',290],['L1',352]];
+  groups.forEach(([nm,y0])=>{
+    for(let k=0;k<4;k++){
+      el('rect',{x:407,y:y0+k*11,width:36,height:9.5,fill:'#fff',stroke:'#334155','stroke-width':.6},g);
+      T(g,425,y0+k*11+7,'VC'+k,{s:5.3});
+    }
+    T(g,461,y0+26,nm,{s:8,w:700});
+  });
+  T(g,425,343,'⋮',{s:11,w:700});
+  badge(g,385,217,2);
+})();
+
+/* ================= STAGE 3 : RC ================= */
+(function(){
+  const g=G([3]);
+  A(g,'M452,217 V200 H505 V193');
+  for(let k=5;k>=1;k--) R(g,480+2*k,140-5*k,66,52,k%2?'#fbcfe8':'#f9a8d4','#be185d',{sw:.6});
+  R(g,480,140,66,52,'#fce7f3','#be185d');
+  T(g,513,148,'XY ROUTING',{s:5.8,w:700});
+  el('line',{x1:507,x2:519,y1:160,y2:160,stroke:'#334155','stroke-width':.8},g);
+  el('line',{x1:513,x2:513,y1:154,y2:166,stroke:'#334155','stroke-width':.8},g);
+  T(g,513,153,'N',{s:4.5,w:700,min:5.5}); T(g,513,172,'S',{s:4.5,w:700,min:5.5});
+  T(g,503,162,'W',{s:4.5,w:700,min:5.5}); T(g,523,162,'E',{s:4.5,w:700,min:5.5});
+  el('circle',{cx:491,cy:158,r:2.6,fill:'#111827'},g); el('circle',{cx:535,cy:158,r:2.6,fill:'#111827'},g);
+  T(g,483,170,'CURR',{s:4.8,a:'start',min:6}); T(g,544,170,'DEST',{s:4.8,a:'end',min:6});
+  T(g,513,180,'X COMPARE',{s:5.4,w:700}); T(g,513,189,'Y COMPARE',{s:5.4,w:700});
+  badge(g,480,140,3);
+})();
+
+/* ================= STAGE 4 : RA (the updated block) ================= */
+(function(){
+  const g=G([4],'ra');
+  R(g,556,92,106,96,'#fbcfe8','#ea580c',{sw:1.6});
+  el('rect',{x:557,y:93,width:104,height:21,fill:'#fff'},g);
+  TL(g,609,101,['RESOURCE','ALLOCATION (RA)'],{s:5.4,w:700,lh:7});
+  TL(g,609,123,['Check Downstream Credit','Availability','If available, allocate','resource to one of the','available flit based on','QoS/Age value'],{s:5.3,lh:8});
+  el('rect',{x:620,y:80,width:42,height:12,rx:2.5,fill:'#ea580c'},g);
+  T(g,641,89,'UPDATED',{s:5.4,w:800,c:'#fff'});
+  badge(g,556,92,4,'#ea580c');
+  const c=G([4],'ra');
+  A(c,'M500,410 V208 H598 V189','ora');
+  TL(c,506,339,['DOWNSTREAM','CREDIT'],{s:5.3,w:700,c:'#c2410c',a:'start',lh:7});
+})();
+
+/* ================= STAGE 5 : SA ================= */
+(function(){
+  const g=G([5]);
+  R(g,662,92,106,96,'#ede9fe','#7c3aed');
+  el('rect',{x:663,y:93,width:104,height:21,fill:'#fff'},g);
+  TL(g,715,101,['SWITCH','ALLOCATION (SA)'],{s:5.4,w:700,lh:7});
+  el('rect',{x:668,y:118,width:40,height:24,fill:'#fff',stroke:'#334155','stroke-width':.6},g);
+  TL(g,688,128,['PORTS','REQ'],{s:4.8,lh:6.4});
+  A(g,'M688,142 V152');
+  el('rect',{x:666,y:152,width:46,height:30,fill:'#fff',stroke:'#334155','stroke-width':.6},g);
+  TL(g,689,164,['SEPARABLE','ALLOCATOR'],{s:4.4,lh:6.4,min:6.6});
+  A(g,'M712,167 H718');
+  el('rect',{x:718,y:152,width:46,height:30,fill:'#fff',stroke:'#334155','stroke-width':.6},g);
+  TL(g,741,164,['GRANT','SIGNALS'],{s:4.6,lh:6.4,min:6.6});
+  badge(g,662,92,5);
+  const gg=G([5,6]);
+  A(gg,'M703,188 V225');
+})();
+
+/* ================= STAGE 6 : ST ================= */
+(function(){
+  const g=G([6]);
+  [262,311,373].forEach(y=>WA(g,477,610,y));
+  TL(g,508,226,['FLIT DATA (126 bits)','AFTER ST READ'],{s:5.4,a:'start',lh:7});
+  R(g,610,225,112,162,'#fbcfe8','#be185d');
+  el('rect',{x:611,y:226,width:110,height:11,fill:'#fff'},g);
+  T(g,666,234,'SWITCH TRAVERSAL (ST)',{s:5.2,w:700});
+  // crossbar switch symbol: two inputs cross over to two outputs (with horizontal stubs)
+  el('path',{d:'M622,270 H638 L694,342 H712',class:'xline'},g);
+  el('path',{d:'M622,342 H638 L694,270 H712',class:'xline'},g);
+  TL(g,632,303,['INPUT','PORT'],{s:5.4,lh:7.2});
+  TL(g,701,303,['OUTPUT','PORT'],{s:5.4,lh:7.2});
+  TL(g,666,368,['CROSSBAR','6x6'],{s:5.6,w:700,lh:7});
+  badge(g,610,225,6);
+})();
+
+/* ================= STAGE 7 : output ports ================= */
+(function(){
+  const g=G([7]);
+  const ys=[237,263,289,316,343,370];
+  ys.forEach((y,i)=>{ WA(g,722,750,y); T(g,757,y+3,PORTS[i],{s:6.5,w:700,a:'start'}); });
+  el('path',{d:'M770,282 L800,173 M770,296 L800,385',fill:'none',stroke:'#334155','stroke-width':.8,'stroke-dasharray':'2 2'},g);
+  R(g,800,173,85,212,'rgba(255,255,255,0)','#334155',{dash:'2 2',sw:.8});
+  T(g,804,189,'rdyto_rcv_crds',{s:5.3,a:'start'}); A(g,'M864,187 H884');
+  T(g,822,230,'REQ',{s:7,w:700}); A(g,'M846,228 H884');
+  T(g,822,262,'DAT',{s:7,w:700}); A(g,'M846,260 H884');
+  T(g,820,304,'SNPFLITV',{s:5.3}); A(g,'M840,302 H884');
+  T(g,818,319,'SNPFLIT',{s:5.3}); A(g,'M838,317 H884');
+  T(g,866,311,'126 bits',{s:4.5,min:6.2});
+  T(g,822,372,'RSP',{s:7,w:700}); A(g,'M846,370 H884');
+  A(g,'M640,387 V400 H565 V410','dash');
+  badge(g,800,173,7);
+})();
+
+/* ================= STAGE 8 : flow control unit ================= */
+(function(){
+  const g=G([4,7,8,9]);
+  R(g,475,410,146,82,'#ddd6fe','#7c3aed');
+  T(g,548,420,'FLOW CONTROL UNIT',{s:5.8,w:700});
+  R(g,481,424,92,64,'#ede9fe','#7c3aed',{plain:true,sw:.6});
+  T(g,527,433,'CREDIT MANAGER',{s:4.8,w:700,min:6.6});
+  R(g,487,437,42,30,'#fff','#334155',{plain:true,sw:.6});
+  TL(g,508,445,['CREDIT','COUNTER'],{s:4.8,lh:6,min:6.2});
+  T(g,548,458,'4',{s:9,w:800,c:'#1e1b4b'});
+  TL(g,597,431,['DECREMENT','ON SENT'],{s:4.4,lh:5.8,min:6.2});
+  el('circle',{cx:597,cy:456,r:5.5,fill:'#fff',stroke:'#334155','stroke-width':.7},g);
+  T(g,597,459,'−',{s:7});
+  el('circle',{cx:490,cy:477,r:5,fill:'#fff',stroke:'#334155','stroke-width':.7},g);
+  T(g,490,480,'+',{s:6});
+  T(g,499,480,'INCREMENT ON RETURN',{s:4.4,a:'start',min:5.8});
+  badge(g,475,410,8);
+  const h=G([9]);
+  A(h,'M475,430 H252 V374');
+  T(h,365,424,'L CREDIT SENT (LCRDV)',{s:6.8});
+  A(h,'M884,336 H782 V455 H622');
+  T(h,862,332,'LCRDV',{s:5.3});
+  T(h,700,451,'L CREDIT RECEIVED',{s:6.8});
+})();
+
+})();
+/* the deck's two stops: the architecture, then the pipeline below it. A clicker cannot scroll. */
+var view=0;
+function show(){ window.scrollTo({top:document.getElementById('view-'+view).offsetTop}); }
+window.hwSlide={goto:function(n){ view=n; show(); }};
+window.addEventListener('resize',show);
+</script>
+<script>
+/* Hardware deck bridge: arrow keys / Space are forwarded to the deck, and the deck drives this slide's steps. */
+(function(){
+  function post(m){ try{ parent.postMessage(m,'*'); }catch(e){} }
+  window.addEventListener('keydown',function(e){
+    if(e.code==='ArrowRight'||e.code==='ArrowLeft'||e.code==='Space'){
+      e.preventDefault(); e.stopImmediatePropagation(); post({hw:'key',code:e.code});
+    }
+  },true);
+  window.hwReport=function(n){ post({hw:'step',step:n}); };
+  window.hwPost=post;
+  window.addEventListener('message',function(e){
+    var m=e.data; if(!m||!m.hw||!window.hwSlide) return;
+    if(m.hw==='goto') window.hwSlide.goto(m.step);
+    else if(m.hw==='play'&&window.hwSlide.play) window.hwSlide.play();
+    else if(m.hw==='pause'&&window.hwSlide.pause) window.hwSlide.pause();
+  });
+  window.addEventListener('load',function(){ setTimeout(function(){ post({hw:'ready'}); },0); });
+})();
+</script>
+</body>
+</html>

@@ -326,7 +326,7 @@ body {
         <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-purple), var(--col-blue))">⬡</div>
         <div class="landing-card-text">
           <div class="landing-card-name">Hardware Architecture &amp; Router Design</div>
-          <div class="landing-card-desc">The node / device link handshake, the router link layer, the CHI handshake, the updated CHI router, the credit mechanism, and QoS arbitration with aging, the router pipeline flow, and the CHI flit channels.</div>
+          <div class="landing-card-desc">The complete and simplified link handshakes compared, the CHI handshake, the updated CHI router, the credit mechanism, and QoS arbitration with aging, the router pipeline flow, and the CHI flit channels.</div>
         </div>
         <div class="landing-card-arrow">→</div>
       </div>
@@ -361,17 +361,10 @@ body {
         </div>
         <div class="landing-card-arrow">↗</div>
       </a>
-      <a class="landing-card" href="../repo-presentation/index.html">
-        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-purple), var(--col-orange))">⇆</div>
-        <div class="landing-card-text">
-          <div class="landing-card-name">Repository, CI/CD &amp; Documentation</div>
-        </div>
-        <div class="landing-card-arrow">↗</div>
-      </a>
       <a class="landing-card" href="../mesh-presentation/index.html">
         <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-orange), var(--col-pink))">⊞</div>
         <div class="landing-card-text">
-          <div class="landing-card-name">Internal Mesh &amp; Node Architecture</div>
+          <div class="landing-card-name">Summary and Documentation</div>
         </div>
         <div class="landing-card-arrow">↗</div>
       </a>
@@ -394,7 +387,7 @@ body {
   <div class="hdr-center" id="hdr-stage-info">
     Step <span id="hdr-num">1</span> of <span id="hdr-total">1</span>
     &nbsp;·&nbsp;
-    <span id="hdr-name">Node / Device Link</span>
+    <span id="hdr-name">Link Handshake Comparison</span>
   </div>
   <div class="phase-pill" id="phase-pill">
     <span class="phase-dot"></span>
@@ -412,47 +405,37 @@ body {
   <div class="nav-group-label">Presentation Pages</div>
   <button class="nav-item active" id="nav-0" onclick="App.goToPage(0)">
     <div class="nav-status-icon" id="nav-st-0"></div>
-    <div class="nav-text"><div class="nav-num">01</div><div class="nav-name">Node / Device Link</div></div>
+    <div class="nav-text"><div class="nav-num">01</div><div class="nav-name">Link Handshake Comparison</div></div>
     <div class="nav-color-dot" style="background:var(--col-cyan)"></div>
   </button>
   <button class="nav-item" id="nav-1" onclick="App.goToPage(1)">
     <div class="nav-status-icon" id="nav-st-1"></div>
-    <div class="nav-text"><div class="nav-num">02</div><div class="nav-name">Link Layer Interface</div></div>
-    <div class="nav-color-dot" style="background:var(--col-teal)"></div>
+    <div class="nav-text"><div class="nav-num">02</div><div class="nav-name">CHI Handshake</div></div>
+    <div class="nav-color-dot" style="background:var(--col-orange)"></div>
   </button>
   <button class="nav-item" id="nav-2" onclick="App.goToPage(2)">
     <div class="nav-status-icon" id="nav-st-2"></div>
-    <div class="nav-text"><div class="nav-num">03</div><div class="nav-name">CHI Handshake</div></div>
-    <div class="nav-color-dot" style="background:var(--col-orange)"></div>
+    <div class="nav-text"><div class="nav-num">03</div><div class="nav-name">Router Architecture &amp; Pipeline</div></div>
+    <div class="nav-color-dot" style="background:var(--col-purple)"></div>
   </button>
   <button class="nav-item" id="nav-3" onclick="App.goToPage(3)">
     <div class="nav-status-icon" id="nav-st-3"></div>
-    <div class="nav-text"><div class="nav-num">04</div><div class="nav-name">CHI Router Architecture</div></div>
-    <div class="nav-color-dot" style="background:var(--col-purple)"></div>
+    <div class="nav-text"><div class="nav-num">04</div><div class="nav-name">Credit Mechanism</div></div>
+    <div class="nav-color-dot" style="background:var(--col-pink)"></div>
   </button>
   <button class="nav-item" id="nav-4" onclick="App.goToPage(4)">
     <div class="nav-status-icon" id="nav-st-4"></div>
-    <div class="nav-text"><div class="nav-num">05</div><div class="nav-name">Credit Mechanism</div></div>
-    <div class="nav-color-dot" style="background:var(--col-pink)"></div>
+    <div class="nav-text"><div class="nav-num">05</div><div class="nav-name">QoS Arbitration</div></div>
+    <div class="nav-color-dot" style="background:var(--col-green)"></div>
   </button>
   <button class="nav-item" id="nav-5" onclick="App.goToPage(5)">
     <div class="nav-status-icon" id="nav-st-5"></div>
-    <div class="nav-text"><div class="nav-num">06</div><div class="nav-name">QoS Arbitration</div></div>
-    <div class="nav-color-dot" style="background:var(--col-green)"></div>
+    <div class="nav-text"><div class="nav-num">06</div><div class="nav-name">QoS Aging</div></div>
+    <div class="nav-color-dot" style="background:var(--col-blue)"></div>
   </button>
   <button class="nav-item" id="nav-6" onclick="App.goToPage(6)">
     <div class="nav-status-icon" id="nav-st-6"></div>
-    <div class="nav-text"><div class="nav-num">07</div><div class="nav-name">QoS Aging</div></div>
-    <div class="nav-color-dot" style="background:var(--col-blue)"></div>
-  </button>
-  <button class="nav-item" id="nav-7" onclick="App.goToPage(7)">
-    <div class="nav-status-icon" id="nav-st-7"></div>
-    <div class="nav-text"><div class="nav-num">08</div><div class="nav-name">Router Pipeline Flow</div></div>
-    <div class="nav-color-dot" style="background:var(--col-yellow)"></div>
-  </button>
-  <button class="nav-item" id="nav-8" onclick="App.goToPage(8)">
-    <div class="nav-status-icon" id="nav-st-8"></div>
-    <div class="nav-text"><div class="nav-num">09</div><div class="nav-name">CHI Flit Channels</div></div>
+    <div class="nav-text"><div class="nav-num">07</div><div class="nav-name">CHI Flit Channels</div></div>
     <div class="nav-color-dot" style="background:var(--col-purple)"></div>
   </button>
   <div class="nav-kbd-hint">
@@ -461,32 +444,26 @@ body {
   </div>
 </nav>
 <main id="main-canvas">
-  <div id="page-nodedevice" class="page-view frame-page active">
-    <div class="frame-card"><iframe id="frame-0" data-src="slides/node-device-link.html" title="Node / device link handshake" tabindex="-1"></iframe></div>
-  </div>
-  <div id="page-linklayer" class="page-view frame-page">
-    <div class="frame-card"><iframe id="frame-1" data-src="slides/link-layer-interface.html" title="Link layer router interface" tabindex="-1"></iframe></div>
+  <div id="page-linkcompare" class="page-view frame-page active">
+    <div class="frame-card"><iframe id="frame-0" data-src="slides/link-comparison.html" title="Link handshake: complete vs simplified" tabindex="-1"></iframe></div>
   </div>
   <div id="page-handshake" class="page-view frame-page">
-    <div class="frame-card"><iframe id="frame-2" data-src="slides/chi-handshake.html" title="CHI handshake: complete vs simplified" tabindex="-1"></iframe></div>
+    <div class="frame-card"><iframe id="frame-1" data-src="slides/chi-handshake.html" title="CHI handshake: complete vs simplified" tabindex="-1"></iframe></div>
   </div>
   <div id="page-router" class="page-view frame-page">
-    <div class="frame-card"><iframe id="frame-3" data-src="slides/router-architecture.html" title="CHI router architecture" tabindex="-1"></iframe></div>
+    <div class="frame-card"><iframe id="frame-2" data-src="slides/router-overview.html" title="CHI router architecture and pipeline" tabindex="-1"></iframe></div>
   </div>
   <div id="page-credit" class="page-view frame-page">
-    <div class="frame-card"><iframe id="frame-4" data-src="slides/credit-mechanism.html" title="Credit mechanism" tabindex="-1"></iframe></div>
+    <div class="frame-card"><iframe id="frame-3" data-src="slides/credit-mechanism.html" title="Credit mechanism" tabindex="-1"></iframe></div>
   </div>
   <div id="page-qosarb" class="page-view frame-page">
-    <div class="frame-card"><iframe id="frame-5" data-src="slides/qos-arbitration.html" title="VC QoS arbitration" tabindex="-1"></iframe></div>
+    <div class="frame-card"><iframe id="frame-4" data-src="slides/qos-arbitration.html" title="VC QoS arbitration" tabindex="-1"></iframe></div>
   </div>
   <div id="page-qosage" class="page-view frame-page">
-    <div class="frame-card"><iframe id="frame-6" data-src="slides/qos-aging.html" title="VC QoS aging" tabindex="-1"></iframe></div>
-  </div>
-  <div id="page-pipeline" class="page-view frame-page">
-    <div class="frame-card"><iframe id="frame-7" data-src="slides/router-pipeline-flow.html" title="Updated CHI router pipeline flow" tabindex="-1"></iframe></div>
+    <div class="frame-card"><iframe id="frame-5" data-src="slides/qos-aging.html" title="VC QoS aging" tabindex="-1"></iframe></div>
   </div>
   <div id="page-flitch" class="page-view frame-page">
-    <div class="frame-card"><iframe id="frame-8" data-src="slides/chi-flit-channels.html" title="CHI flit channels" tabindex="-1"></iframe></div>
+    <div class="frame-card"><iframe id="frame-6" data-src="slides/chi-flit-channels.html" title="CHI flit channels" tabindex="-1"></iframe></div>
   </div>
 </main>
 <!-- ══════════════════════════════════════════════════════════════
@@ -503,7 +480,7 @@ body {
     <div class="prog-pips" id="prog-pips"></div>
     <div class="prog-lbl" id="prog-lbl">
       Step <span id="prog-num">1</span> of <span id="prog-total">16</span> &nbsp;·&nbsp;
-      <span id="prog-name">Node / Device Link</span>
+      <span id="prog-name">Link Handshake Comparison</span>
     </div>
   </div>
   <div class="ctrl-btns">
@@ -519,13 +496,8 @@ body {
    is what the slide shows (points revealed / mode / toggle stage / handshake stage)
 ================================================================ */
 const ROUTER_STEPS = [
-  { num:1, name:"Updated CHI Router Architecture", badge:"Router", badgeColor:"purple",
-    desc:`<ol class="band-points">
-      <li>The VA stage is replaced by a Resource Allocation (RA) stage, which checks the downstream credit availability.</li>
-      <li>If credits are available, the resource is allocated to one of the available flits in the buffers (FIFOs), based on QoS and age.</li>
-      <li>QoS, the CHI handshake and the CHI-based credit mechanism are integrated.</li>
-      <li>A proposed age-based priority algorithm avoids flit starvation.</li>
-    </ol>` },
+  { num:1, name:"Updated CHI Router Architecture", badge:"Router", badgeColor:"purple", desc:"" },
+  { num:2, name:"Router Pipeline", badge:"Pipeline", badgeColor:"purple", desc:"" },
 ];
 const HANDSHAKE_STEPS = [
   { num:1, name:"Complete vs Simplified", badge:"Handshake", badgeColor:"orange",
@@ -535,51 +507,15 @@ const HANDSHAKE_STEPS = [
   { num:3, name:"Simplified CHI Handshake", badge:"Handshake", badgeColor:"blue",
     desc:"Every link in the mesh fabric, from the RN-F to the routers, router to router, and on to the HN-F and SN-F, runs the simplified handshake." },
 ];
-const LINK_STEPS = [
-  { num:1, name:"Router Interface: Both Links Idle", badge:"Link layer", badgeColor:"teal",
-    desc:"The link layer between two routers has an outbound (TX) and an inbound (RX) link. Each has a ready signal (rdyto_rcv_crds) and four channels; everything is idle." },
-  { num:2, name:"Outbound Stage 1: Ready", badge:"Outbound", badgeColor:"orange",
-    desc:"Stage 1 of the outbound link: the ready signal rdyto_rcv_crds goes high. The channels stay quiet." },
-  { num:3, name:"Outbound Stage 2: Channels", badge:"Outbound", badgeColor:"orange",
-    desc:"Stage 2: the four channels light up. Each has FLITV (valid), FLIT (REQ 162, DAT 756, RSP 73, SNP 126 bits) and LCRDV, the credit going back the other way." },
-  { num:4, name:"Inbound Stage 1: Ready", badge:"Inbound", badgeColor:"green",
-    desc:"The inbound link repeats the same two stages: first its ready signal rdyto_rcv_crds goes high." },
-  { num:5, name:"Inbound Stage 2: Channels", badge:"Inbound", badgeColor:"green",
-    desc:"The inbound channels light up: both directions of the link are now up and carrying flits with credits flowing back." },
-];
-const NODE_STEPS = [
-  { num:1, name:"Reset Released: STOP / STOP", badge:"Reset", badgeColor:"cyan",
-    desc:"RESETn is released. Both the outbound and inbound link are in STOP, so nothing may move yet." },
-  { num:2, name:"TXSACTIVE Asserted", badge:"Activate", badgeColor:"cyan",
-    desc:"The node raises TXSACTIVE to tell the device that protocol-layer work is pending." },
-  { num:3, name:"RXSACTIVE Asserted", badge:"Activate", badgeColor:"cyan",
-    desc:"The device raises RXSACTIVE: it is active too, so link activation must not be delayed." },
-  { num:4, name:"Outbound Link: STOP → ACTIVATE", badge:"Activate", badgeColor:"cyan",
-    desc:"TXLINKACTIVEREQ rises. Combined state: TxAct / RxStop." },
-  { num:5, name:"Outbound Link: ACTIVATE → RUN", badge:"Activate", badgeColor:"cyan",
-    desc:"TXLINKACTIVEACK rises. Combined state: TxRun / RxStop." },
-  { num:6, name:"Inbound Link: STOP → ACTIVATE", badge:"Activate", badgeColor:"cyan",
-    desc:"The device raises RXLINKACTIVEREQ. Combined state: TxRun / RxAct." },
-  { num:7, name:"Inbound Link: ACTIVATE → RUN", badge:"Run", badgeColor:"green",
-    desc:"RXLINKACTIVEACK rises. Combined state: TxRun / RxRun, which is stable." },
-  { num:8, name:"L-credits to the Outbound Channels", badge:"Credits", badgeColor:"orange",
-    desc:"TX*LCRDV pulses twice on all four channels, so the node holds 2 L-credits per channel and can send up to 2 flits on each." },
-  { num:9, name:"L-credits to the Inbound Channels", badge:"Credits", badgeColor:"orange",
-    desc:"RX*LCRDV pulses twice: the device now holds 2 credits per inbound channel." },
-  { num:10, name:"Outbound Flit Transfer", badge:"Flits", badgeColor:"blue",
-    desc:"Node to device. FLITPEND warns a flit may follow, then FLITV with the payload on FLIT; each flit uses one L-credit, which comes back on LCRDV." },
-  { num:11, name:"Inbound Flit Transfer", badge:"Flits", badgeColor:"blue",
-    desc:"Device to node, the same pipelined sequence on all four channels, with the credits recycled afterwards." },
-  { num:12, name:"Protocol Activity Ends", badge:"Deactivate", badgeColor:"purple",
-    desc:"TXSACTIVE and RXSACTIVE drop: the node and the device have finished their transactions. Both links are still in RUN." },
-  { num:13, name:"Outbound Link: RUN → DEACTIVATE", badge:"Deactivate", badgeColor:"purple",
-    desc:"TXLINKACTIVEREQ drops and the outbound credits are returned with Link flits. Combined state: TxDeact / RxRun." },
-  { num:14, name:"Inbound Link: RUN → DEACTIVATE", badge:"Deactivate", badgeColor:"purple",
-    desc:"RXLINKACTIVEREQ drops and the device returns its credits with Link flits. Combined state: TxDeact / RxDeact." },
-  { num:15, name:"Outbound Link: DEACTIVATE → STOP", badge:"Deactivate", badgeColor:"purple",
-    desc:"TXLINKACTIVEACK drops. Combined state: TxStop / RxDeact." },
-  { num:16, name:"Inbound Link: DEACTIVATE → STOP", badge:"Idle", badgeColor:"green",
-    desc:"RXLINKACTIVEACK drops. Combined state: TxStop / RxStop, so the interface is fully idle again." },
+const COMPARE_STEPS = [
+  { num:1, name:"Link Handshake: Outbound Link", badge:"Outbound", badgeColor:"purple",
+    desc:`<ol class="band-points cols3">
+      <li>TXSACTIVE and RXSACTIVE are removed.</li>
+      <li>The LINKACTIVE REQ / ACK pair on each link is replaced by one rdyto_rcv_crds signal.</li>
+      <li>FLITPEND is removed from every channel. FLITV, FLIT and LCRDV are unchanged.</li>
+    </ol>` },
+  { num:2, name:"Link Handshake: Inbound Link", badge:"Inbound", badgeColor:"purple",
+    desc:"The inbound link has the same changes: FLITPEND is removed from every channel, and the REQ / ACK pair is replaced by one rdyto_rcv_crds signal." },
 ];
 const CREDIT_STEPS = [
   { num:1, name:"Credit Mechanism", badge:"Credits", badgeColor:"pink",
@@ -613,48 +549,18 @@ const QOSAGE_STEPS = [
   { num:5, name:"VC5 Gets the Priority", badge:"Aging", badgeColor:"blue",
     desc:"The VC5 flit gets the priority: QoS 10 is the highest value." },
 ];
-const PIPELINE_STEPS = [
-  { num:1, name:"Updated Router: Overview", badge:"Pipeline", badgeColor:"yellow",
-    desc:"Detailed functional block diagram of a CHI-based router: the five-stage pipeline and the flow-control unit for a single CHI channel. The other CHI channels follow the same router pipeline architecture." },
-  { num:2, name:"Stage 1: Decode and Input Ports", badge:"Decode", badgeColor:"cyan",
-    desc:"The router has 6 physical input ports (East, West, North, South, Local 0, Local 1). Each port receives flits split into the REQ, DAT, SNP and RSP networks. Incoming flits are decoded and written into the Virtual Channel (VC) buffers." },
-  { num:3, name:"Stage 2: Buffer Write (BW)", badge:"BW", badgeColor:"blue",
-    desc:"Each network message class is assigned to dedicated VC buffers (for example VC0 to VC3), where flits wait for further processing." },
-  { num:4, name:"Stage 3: Route Computation (RC)", badge:"RC", badgeColor:"pink",
-    desc:"Once a flit is buffered, the RC unit computes its output port with XY routing, by comparing the current router coordinates with the destination coordinates." },
-  { num:5, name:"Stage 4: Resource Allocation (RA), Updated", badge:"Updated", badgeColor:"orange",
-    desc:"Flits are prioritized by their QoS values. For each selected flit, the downstream credits for its destination port and VC are checked. If credits are available, the downstream credit is allocated to the VC requesting the flit, so it can proceed to the next stage." },
-  { num:6, name:"Stage 5: Switch Allocation (SA)", badge:"SA", badgeColor:"purple",
-    desc:"Flits with reserved downstream VCs compete for crossbar access. The SA grants access based on QoS values across the port requests." },
-  { num:7, name:"Stage 6: Switch Traversal (ST)", badge:"ST", badgeColor:"pink",
-    desc:"The winning flits are read from their BW buffers, cross the 6x6 crossbar and are forwarded to their assigned output ports." },
-  { num:8, name:"Stage 7: Output Ports", badge:"Output", badgeColor:"green",
-    desc:"The output ports E / W / N / S / L0 / L1 of the snoop channel carry the flit in its assigned direction to the upstream router." },
-  { num:9, name:"Stage 8: Credit Counter Decrement", badge:"Credits", badgeColor:"purple",
-    desc:"After a successful traversal, the Flow Control Unit decrements the local credit counter and regenerates a credit." },
-  { num:10, name:"Stage 9: LCRDV Credit Return", badge:"Credits", badgeColor:"purple",
-    desc:"The VC State Machine monitors buffer occupancy and VC status, while the Flow Control Unit manages the credits for upstream and downstream synchronization." },
-];
 const FLITCH_STEPS = [
-  { num:1, name:"Router ↔ Router", badge:"Channels", badgeColor:"purple",
-    desc:"Between two routers, every link direction carries all four CHI channels: REQ, DAT, RSP and SNP. Each direction has its own rdyto_rcv_crds signal, and the flits stream along the channels." },
-  { num:2, name:"HN-F ↔ Router (Local Port)", badge:"Channels", badgeColor:"green",
-    desc:"The HN-F sends REQ, DAT, RSP and SNP flits to the router. The router sends REQ, RSP and DAT flits back to the HN-F." },
-  { num:3, name:"SN-F ↔ Router (Local Port)", badge:"Channels", badgeColor:"blue",
-    desc:"The SN-F sends DAT and RSP flits to the router. The router sends REQ and DAT flits to the SN-F. Only two channels run each way." },
-  { num:4, name:"RN-F ↔ Router (Local Port)", badge:"Channels", badgeColor:"pink",
-    desc:"The RN-F sends REQ, DAT and RSP flits to the router. The router sends SNP, RSP and DAT flits back to the RN-F." },
+  { num:1, name:"CHI Flit Channels", badge:"Channels", badgeColor:"purple",
+    desc:"Router to router, both directions carry all four channels. At a local port, each node type uses only the channels it needs. Every link direction keeps its own rdyto_rcv_crds signal." },
 ];
 /* ownPlay: the slide has its own autoplay, so Space is handed to it instead of the deck's timer */
 const PAGES = [
-  { id:"nodedevice", label:"Node / Device Link", steps: NODE_STEPS, render: () => {}, ownPlay: true },
-  { id:"linklayer", label:"Link Layer Interface", steps: LINK_STEPS, render: () => {} },
+  { id:"linkcompare", label:"Link Handshake Comparison", steps: COMPARE_STEPS, render: () => {} },
   { id:"handshake", label:"CHI Handshake", steps: HANDSHAKE_STEPS, render: () => {} },
-  { id:"router", label:"CHI Router Architecture", steps: ROUTER_STEPS, render: () => {} },
+  { id:"router", label:"Router Architecture & Pipeline", steps: ROUTER_STEPS, render: () => {} },
   { id:"credit", label:"Credit Mechanism", steps: CREDIT_STEPS, render: () => {} },
   { id:"qosarb", label:"QoS Arbitration", steps: QOSARB_STEPS, render: () => {} },
   { id:"qosage", label:"QoS Aging", steps: QOSAGE_STEPS, render: () => {} },
-  { id:"pipeline", label:"Router Pipeline Flow", steps: PIPELINE_STEPS, render: () => {} },
   { id:"flitch", label:"CHI Flit Channels", steps: FLITCH_STEPS, render: () => {} },
 ];
 /* Neighbors in the master presentation sequence */
@@ -673,6 +579,8 @@ function renderPips(total, current) {
   }
 }
 function renderDetails(step) {
+  /* an empty desc hides the band: the slide carries its own text */
+  document.getElementById("now-band").style.display = step.desc ? "" : "none";
   const band = document.getElementById("band-body");
   band.style.borderLeftColor = `var(--col-${step.badgeColor})`;
   band.innerHTML = `

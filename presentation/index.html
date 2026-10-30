@@ -490,17 +490,10 @@ body {
         </div>
         <div class="landing-card-arrow">↗</div>
       </a>
-      <a class="landing-card" href="../repo-presentation/index.html">
-        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-purple), var(--col-orange))">⇆</div>
-        <div class="landing-card-text">
-          <div class="landing-card-name">Repository, CI/CD &amp; Documentation</div>
-        </div>
-        <div class="landing-card-arrow">↗</div>
-      </a>
       <a class="landing-card" href="../mesh-presentation/index.html">
         <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-orange), var(--col-pink))">⊞</div>
         <div class="landing-card-text">
-          <div class="landing-card-name">Internal Mesh &amp; Node Architecture</div>
+          <div class="landing-card-name">Summary and Documentation</div>
         </div>
         <div class="landing-card-arrow">↗</div>
       </a>
@@ -737,15 +730,15 @@ body {
   </div>
   <!-- ── PAGE 4: SIMULATION RUN FLOW (9 steps) ── -->
   <div id="page-flow" class="page-view">
-    <svg id="flow-svg" viewBox="0 0 1100 580" xmlns="http://www.w3.org/2000/svg" aria-label="What happens when the user clicks Run">
+    <svg id="flow-svg" viewBox="0 0 1100 614" xmlns="http://www.w3.org/2000/svg" aria-label="What happens when the user clicks Run">
       <defs>
         <marker id="m-cyan" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0284c7"/></marker>
         <marker id="m-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker>
       </defs>
       <!-- lanes -->
-      <line class="seq-life" x1="150" y1="58" x2="150" y2="572"/>
-      <line class="seq-life" x1="550" y1="58" x2="550" y2="572"/>
-      <line class="seq-life" x1="950" y1="58" x2="950" y2="572"/>
+      <line class="seq-life" x1="150" y1="58" x2="150" y2="606"/>
+      <line class="seq-life" x1="550" y1="58" x2="550" y2="606"/>
+      <line class="seq-life" x1="950" y1="58" x2="950" y2="606"/>
       <rect class="seq-lane-box" x="30"  y="4" width="240" height="50" rx="10" stroke="#0284c7"/>
       <text class="seq-lane-lbl" x="150" y="25" fill="#0284c7">React GUI (browser)</text>
       <text class="seq-lane-sub" x="150" y="43">REST + WebSocket client</text>
@@ -799,31 +792,35 @@ body {
         <text class="msg-sub" x="290" y="331" style="font-size:9px">{"run_id":"r_…","status":"queued","channels":{…}}</text>
         <g class="badge"><circle cx="430" cy="297" r="11"/><text x="430" y="297">5</text></g>
       </g>
-      <!-- 6: subscribe to the run's state channel (no polling) -->
+      <!-- 6: one subscribe per channel on /ws/v1, each answered by pushes (no polling) -->
       <g class="seq idle" id="seq-6" style="--c:var(--col-cyan)">
         <rect class="note" x="30" y="353" width="240" height="38" rx="8"/>
-        <text class="note-t" x="150" y="370">Subscribe to the state channel</text>
-        <text class="note-s" x="150" y="384">runs.{id}.state</text>
+        <text class="note-t" x="150" y="370">Subscribe to each channel</text>
+        <text class="note-s" x="150" y="384">on /ws/v1, no polling</text>
         <path class="msg" d="M272,366 L546,366" marker-end="url(#m-cyan)"/>
-        <text class="msg-lbl" x="410" y="359">subscribe on /ws/v1</text>
-        <g class="bl"><path class="msg ret" d="M548,382 L274,382" marker-end="url(#m-blue)"/>
-        <text class="msg-sub" x="410" y="397">{"status":"running",</text>
-        <text class="msg-sub" x="410" y="408" style="font-size:9.5px">"progress":{"phase":"measure","cycle":2724}}</text>
-        <path class="msg ret" d="M548,436 L274,436" marker-end="url(#m-blue)"/>
-        <text class="msg-lbl" x="410" y="428">live latency + heatmap pushed</text>
-        <text class="msg-sub" x="410" y="451">runs.{id}.latency · runs.{id}.heatmap</text></g>
+        <text class="msg-lbl" x="410" y="360">subscribe runs.{id}.state</text>
+        <g class="bl"><path class="msg ret" d="M548,376 L274,376" marker-end="url(#m-blue)"/>
+        <text class="msg-sub" x="410" y="389">{"status":"running","progress":{…}}</text></g>
+        <path class="msg" d="M272,412 L546,412" marker-end="url(#m-cyan)"/>
+        <text class="msg-lbl" x="410" y="406">subscribe runs.{id}.latency</text>
+        <g class="bl"><path class="msg ret" d="M548,422 L274,422" marker-end="url(#m-blue)"/>
+        <text class="msg-sub" x="410" y="435">live latency pushed</text></g>
+        <path class="msg" d="M272,458 L546,458" marker-end="url(#m-cyan)"/>
+        <text class="msg-lbl" x="410" y="452">subscribe runs.{id}.heatmap</text>
+        <g class="bl"><path class="msg ret" d="M548,468 L274,468" marker-end="url(#m-blue)"/>
+        <text class="msg-sub" x="410" y="481">live heatmap pushed</text></g>
         <text class="pill-note" x="950" y="376">still simulating…</text>
         <g class="badge"><circle cx="30" cy="353" r="11"/><text x="30" y="353">6</text></g>
       </g>
       <!-- 7: simulation finishes -->
-      <g class="seq idle" id="seq-7" style="--c:var(--col-purple)">
+      <g class="seq idle" id="seq-7" style="--c:var(--col-purple)" transform="translate(0,34)">
         <rect class="note" x="830" y="409" width="240" height="38" rx="8"/>
         <text class="note-t" x="950" y="426">Simulation finishes</text>
         <text class="note-s" x="950" y="440">Warmup → Measure → Drain</text>
         <g class="badge"><circle cx="830" cy="409" r="11"/><text x="830" y="409">7</text></g>
       </g>
       <!-- 8: fetch results -->
-      <g class="seq idle" id="seq-8" style="--c:var(--col-cyan)">
+      <g class="seq idle" id="seq-8" style="--c:var(--col-cyan)" transform="translate(0,34)">
         <rect class="note" x="30" y="465" width="240" height="38" rx="8"/>
         <text class="note-t" x="150" y="482">Fetch the results</text>
         <text class="note-s" x="150" y="496">when the state says completed</text>
@@ -834,7 +831,7 @@ body {
         <g class="badge"><circle cx="30" cy="465" r="11"/><text x="30" y="465">8</text></g>
       </g>
       <!-- 9: show results -->
-      <g class="seq idle" id="seq-9" style="--c:var(--col-green)">
+      <g class="seq idle" id="seq-9" style="--c:var(--col-green)" transform="translate(0,34)">
         <rect class="note" x="30" y="521" width="240" height="38" rx="8"/>
         <text class="note-t" x="150" y="538">Show the results</text>
         <text class="note-s" x="150" y="552">outcome · cycles · latency</text>
@@ -983,8 +980,8 @@ const FLOW_STEPS = [
     desc:"On that thread, Core builds SimulationEngine(cfg) and steps the loop until it is done. After every step it checks for cancellation and records the latency and heatmap windows." },
   { num:5, name:"Reply 202 Accepted", badge:"Server", badgeColor:"blue",
     desc:"Create replies at once with 202 Accepted, a Location header and the run_id (r_…), the status “queued” and the WebSocket channels for this run. It doesn't wait for the run, so the GUI never freezes on long runs." },
-  { num:6, name:"GUI subscribes to the run's state", badge:"GUI", badgeColor:"cyan",
-    desc:"There is no polling. The GUI subscribes to runs.{id}.state on /ws/v1 and the server pushes every status change, with the current phase and cycle. The live latency and heatmap updates arrive the same way, on runs.{id}.latency and runs.{id}.heatmap." },
+  { num:6, name:"GUI subscribes to the run's channels", badge:"GUI", badgeColor:"cyan",
+    desc:"There is no polling. The GUI sends a separate subscribe on /ws/v1 for each channel: runs.{id}.state, runs.{id}.latency and runs.{id}.heatmap. The server then pushes on each one: every status change with the current phase and cycle, and the live latency and heatmap updates." },
   { num:7, name:"Simulation finishes", badge:"Core", badgeColor:"purple",
     desc:"The run passes through Warmup, Measure and Drain, then completes. The outcome is “drained”, or “drain_limit_reached” if the Drain phase runs out of cycles." },
   { num:8, name:"Fetch the results", badge:"GUI", badgeColor:"cyan",

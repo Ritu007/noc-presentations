@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NoC Simulator — Internal Mesh &amp; Node Architecture</title>
+<title>NoC Simulator — Summary and Documentation</title>
 <meta name="description" content="Internal mesh and node architecture: where the internal mesh stands, the RN-F, SN-F and HN-F architecture flow documents, and the architecture document status.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -315,7 +315,7 @@ body {
   <a class="landing-toc-link" href="../index.html?end=1">← Table of Contents</a>
   <div class="landing-inner">
     <div class="landing-title-block">
-      <div class="landing-title">Internal Mesh &amp; Node Architecture</div>
+      <div class="landing-title">Summary and Documentation</div>
       <div class="landing-subtitle">C-DAC Network-on-Chip (NoC) Simulator</div>
     </div>
     <div class="landing-continue-row">
@@ -325,8 +325,8 @@ body {
       <div class="landing-card wide" onclick="Landing.enter()">
         <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-orange), var(--col-pink))">⊞</div>
         <div class="landing-card-text">
-          <div class="landing-card-name">Internal Mesh &amp; Node Architecture</div>
-          <div class="landing-card-desc">Where the internal mesh stands, the RN-F, SN-F and HN-F architecture flow documents, and the status of the architecture documents.</div>
+          <div class="landing-card-name">Summary and Documentation</div>
+          <div class="landing-card-desc">Where the internal mesh stands, the RN-F, SN-F and HN-F architecture flow documents, the status of the architecture documents, and how our documentation is kept.</div>
         </div>
         <div class="landing-card-arrow">→</div>
       </div>
@@ -359,13 +359,6 @@ body {
         </div>
         <div class="landing-card-arrow">↗</div>
       </a>
-      <a class="landing-card" href="../repo-presentation/index.html">
-        <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-purple), var(--col-orange))">⇆</div>
-        <div class="landing-card-text">
-          <div class="landing-card-name">Repository, CI/CD &amp; Documentation</div>
-        </div>
-        <div class="landing-card-arrow">↗</div>
-      </a>
       <a class="landing-card" href="../timeline-presentation/index.html">
         <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-pink), var(--col-orange))">⏱</div>
         <div class="landing-card-text">
@@ -379,8 +372,8 @@ body {
 <header id="app-header">
   <div class="brand">
     <div class="brand-icon">⊞</div>
-    <h1>NoC Simulator — Internal Mesh &amp; Node Architecture</h1>
-    <span class="chi-badge">Mesh &amp; Nodes</span>
+    <h1>NoC Simulator — Summary and Documentation</h1>
+    <span class="chi-badge">Summary &amp; Docs</span>
   </div>
   <div class="hdr-center" id="hdr-stage-info">
     Step <span id="hdr-num">1</span> of <span id="hdr-total">3</span>
@@ -396,8 +389,8 @@ body {
   <a href="javascript:void(0)" class="back-menu-link" onclick="Landing.show()">← Back to Main Menu</a>
   <div class="flow-switch">
     <div class="flow-switch-lbl">Switch Flow</div>
-    <a class="flow-switch-item fs-orange current" href="index.html?flow=deck">Internal Mesh &amp; Node Architecture</a>
-    <a class="flow-switch-item fs-purple" href="../repo-presentation/index.html">Repository &amp; CI/CD ↗</a>
+    <a class="flow-switch-item fs-orange current" href="index.html?flow=deck">Summary and Documentation</a>
+    <a class="flow-switch-item fs-teal" href="../testing-presentation/index.html">Testing &amp; Verification ↗</a>
   </div>
   <div class="nav-group-label">Presentation Pages</div>
   <button class="nav-item active" id="nav-0" onclick="App.goToPage(0)">
@@ -410,6 +403,11 @@ body {
     <div class="nav-text"><div class="nav-num">02</div><div class="nav-name">Document Status</div></div>
     <div class="nav-color-dot" style="background:var(--col-green)"></div>
   </button>
+  <button class="nav-item" id="nav-2" onclick="App.goToPage(2)">
+    <div class="nav-status-icon" id="nav-st-2"></div>
+    <div class="nav-text"><div class="nav-num">03</div><div class="nav-name">Documentation</div></div>
+    <div class="nav-color-dot" style="background:var(--col-teal)"></div>
+  </button>
   <div class="nav-kbd-hint">
     <span class="kbd">←</span><span class="kbd">→</span> navigate &nbsp;·&nbsp;
     <span class="kbd">Space</span> play
@@ -421,6 +419,9 @@ body {
   </div>
   <div id="page-docs" class="page-view frame-page">
     <div class="frame-card"><iframe id="frame-1" data-src="slides/document-status.html" title="Architecture document status" tabindex="-1"></iframe></div>
+  </div>
+  <div id="page-documentation" class="page-view frame-page">
+    <div class="frame-card"><iframe id="frame-2" data-src="slides/documentation.html" title="Documentation" tabindex="-1"></iframe></div>
   </div>
 </main>
 <!-- ══════════════════════════════════════════════════════════════
@@ -469,12 +470,19 @@ const DOC_STEPS = [
   { num:1, name:"Architecture Document Status", badge:"Documents", badgeColor:"green",
     desc:"The Router Architecture Specification v1.0 was reviewed by the C-DAC Hyderabad NoC team, and v2.0 incorporates their feedback and has gone to the SW team. The RN-F T1, SN-F T1, HN-F and RN-I architecture specifications are in progress." },
 ];
+const DOCUMENTATION_STEPS = [
+  { num:1, name:"Docs live next to the code", badge:"Docs", badgeColor:"teal",
+    desc:"All design documents are Markdown files in the Git repo, reviewed in pull requests like code, versioned, and updated in the same PR as the change they describe." },
+  { num:2, name:"Four document families", badge:"Families", badgeColor:"blue",
+    desc:"High-level design, low-level design, GUI design and supporting documents. The GUI design is still being finalised." },
+];
 const PAGES = [
   { id:"mesh", label:"Mesh & Node Status", steps: MESH_STEPS, render: () => {} },
   { id:"docs", label:"Document Status", steps: DOC_STEPS, render: () => {} },
+  { id:"documentation", label:"Documentation", steps: DOCUMENTATION_STEPS, render: () => {} },
 ];
 /* Neighbors in the master presentation sequence */
-const PREV_DECK_URL = "../repo-presentation/index.html?end=1";
+const PREV_DECK_URL = "../testing-presentation/index.html?end=1";
 const NEXT_DECK_URL = "../timeline-presentation/index.html";
 /* ================================================================
    RENDER HELPERS

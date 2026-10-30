@@ -5,7 +5,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <style>
-/* Layout: one selector row on top, one animated link diagram below; choosing a button swaps the diagram.
+/* Layout: the four animated link diagrams side by side.
    Single bright-on-white look by choice. */
 :root {
   --bg: #ffffff;
@@ -51,41 +51,11 @@ h1 {
   text-wrap: balance;
 }
 
-/* selector */
-.tabs { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 130px), 1fr)); gap: 8px; margin-bottom: 14px; }
-.tab {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 8px;
-  font: 700 12px/1.2 var(--mono);
-  letter-spacing: 0.04em;
-  text-align: center;
-  color: var(--fg);
-  background: #fff;
-  border: 1.5px solid var(--card-edge);
-  border-radius: 8px;
-  cursor: pointer;
-  transition: border-color .15s, background .15s;
-}
-.tab:hover { border-color: #9aa8bb; }
-.tab:focus-visible { outline: 3px solid #2563ff; outline-offset: 2px; }
-.tab[aria-selected="true"] { border-color: var(--ink); background: #f1f4f9; box-shadow: inset 0 -3px 0 var(--ink); }
-.swatch { display: flex; align-items: center; gap: 4px; }
-.swatch i { display: block; width: 26px; height: 12px; border-radius: 3px; border: 1.5px solid; }
-.swatch i.router { background: var(--router); border-color: var(--router-line); }
-.swatch i.hnf { background: var(--hnf); border-color: var(--hnf-line); }
-.swatch i.snf { background: var(--snf); border-color: var(--snf-line); }
-.swatch i.rnf { background: var(--rnf); border-color: var(--rnf-line); }
-.swatch b { font: 700 12px var(--mono); color: var(--signal); }
-
 /* stage */
-.stage { border: 1.5px solid var(--card-edge); border-radius: 10px; padding: 14px; }
-.stage-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; margin-bottom: 10px; }
-.stage-head h2 { margin: 0; min-width: 0; font: 700 12px/1.3 var(--mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
-.stage-body svg { display: block; width: 100%; max-width: 480px; height: auto; margin: 0 auto; }
+.grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.stage { min-width: 0; }
+.stage h2 { margin: 0 0 8px; font: 700 15px/1.3 var(--mono); text-align: center; color: var(--fg); }
+.stage-body svg { display: block; width: 100%; height: auto; }
 
 .ch-REQ { --body: var(--req-body); --line: var(--req-line); --flit: var(--req-flit); }
 .ch-DAT { --body: var(--dat-body); --line: var(--dat-line); --flit: var(--dat-flit); }
@@ -106,7 +76,7 @@ h1 {
 .flit-halo { fill: var(--flit); }
 .hit { fill: var(--flit); }
 .lane-label {
-  font: 700 11px var(--mono);
+  font: 700 15px var(--mono);
   letter-spacing: 0.08em;
   fill: var(--ink);
   text-anchor: middle;
@@ -117,20 +87,14 @@ h1 {
 }
 .credit-line { stroke: var(--signal); stroke-width: 1; opacity: 0.7; }
 .credit-head { fill: var(--signal); opacity: 0.85; }
-.credit-label { font: 500 10px var(--mono); letter-spacing: 0.04em; fill: var(--signal); text-anchor: middle; }
+.credit-label { font: 600 13px var(--mono); letter-spacing: 0.04em; fill: var(--signal); text-anchor: middle; }
 .credit-dot { fill: #1c2430; }
 .credit-halo { fill: #1c2430; }
 </style>
 
 <main class="wrap">
   <h1>CHI Flit Channels</h1>
-  <div class="tabs" id="tabs" role="tablist" aria-label="Port configuration"></div>
-  <section class="stage" id="panel" role="tabpanel">
-    <div class="stage-head">
-      <h2 id="stageTitle"></h2>
-    </div>
-    <div class="stage-body" id="stageBody"></div>
-  </section>
+  <div class="grid" id="grid"></div>
 </main>
 
 <script>
@@ -149,8 +113,8 @@ h1 {
   var PULSE = 0.9, LANE_START = 1.0, LANE_STEP = 0.5, BACK_OFFSET = 0.7;
 
   // geometry
-  var W = 400, H = 420, GX1 = 120, GX2 = 280;
-  var AX1 = 124, AX2 = 276, BODY_H = 18, HEAD_H = 32, HEAD_L = 24;
+  var W = 400, H = 640, GX1 = 120, GX2 = 280;
+  var AX1 = 124, AX2 = 276, BODY_H = 28, HEAD_H = 46, HEAD_L = 28;
 
   var LP = { k: "router", lines: ["CHI", "ROUTER", "(Local Port)"] };
   var CARDS = [
@@ -177,7 +141,7 @@ h1 {
     var cx = x + 60;
     var items = node.lines.map(function (t) {
       var sub = t.charAt(0) === "(";
-      var size = sub ? 13 : (node.lines.length === 1 ? 28 : 22);
+      var size = sub ? 14 : (node.lines.length === 1 ? 30 : 23);
       return { t: t, size: size, h: size * 1.3 };
     });
     var total = items.reduce(function (s, i) { return s + i.h; }, 0);
@@ -186,7 +150,7 @@ h1 {
       y += i.h;
       var t = el("text", { x: cx, y: y - i.size * 0.28, "class": "node-name", "font-size": i.size }, svg);
       t.textContent = i.t;
-      if (i.size === 13) t.setAttribute("font-weight", "600");
+      if (i.size === 14) t.setAttribute("font-weight", "600");
     });
   }
 
@@ -238,14 +202,13 @@ h1 {
   }
 
   function buildDiagram(cfg, parent) {
-    credits = []; lanes = [];
     var svg = el("svg", { viewBox: "0 0 " + W + " " + H, role: "img",
       "aria-label": "Animated flits on CHI channels, " + cfg.title }, parent);
     drawNode(svg, "L", cfg.L);
     drawNode(svg, "R", cfg.R);
     el("rect", { x: GX1, y: 0, width: GX2 - GX1, height: H, "class": "gutter" }, svg);
-    drawGroup(svg, cfg.fwd, 1, 34, 58, 150, 0);
-    drawGroup(svg, cfg.back, -1, 232, 256, 150, BACK_OFFSET);
+    drawGroup(svg, cfg.fwd, 1, 34, 52, 258, 0);
+    drawGroup(svg, cfg.back, -1, 342, 360, 258, BACK_OFFSET);
   }
 
   function render(T) {
@@ -291,58 +254,25 @@ h1 {
     }
   }
 
-  /* ---------- selector + playback ---------- */
-  var tabsEl = document.getElementById("tabs");
-  var panel = document.getElementById("panel");
-  var body = document.getElementById("stageBody");
-  var titleEl = document.getElementById("stageTitle");
+  /* ---------- build + playback ---------- */
+  var grid = document.getElementById("grid");
   var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  var T = 2.2, speed = 1, playing = true, last = null, current = -1;
-  var tabBtns = [];
-
-  CARDS.forEach(function (cfg, idx) {
-    var b = document.createElement("button");
-    b.type = "button"; b.className = "tab"; b.id = "tab" + idx;
-    b.setAttribute("role", "tab");
-    b.setAttribute("aria-controls", "panel");
-    var sw = document.createElement("span");
-    sw.className = "swatch";
-    var l = document.createElement("i"); l.className = cfg.L.k;
-    var m = document.createElement("b"); m.textContent = "⇄";
-    var r = document.createElement("i"); r.className = cfg.R.k;
-    sw.appendChild(l); sw.appendChild(m); sw.appendChild(r);
-    var t = document.createElement("span");
-    t.textContent = cfg.tab;
-    b.appendChild(sw); b.appendChild(t);
-    b.addEventListener("click", function () { select(idx, false); });
-    tabsEl.appendChild(b);
-    tabBtns.push(b);
+  CARDS.forEach(function (cfg) {
+    var stage = document.createElement("section");
+    stage.className = "stage";
+    var h = document.createElement("h2");
+    h.textContent = cfg.title;
+    var body = document.createElement("div");
+    body.className = "stage-body";
+    stage.appendChild(h);
+    stage.appendChild(body);
+    grid.appendChild(stage);
+    buildDiagram(cfg, body);
   });
 
-  tabsEl.addEventListener("keydown", function (e) {
-    var d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
-    if (!d) return;
-    e.preventDefault();
-    select(mod(current + d, CARDS.length), true);
-  });
-
-  function select(idx, focus) {
-    if (idx === current) return;
-    current = idx;
-    tabBtns.forEach(function (b, i) {
-      b.setAttribute("aria-selected", i === idx ? "true" : "false");
-      b.tabIndex = i === idx ? 0 : -1;
-    });
-    panel.setAttribute("aria-labelledby", "tab" + idx);
-    body.textContent = "";
-    titleEl.textContent = CARDS[idx].title;
-    buildDiagram(CARDS[idx], body);
-    T = 2.2;
-    last = null;
-    render(T);
-    if (focus) tabBtns[idx].focus();
-  }
+  var T = 2.2, speed = 1, playing = true, last = null;
+  render(T);
 
   function tick(now) {
     if (playing) {
@@ -353,20 +283,19 @@ h1 {
     requestAnimationFrame(tick);
   }
 
-  window.hwSlide = { goto: function (n) { select(n, false); } };
-  select(0, false);
+  window.hwSlide = { goto: function () {} };
   if (reduce) playing = false;
   requestAnimationFrame(tick);
 })();
 </script>
 
 <style id="hw-fit">
-/* fit inside the deck frame: the deck drives the steps, so the slide's own nav bar and text panel are hidden */
+/* fit inside the deck frame: a clicker cannot scroll */
 html,body{height:100%;overflow:hidden}
-h1,.tabs,.stage-head{display:none}
-.wrap{max-width:none;padding-block:8px}
-.stage{border:0;padding:0}
-.stage-body svg{max-width:none;width:auto;height:calc(100vh - 24px);margin:0 auto}
+h1{display:none}
+.wrap{max-width:none;height:100%;padding:8px 10px;display:flex;align-items:center}
+.grid{width:100%}
+.stage-body svg{max-height:calc(100vh - 56px)}
 </style>
 <script>
 /* Hardware deck bridge: arrow keys / Space are forwarded to the deck, and the deck drives this slide's steps. */
