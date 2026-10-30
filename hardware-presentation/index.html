@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NoC Simulator — Hardware Architecture &amp; Router Design</title>
-<meta name="description" content="Hardware Architecture &amp; Router Design: the updated CHI router, the complete vs simplified CHI handshake, the router link-layer interface, the node / device link handshake, the credit mechanism, QoS arbitration with aging, the router pipeline flow, and the CHI flit channels.">
+<meta name="description" content="Hardware Architecture &amp; Router Design: the updated CHI router, the complete vs simplified CHI handshake, the router link-layer interface, the node / device link handshake, QoS arbitration with aging, the router pipeline flow, and the CHI flit channels.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -326,7 +326,7 @@ body {
         <div class="landing-card-icon" style="background:linear-gradient(135deg, var(--col-purple), var(--col-blue))">⬡</div>
         <div class="landing-card-text">
           <div class="landing-card-name">Hardware Architecture &amp; Router Design</div>
-          <div class="landing-card-desc">The complete and simplified link handshakes compared, the CHI handshake, the updated CHI router, the credit mechanism, and QoS arbitration with aging, the router pipeline flow, and the CHI flit channels.</div>
+          <div class="landing-card-desc">The complete and simplified link handshakes compared, the CHI handshake, the updated CHI router, and QoS arbitration with aging, the router pipeline flow, and the CHI flit channels.</div>
         </div>
         <div class="landing-card-arrow">→</div>
       </div>
@@ -420,22 +420,17 @@ body {
   </button>
   <button class="nav-item" id="nav-3" onclick="App.goToPage(3)">
     <div class="nav-status-icon" id="nav-st-3"></div>
-    <div class="nav-text"><div class="nav-num">04</div><div class="nav-name">Credit Mechanism</div></div>
-    <div class="nav-color-dot" style="background:var(--col-pink)"></div>
+    <div class="nav-text"><div class="nav-num">04</div><div class="nav-name">QoS Arbitration</div></div>
+    <div class="nav-color-dot" style="background:var(--col-green)"></div>
   </button>
   <button class="nav-item" id="nav-4" onclick="App.goToPage(4)">
     <div class="nav-status-icon" id="nav-st-4"></div>
-    <div class="nav-text"><div class="nav-num">05</div><div class="nav-name">QoS Arbitration</div></div>
-    <div class="nav-color-dot" style="background:var(--col-green)"></div>
+    <div class="nav-text"><div class="nav-num">05</div><div class="nav-name">QoS Aging</div></div>
+    <div class="nav-color-dot" style="background:var(--col-blue)"></div>
   </button>
   <button class="nav-item" id="nav-5" onclick="App.goToPage(5)">
     <div class="nav-status-icon" id="nav-st-5"></div>
-    <div class="nav-text"><div class="nav-num">06</div><div class="nav-name">QoS Aging</div></div>
-    <div class="nav-color-dot" style="background:var(--col-blue)"></div>
-  </button>
-  <button class="nav-item" id="nav-6" onclick="App.goToPage(6)">
-    <div class="nav-status-icon" id="nav-st-6"></div>
-    <div class="nav-text"><div class="nav-num">07</div><div class="nav-name">CHI Flit Channels</div></div>
+    <div class="nav-text"><div class="nav-num">06</div><div class="nav-name">CHI Flit Channels</div></div>
     <div class="nav-color-dot" style="background:var(--col-purple)"></div>
   </button>
   <div class="nav-kbd-hint">
@@ -453,17 +448,14 @@ body {
   <div id="page-router" class="page-view frame-page">
     <div class="frame-card"><iframe id="frame-2" data-src="slides/router-overview.html" title="CHI router architecture and pipeline" tabindex="-1"></iframe></div>
   </div>
-  <div id="page-credit" class="page-view frame-page">
-    <div class="frame-card"><iframe id="frame-3" data-src="slides/credit-mechanism.html" title="Credit mechanism" tabindex="-1"></iframe></div>
-  </div>
   <div id="page-qosarb" class="page-view frame-page">
-    <div class="frame-card"><iframe id="frame-4" data-src="slides/qos-arbitration.html" title="VC QoS arbitration" tabindex="-1"></iframe></div>
+    <div class="frame-card"><iframe id="frame-3" data-src="slides/qos-arbitration.html" title="VC QoS arbitration" tabindex="-1"></iframe></div>
   </div>
   <div id="page-qosage" class="page-view frame-page">
-    <div class="frame-card"><iframe id="frame-5" data-src="slides/qos-aging.html" title="VC QoS aging" tabindex="-1"></iframe></div>
+    <div class="frame-card"><iframe id="frame-4" data-src="slides/qos-aging.html" title="VC QoS aging" tabindex="-1"></iframe></div>
   </div>
   <div id="page-flitch" class="page-view frame-page">
-    <div class="frame-card"><iframe id="frame-6" data-src="slides/chi-flit-channels.html" title="CHI flit channels" tabindex="-1"></iframe></div>
+    <div class="frame-card"><iframe id="frame-5" data-src="slides/chi-flit-channels.html" title="CHI flit channels" tabindex="-1"></iframe></div>
   </div>
 </main>
 <!-- ══════════════════════════════════════════════════════════════
@@ -517,14 +509,6 @@ const COMPARE_STEPS = [
   { num:2, name:"Link Handshake: Inbound Link", badge:"Inbound", badgeColor:"purple",
     desc:"The inbound link has the same changes: FLITPEND is removed from every channel, and the REQ / ACK pair is replaced by one rdyto_rcv_crds signal." },
 ];
-const CREDIT_STEPS = [
-  { num:1, name:"Credit Mechanism", badge:"Credits", badgeColor:"pink",
-    desc:`<ol class="band-points cols3">
-      <li>When the link is active (after rdyto_rcv_crds is asserted), the Receiver must provide L-Credits.</li>
-      <li>Each flit sent from the transmitter to the receiver consumes one L-Credit.</li>
-      <li>A Receiver can provide a minimum of 1 and a maximum of 15 L-Credits.</li>
-    </ol>` },
-];
 const QOSARB_STEPS = [
   { num:1, name:"Three Flits Waiting", badge:"QoS", badgeColor:"green",
     desc:"Three flits are waiting, one per virtual channel: VC1 (QoS 8), VC3 (QoS 12) and VC4 (QoS 2)." },
@@ -558,7 +542,6 @@ const PAGES = [
   { id:"linkcompare", label:"Link Handshake Comparison", steps: COMPARE_STEPS, render: () => {} },
   { id:"handshake", label:"CHI Handshake", steps: HANDSHAKE_STEPS, render: () => {} },
   { id:"router", label:"Router Architecture & Pipeline", steps: ROUTER_STEPS, render: () => {} },
-  { id:"credit", label:"Credit Mechanism", steps: CREDIT_STEPS, render: () => {} },
   { id:"qosarb", label:"QoS Arbitration", steps: QOSARB_STEPS, render: () => {} },
   { id:"qosage", label:"QoS Aging", steps: QOSAGE_STEPS, render: () => {} },
   { id:"flitch", label:"CHI Flit Channels", steps: FLITCH_STEPS, render: () => {} },
