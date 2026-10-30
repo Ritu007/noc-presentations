@@ -3,7 +3,7 @@
 ## Project
 Interactive HTML/CSS/JS presentation for a Network-on-Chip (NoC) Simulator, built for C-DAC.
 Plain static files, no build step, opened directly in a browser. Entry point: `index.html` (hub:
-Cover → Team → Table of Contents). The master clicker flow, in order:
+Cover → Table of Contents). The master clicker flow, in order:
 recap → quarterly → hardware → software progress → testing → (live demo, not a page) → summary and documentation → timeline → thank-you.
 - `recap-presentation/` (Recap: roadmap & CHI nodes, 6-port router, ports by router position, system architecture,
   flit lifecycle & router pipeline summary). Same iframe + `postMessage` slide bridge as `hardware-presentation/`;
@@ -42,7 +42,7 @@ and every exit (ArrowLeft/ArrowRight at either end, back links) returns to that 
 
 ## Hard requirement: fully keyboard/clicker-driven navigation
 This is delivered as a live talk. The presenter must be able to go through the ENTIRE
-presentation — hub cover/team/TOC, every deck's landing page, every step in every deck, and
+presentation — hub cover/TOC, every deck's landing page, every step in every deck, and
 every deck-to-deck transition — using only a presentation clicker (Right Arrow = next, Left
 Arrow = previous). No part of the flow should ever require walking back to the laptop to click
 a button or card with the mouse.

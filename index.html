@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Network-on-Chip (NoC) Simulator — C-DAC Northeast Centre</title>
   <meta name="description"
-    content="Master hub for the NoC Simulator project: cover, team, and a full table of contents linking into the Hardware Architecture, Software Development Progress, Verification & Validation, and Software Development Lifecycle presentations.">
+    content="Master hub for the NoC Simulator project: cover and a full table of contents linking into the Hardware Architecture, Software Development Progress, Verification & Validation, and Software Development Lifecycle presentations.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -210,142 +210,6 @@
       font-weight: 700;
       color: var(--muted);
       text-align: center;
-    }
-
-    /* ================================================================
-   SECTION 2 — TEAM
-================================================================ */
-    #hub-team {
-      justify-content: flex-start;
-    }
-
-    .team-hdr-box {
-      border: 1.5px solid var(--b2);
-      border-radius: var(--rs);
-      padding: .7rem 2.2rem;
-      margin-bottom: 2rem;
-      flex-shrink: 0;
-    }
-
-    .team-hdr-box .cover-title {
-      font-size: 1.5rem;
-    }
-
-    .team-row {
-      display: flex;
-      align-items: flex-start;
-      gap: 0;
-      width: 100%;
-      max-width: 95%;
-      flex: 1;
-      min-height: 0;
-    }
-
-    .team-cols {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr) 92px;
-      column-gap: 0;
-      row-gap: 1.4rem;
-      flex: 1;
-      width: 100%;
-    }
-
-    .member {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      gap: .4rem;
-      padding: 0 0.8rem;
-    }
-
-    .member[style*="grid-column:2"],
-    .member[style*="grid-column:3"],
-    .member[style*="grid-column:4"],
-    .member[style*="grid-column:5"] {
-      border-left: 2px dashed var(--b1);
-    }
-
-    .team-noc-label,
-    .team-other-label {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      height: 100%;
-      padding-left: .9rem;
-      border-left: 2px dashed var(--b1);
-      font-size: .76rem;
-      font-weight: 800;
-      letter-spacing: .03em;
-      text-transform: uppercase;
-      color: var(--muted);
-      line-height: 1.3;
-    }
-
-    .team-section-divider {
-      border-top: 2px dashed var(--b1);
-      margin: 0;
-    }
-
-    .avatar {
-      width: 88px;
-      height: 88px;
-      border-radius: 50%;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #fff;
-      font-weight: 800;
-      font-size: 1.25rem;
-      font-family: 'JetBrains Mono', monospace;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-      object-fit: cover;
-    }
-
-    .member-name {
-      font-size: 1.08rem;
-      font-weight: 800;
-      color: var(--text);
-    }
-
-    .member-role {
-      font-size: .92rem;
-      font-style: italic;
-      color: var(--muted);
-      margin-top: -4px;
-    }
-
-    .member-edu {
-      font-size: .84rem;
-      color: var(--dim);
-      line-height: 1.4;
-      margin-top: 2px;
-    }
-
-    .team-director-card .avatar {
-      width: 112px;
-      height: 112px;
-      font-size: 1.5rem;
-    }
-
-    .team-director-card .member-name {
-      font-size: 1.28rem;
-    }
-
-    .team-director-card .member-role {
-      font-size: 1.08rem;
-    }
-
-    .team-director-card .member-edu {
-      font-size: .96rem;
-    }
-
-    .member-edu .uni {
-      color: var(--col-blue);
-      font-weight: 600;
     }
 
     /* ================================================================
@@ -554,191 +418,6 @@
   </div>
 
   <!-- ══════════════════════════════════════════════════════════════
-     SECTION 2 — TEAM
-══════════════════════════════════════════════════════════════ -->
-  <div id="hub-team" class="hub-page">
-    <a class="hub-back" href="javascript:void(0)" onclick="Hub.prev()">← Back</a>
-    <div class="team-hdr-box">
-      <div class="cover-title">Team Members</div>
-    </div>
-
-    <!-- Photo fallback: drop files at assets/team/<slug>.jpg (slugs = lowercase-hyphenated names below)
-       to automatically replace the initials avatars — no code changes needed.
-       Grid: 5 member columns + 1 narrow side-label column, x 5 rows, each cell explicitly placed
-       via grid-column/grid-row. Col 1 = Director (row 1 only). Rows 1-2 = NoC Simulator team
-       (labelled via the col-6 side label), row 3 = thin divider, rows 4-5 = other team members
-       (labelled via the col-6 side label). Empty cells are invisible spacers (same inner
-       structure as a real card) to keep row heights aligned across columns. -->
-    <div class="team-row">
-      <div class="team-cols">
-        <div class="team-noc-label" style="grid-column:6; grid-row:1/3;">NoC Simulator Team</div>
-        <div class="team-other-label" style="grid-column:6; grid-row:4/6;">Other Team Members</div>
-
-        <!-- Row 1 = member row 1 -->
-        <div class="member team-director-card" style="grid-column:1; grid-row:1;">
-          <img class="avatar" src="assets/team/jitesh.jpeg" alt="Jitesh Choudhary"
-            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-          <div class="avatar" style="display:none; background:var(--col-purple);">JC</div>
-          <div class="member-name">Jitesh Choudhary</div>
-          <div class="member-role">Director / Centre Head</div>
-          <div class="member-edu">CDAC, Centre in Northeast<br>Guwahati</div>
-        </div>
-        <div class="member" style="grid-column:2; grid-row:1;">
-          <img class="avatar" src="assets/team/Chandermani.jpeg" alt="Chandermani"
-            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-          <div class="avatar" style="display:none; background:var(--col-cyan);">C</div>
-          <div class="member-name">Chandermani</div>
-          <div class="member-role">Knowledge Associate</div>
-          <div class="member-edu">M.Tech, Communication Engineering<br><span class="uni">IIT Guwahati</span></div>
-        </div>
-        <div class="member" style="grid-column:3; grid-row:1;">
-          <img class="avatar" src="assets/team/Rituraj.jpeg" alt="Rituraj Das"
-            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-          <div class="avatar" style="display:none; background:var(--col-blue);">RD</div>
-          <div class="member-name">Rituraj Das</div>
-          <div class="member-role">Project Engineer</div>
-          <div class="member-edu">M.Tech, Artificial Intelligence<br><span class="uni">NIT Silchar</span></div>
-        </div>
-        <div class="member" style="grid-column:4; grid-row:1;">
-          <img class="avatar" src="assets/team/Nibaran.jpeg" alt="Nibaran Saikia"
-            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-          <div class="avatar" style="display:none; background:var(--col-teal);">NS</div>
-          <div class="member-name">Nibaran Saikia</div>
-          <div class="member-role">Project Engineer</div>
-          <div class="member-edu">B.Tech, ECE<br><span class="uni">NIT Silchar</span></div>
-        </div>
-        <div class="member" style="grid-column:5; grid-row:1;">
-          <img class="avatar" src="assets/team/Shubham.jpeg" alt="Shubham Tomar"
-            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-          <div class="avatar" style="display:none; background:var(--col-blue);">ST</div>
-          <div class="member-name">Shubham Tomar</div>
-          <div class="member-role">Project Engineer</div>
-          <div class="member-edu">M.Tech, Communication Engineering<br><span class="uni">NIT Jamshedpur</span></div>
-        </div>
-
-        <div class="member" style="grid-column:1; grid-row:2; visibility:hidden;">
-          <div class="avatar"></div>
-          <div class="member-name">&nbsp;</div>
-          <div class="member-role">&nbsp;</div>
-          <div class="member-edu">&nbsp;<br>&nbsp;</div>
-        </div>
-        <div class="member" style="grid-column:2; grid-row:2;">
-          <img class="avatar" src="assets/team/hemant.jpeg" alt="Teeda Hemanth Kumar"
-            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-          <div class="avatar" style="display:none; background:var(--col-orange);">HK</div>
-          <div class="member-name">Teeda Hemanth Kumar</div>
-          <div class="member-role">Knowledge Associate</div>
-          <div class="member-edu">M.Tech, VLSI Design<br><span class="uni">IIT JAMMU</span></div>
-        </div>
-        <div class="member" style="grid-column:3; grid-row:2;">
-          <img class="avatar" src="assets/team/sai.jpeg" alt="Uggina Kumar Sai"
-            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-          <div class="avatar" style="display:none; background:var(--col-blue);">KS</div>
-          <div class="member-name">Uggina Kumar Sai</div>
-          <div class="member-role">Project Associate</div>
-          <div class="member-edu">B.Tech, CSE<br><span class="uni">Sreenivasa Institute of Tech</span></div>
-        </div>
-        <div class="member" style="grid-column:4; grid-row:2;">
-          <img class="avatar" src="assets/team/Chandan.jpeg" alt="Chandan Boruah"
-            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-          <div class="avatar" style="display:none; background:var(--col-purple);">CB</div>
-          <div class="member-name">Chandan Boruah</div>
-          <div class="member-role">Project Associate</div>
-          <div class="member-edu">MCA, CSE<br><span class="uni">Harcourt Butler Tech Univ, Kanpur</span></div>
-        </div>
-        <div class="member" style="grid-column:5; grid-row:2; visibility:hidden;">
-          <div class="avatar"></div>
-          <div class="member-name">&nbsp;</div>
-          <div class="member-role">&nbsp;</div>
-          <div class="member-edu">&nbsp;<br>&nbsp;</div>
-        </div>
-
-        <div class="team-section-divider" style="grid-column:2/6; grid-row:3;"></div>
-
-        <!-- Row 4/5 = member rows 3/4 -->
-        <div class="member" style="grid-column:1; grid-row:4; visibility:hidden;">
-          <div class="avatar"></div>
-          <div class="member-name">&nbsp;</div>
-          <div class="member-role">&nbsp;</div>
-          <div class="member-edu">&nbsp;<br>&nbsp;</div>
-        </div>
-        <div class="member" style="grid-column:2; grid-row:4;">
-          <img class="avatar" src="assets/team/Ritu.png" alt="Dr. Ritu Daryani"
-            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-          <div class="avatar" style="display:none; background:var(--col-yellow);">RD</div>
-          <div class="member-name">Dr. Ritu Daryani</div>
-          <div class="member-role">Project Engineer</div>
-          <div class="member-edu">PhD, EEE<br><span class="uni">NSUT, New Delhi</span></div>
-        </div>
-        <div class="member" style="grid-column:3; grid-row:4;">
-          <img class="avatar" src="assets/team/Anish.jpeg" alt="Anish S"
-            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-          <div class="avatar" style="display:none; background:var(--col-purple);">AS</div>
-          <div class="member-name">Anish S</div>
-          <div class="member-role">Knowledge Associate</div>
-          <div class="member-edu">M.Tech, Artificial Intelligence<br><span class="uni">IIT Jodhpur</span></div>
-        </div>
-        <div class="member" style="grid-column:4; grid-row:4;">
-          <img class="avatar" src="assets/team/tashfin.png" alt="Tashfin Ahmed"
-            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-          <div class="avatar" style="display:none; background:var(--col-cyan);">TA</div>
-          <div class="member-name">Tashfin Ahmed</div>
-          <div class="member-role">Knowledge Associate</div>
-          <div class="member-edu">M.Tech, VLSI<br><span class="uni">IIT Jodhpur</span></div>
-        </div>
-        <div class="member" style="grid-column:5; grid-row:4;">
-          <img class="avatar" src="assets/team/Imran.jpeg" alt="Imran Hussain"
-            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-          <div class="avatar" style="display:none; background:var(--col-orange);">IH</div>
-          <div class="member-name">Imran Hussain</div>
-          <div class="member-role">Project Engineer</div>
-          <div class="member-edu">M.Tech, VLSI Design<br><span class="uni">Assam University</span></div>
-        </div>
-
-        <div class="member" style="grid-column:1; grid-row:5; visibility:hidden;">
-          <div class="avatar"></div>
-          <div class="member-name">&nbsp;</div>
-          <div class="member-role">&nbsp;</div>
-          <div class="member-edu">&nbsp;<br>&nbsp;</div>
-        </div>
-        <div class="member" style="grid-column:2; grid-row:5;">
-          <img class="avatar" src="assets/team/Sushama.jpeg" alt="Sushama"
-            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-          <div class="avatar" style="display:none; background:var(--col-pink);">S</div>
-          <div class="member-name">Sushama</div>
-          <div class="member-role">Project Associate</div>
-          <div class="member-edu">M.Tech, VLSI Design<br><span class="uni">Jadavpur University</span></div>
-        </div>
-        <div class="member" style="grid-column:3; grid-row:5;">
-          <img class="avatar" src="assets/team/Bhanu.jpeg" alt="Bhanuday Bhardwaj"
-            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-          <div class="avatar" style="display:none; background:var(--col-green);">BB</div>
-          <div class="member-name">Bhanuday Bhardwaj</div>
-          <div class="member-role">Project Associate</div>
-          <div class="member-edu">B.Tech, ECE<br><span class="uni">Chandigarh University</span></div>
-        </div>
-        <div class="member" style="grid-column:4; grid-row:5; visibility:hidden;">
-          <div class="avatar"></div>
-          <div class="member-name">&nbsp;</div>
-          <div class="member-role">&nbsp;</div>
-          <div class="member-edu">&nbsp;<br>&nbsp;</div>
-        </div>
-        <div class="member" style="grid-column:5; grid-row:5; visibility:hidden;">
-          <div class="avatar"></div>
-          <div class="member-name">&nbsp;</div>
-          <div class="member-role">&nbsp;</div>
-          <div class="member-edu">&nbsp;<br>&nbsp;</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="hub-continue-row">
-      <button class="hub-btn ghost" onclick="Hub.prev()">⬅ Back</button>
-      <button class="hub-btn primary" onclick="Hub.next()">Continue →</button>
-    </div>
-  </div>
-
-  <!-- ══════════════════════════════════════════════════════════════
      SECTION 3 — CONTENT / TABLE OF CONTENTS
 ══════════════════════════════════════════════════════════════ -->
 
@@ -906,9 +585,9 @@
         document.querySelectorAll(".hub-page").forEach((el, i) => el.classList.toggle("active", i === idx));
       },
       next() {
-        /* idx 2 is the TOC — Right steps into the Recap deck, which leads on to
+        /* idx 1 is the TOC — Right steps into the Recap deck, which leads on to
            the Quarterly Progress deck. */
-        if (this.idx === 2) { window.location.href = "recap-presentation/index.html"; return; }
+        if (this.idx === 1) { window.location.href = "recap-presentation/index.html"; return; }
         this.show(this.idx + 1);
       },
       prev() {
@@ -925,7 +604,7 @@
     /* Arriving back from the Recap deck's Prev at its very first slide —
        land on the TOC instead of the cover. */
     if (new URLSearchParams(location.search).get("end") === "1") {
-      Hub.show(2);
+      Hub.show(1);
     }
   </script>
 </body>
