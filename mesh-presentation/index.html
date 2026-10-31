@@ -400,12 +400,12 @@ body {
   </button>
   <button class="nav-item" id="nav-1" onclick="App.goToPage(1)">
     <div class="nav-status-icon" id="nav-st-1"></div>
-    <div class="nav-text"><div class="nav-num">02</div><div class="nav-name">Document Status</div></div>
+    <div class="nav-text"><div class="nav-num">02</div><div class="nav-name">Specification Documents</div></div>
     <div class="nav-color-dot" style="background:var(--col-green)"></div>
   </button>
   <button class="nav-item" id="nav-2" onclick="App.goToPage(2)">
     <div class="nav-status-icon" id="nav-st-2"></div>
-    <div class="nav-text"><div class="nav-num">03</div><div class="nav-name">Documentation</div></div>
+    <div class="nav-text"><div class="nav-num">03</div><div class="nav-name">Design Documents</div></div>
     <div class="nav-color-dot" style="background:var(--col-teal)"></div>
   </button>
   <div class="nav-kbd-hint">
@@ -418,10 +418,10 @@ body {
     <div class="frame-card"><iframe id="frame-0" data-src="slides/mesh-overview.html" title="Mesh and node overview" tabindex="-1"></iframe></div>
   </div>
   <div id="page-docs" class="page-view frame-page">
-    <div class="frame-card"><iframe id="frame-1" data-src="slides/document-status.html" title="Architecture document status" tabindex="-1"></iframe></div>
+    <div class="frame-card"><iframe id="frame-1" data-src="slides/document-status.html" title="Specification documents" tabindex="-1"></iframe></div>
   </div>
   <div id="page-documentation" class="page-view frame-page">
-    <div class="frame-card"><iframe id="frame-2" data-src="slides/documentation.html" title="Documentation" tabindex="-1"></iframe></div>
+    <div class="frame-card"><iframe id="frame-2" data-src="slides/documentation.html" title="Design documents" tabindex="-1"></iframe></div>
   </div>
 </main>
 <!-- ══════════════════════════════════════════════════════════════
@@ -467,7 +467,7 @@ const MESH_STEPS = [
     desc:"We are currently evolving the architecture flow documents of the RN-F, SN-F and HN-F, based on the architecture specification received from the C-DAC Hyderabad NoC team." },
 ];
 const DOC_STEPS = [
-  { num:1, name:"Architecture Document Status", badge:"Documents", badgeColor:"green",
+  { num:1, name:"Specification Documents", badge:"Documents", badgeColor:"green",
     desc:"The Router Architecture Specification v1.0 was reviewed by the C-DAC Hyderabad NoC team, and v2.0 incorporates their feedback and has gone to the SW team. The RN-F T1, SN-F T1, HN-F and RN-I architecture specifications are in progress." },
 ];
 const DOCUMENTATION_STEPS = [
@@ -478,8 +478,8 @@ const DOCUMENTATION_STEPS = [
 ];
 const PAGES = [
   { id:"mesh", label:"Mesh & Node Status", steps: MESH_STEPS, render: () => {} },
-  { id:"docs", label:"Document Status", steps: DOC_STEPS, render: () => {} },
-  { id:"documentation", label:"Documentation", steps: DOCUMENTATION_STEPS, render: () => {} },
+  { id:"docs", label:"Specification Documents", steps: DOC_STEPS, render: () => {} },
+  { id:"documentation", label:"Design Documents", steps: DOCUMENTATION_STEPS, render: () => {} },
 ];
 /* Neighbors in the master presentation sequence */
 const PREV_DECK_URL = "../testing-presentation/index.html?end=1";
