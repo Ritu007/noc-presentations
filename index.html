@@ -33,6 +33,7 @@
       --col-pink: #db2777;
       --col-yellow: #d97706;
       --col-teal: #0d9488;
+      --col-maroon: #7a1f2b;
       --navy: #10265c;
 
       --r: 12px;
@@ -162,12 +163,29 @@
     }
 
     .cover-title {
-      font-size: 3.5rem;
+      font-size: 5.6rem;
       font-weight: 800;
       text-decoration: underline;
-      text-underline-offset: 6px;
+      text-underline-offset: 8px;
       text-align: center;
-      letter-spacing: -.3px;
+      letter-spacing: 1px;
+      color: var(--col-maroon);
+    }
+
+    .cover-tagline {
+      margin-top: .6rem;
+      font-size: 1.4rem;
+      font-weight: 500;
+      font-style: italic;
+      text-align: center;
+      color: var(--muted);
+      letter-spacing: .1px;
+    }
+
+    .cover-tagline .acr {
+      font-size: 1.35em;
+      font-weight: 800;
+      color: var(--col-maroon);
     }
 
     .cdac-logo-wrap {
@@ -203,13 +221,6 @@
       letter-spacing: 3px;
       color: var(--dim);
       text-transform: uppercase;
-    }
-
-    .cover-subtitle {
-      font-size: 1.8rem;
-      font-weight: 700;
-      color: var(--muted);
-      text-align: center;
     }
 
     /* ================================================================
@@ -409,9 +420,9 @@
       </div>
     </div>
     <div class="cover-box">
-      <div class="cover-title">Network-on-Chip (NoC) Simulator</div>
+      <div class="cover-title">SARTHI</div>
+      <div class="cover-tagline">A Tool for <span class="acr">S</span>imulation <span class="acr">A</span>nalysis of <span class="acr">R</span>outing, <span class="acr">T</span>raffic and <span class="acr">H</span>ardware <span class="acr">I</span>nterconnects</div>
     </div>
-    <div class="cover-subtitle">C-DAC Northeast Centre, Guwahati, Assam</div>
     <div class="hub-continue-row">
       <button class="hub-btn primary" onclick="Hub.next()">Continue →</button>
     </div>
