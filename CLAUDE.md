@@ -11,7 +11,7 @@ recap → quarterly → hardware → software progress → testing → (live dem
   finished state, with no bottom text: a step with an empty `desc` hides the bottom band).
 - `quarterly-presentation/` (Quarterly Progress Report, Aug–Oct 2026: a one-page dashboard slide in an iframe, same bridge as
   `hardware-presentation/`; its single step has no `desc`, which hides the bottom band)
-- `hardware-presentation/` (Hardware Architecture & Router Design: complete vs simplified link handshake comparison, CHI handshake, CHI router architecture and pipeline, QoS arbitration, QoS aging, CHI flit channels). Each page embeds a standalone slide from
+- `hardware-presentation/` (Hardware Architecture & Router Design: complete vs simplified link handshake comparison, CHI handshake, CHI router architecture and pipeline, CHI flit channels). Each page embeds a standalone slide from
   `hardware-presentation/slides/` in an iframe; the slide forwards ArrowLeft/ArrowRight/Space to the deck
   via `postMessage` and the deck tells it which step to show (see `Slides` in the deck's `index.html`).
 - `presentation/` (Software Development Progress: simulation coverage, architecture, API/Drogon, run flow,
